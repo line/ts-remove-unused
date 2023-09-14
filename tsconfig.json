@@ -1,0 +1,12 @@
+{
+  "compilerOptions": {
+    "module": "Node16",
+    "lib": ["ES2023"],
+    "target": "ES2022",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true
+  },
+  "include": ["src"]
+}
