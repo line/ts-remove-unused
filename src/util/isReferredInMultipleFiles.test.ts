@@ -1,5 +1,7 @@
 import { Node, Project } from 'ts-morph';
 import { isReferredInMultipleFiles } from './isReferredInMultipleFiles.js';
+import { describe, it } from 'node:test';
+import assert from 'node:assert/strict';
 
 describe('isReferredInMultipleFiles', () => {
   // todo: issue in ts-morph, think of alternative solution
@@ -24,7 +26,7 @@ describe('isReferredInMultipleFiles', () => {
         throw new Error();
       }
 
-      expect(isReferredInMultipleFiles(declaration)).toBe(true);
+      assert.equal(isReferredInMultipleFiles(declaration), true);
     });
   });
 });

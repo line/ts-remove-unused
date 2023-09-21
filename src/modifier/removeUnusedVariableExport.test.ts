@@ -1,5 +1,6 @@
 import { Project } from 'ts-morph';
-
+import { describe, it } from 'node:test';
+import assert from 'node:assert/strict';
 import { removeUnusedVariableExport } from './removeUnusedVariableExport.js';
 
 describe('removeUnusedVariableExport', () => {
@@ -23,7 +24,7 @@ describe('removeUnusedVariableExport', () => {
 
     const result = file.getFullText();
 
-    expect(result.trim()).toBe(`export const hello = 'hello';`);
+    assert.equal(result.trim(), `export const hello = 'hello';`);
   });
 
   it('should remove export for variable if its not used in some other file', () => {
@@ -36,7 +37,7 @@ describe('removeUnusedVariableExport', () => {
 
     const result = file.getFullText();
 
-    expect(result.trim()).toBe(`const world = 'world';`);
+    assert.equal(result.trim(), `const world = 'world';`);
   });
 
   it('should not remove export if it has a comment to ignore', () => {
@@ -50,8 +51,11 @@ export const world = 'world';`,
 
     const result = file.getFullText();
 
-    expect(result.trim()).toBe(`// ts-remove-unused-skip
-export const world = 'world';`);
+    assert.equal(
+      result.trim(),
+      `// ts-remove-unused-skip
+export const world = 'world';`,
+    );
   });
 
   it('should ignore default exports', () => {
@@ -64,6 +68,6 @@ export const world = 'world';`);
 
     const result = file.getFullText();
 
-    expect(result.trim()).toBe(`const world = 'world'; export default world;`);
+    assert.equal(result.trim(), `const world = 'world'; export default world;`);
   });
 });

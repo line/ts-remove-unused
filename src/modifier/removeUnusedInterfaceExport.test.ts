@@ -1,5 +1,6 @@
 import { Project } from 'ts-morph';
-
+import { describe, it } from 'node:test';
+import assert from 'node:assert/strict';
 import { removeUnusedInterfaceExport } from './removeUnusedInterfaceExport.js';
 
 describe('removeUnusedInterfaceExport', () => {
@@ -23,7 +24,7 @@ describe('removeUnusedInterfaceExport', () => {
 
     const result = file.getFullText();
 
-    expect(result.trim()).toBe(`export interface Hello { hello: 'hello' }`);
+    assert.equal(result.trim(), `export interface Hello { hello: 'hello' }`);
   });
 
   it('should remove export for interface if its not used in some other file', () => {
@@ -36,7 +37,7 @@ describe('removeUnusedInterfaceExport', () => {
 
     const result = file.getFullText();
 
-    expect(result.trim()).toBe(`interface World { world: 'world' }`);
+    assert.equal(result.trim(), `interface World { world: 'world' }`);
   });
 
   it('should not remove export if it has a comment to ignore', () => {
@@ -50,8 +51,11 @@ export interface World { world: 'world' }`,
 
     const result = file.getFullText();
 
-    expect(result.trim()).toBe(`// ts-remove-unused-skip
-export interface World { world: 'world' }`);
+    assert.equal(
+      result.trim(),
+      `// ts-remove-unused-skip
+export interface World { world: 'world' }`,
+    );
   });
 
   it('should ignore default exports', () => {
@@ -64,7 +68,8 @@ export interface World { world: 'world' }`);
 
     const result = file.getFullText();
 
-    expect(result.trim()).toBe(
+    assert.equal(
+      result.trim(),
       `interface World { world: 'world' }; export default World;`,
     );
   });
