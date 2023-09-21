@@ -16,15 +16,12 @@
     "test": "jest src"
   },
   "devDependencies": {
-    "@types/jest": "^29.5.0",
     "@typescript-eslint/eslint-plugin": "^6.4.1",
     "@typescript-eslint/parser": "^6.4.1",
     "eslint": "^8.48.0",
     "eslint-config-prettier": "^9.0.0",
     "eslint-plugin-prettier": "^5.0.0",
-    "jest": "^29.5.0",
-    "prettier": "^3.0.2",
-    "ts-jest": "^29.1.0"
+    "prettier": "^3.0.2"
   },
   "dependencies": {
     "cac": "^6.7.14",
