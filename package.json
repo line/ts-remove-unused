@@ -13,7 +13,7 @@
     "build": "rm -rf dist && tsc --outDir dist",
     "type-check": "tsc --noEmit",
     "prepublishOnly": "npm run build",
-    "test": "jest src"
+    "test": "glob -c 'node --loader ts-node/esm --test' 'src/**/*.test.ts'"
   },
   "devDependencies": {
     "@types/node": "^20.6.3",
