@@ -1,5 +1,6 @@
 import { Project } from 'ts-morph';
-
+import { describe, it } from 'node:test';
+import assert from 'node:assert/strict';
 import { removeUnusedTypeExport } from './removeUnusedTypeExport.js';
 
 describe('removeUnusedTypeExport', () => {
@@ -23,7 +24,7 @@ describe('removeUnusedTypeExport', () => {
 
     const result = file.getFullText();
 
-    expect(result.trim()).toBe(`export type Hello = 'hello';`);
+    assert.equal(result.trim(), `export type Hello = 'hello';`);
   });
 
   it('should remove export for type if its not used in some other file', () => {
@@ -36,7 +37,7 @@ describe('removeUnusedTypeExport', () => {
 
     const result = file.getFullText();
 
-    expect(result.trim()).toBe(`type World = 'world';`);
+    assert.equal(result.trim(), `type World = 'world';`);
   });
 
   it('should not remove export if it has a comment to ignore', () => {
@@ -50,8 +51,11 @@ export type World = 'world';`,
 
     const result = file.getFullText();
 
-    expect(result.trim()).toBe(`// ts-remove-unused-skip
-export type World = 'world';`);
+    assert.equal(
+      result.trim(),
+      `// ts-remove-unused-skip
+export type World = 'world';`,
+    );
   });
 
   it('should ignore default exports', () => {
@@ -64,6 +68,6 @@ export type World = 'world';`);
 
     const result = file.getFullText();
 
-    expect(result.trim()).toBe(`type World = 'world'; export default World;`);
+    assert.equal(result.trim(), `type World = 'world'; export default World;`);
   });
 });

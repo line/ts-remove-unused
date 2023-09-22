@@ -1,5 +1,6 @@
 import { Project } from 'ts-morph';
-
+import { describe, it } from 'node:test';
+import assert from 'node:assert/strict';
 import { removeUnusedFunctionExport } from './removeUnusedFunctionExport.js';
 
 describe('removeUnusedFunctionExport', () => {
@@ -23,7 +24,7 @@ describe('removeUnusedFunctionExport', () => {
 
     const result = file.getFullText();
 
-    expect(result.trim()).toBe(`export function hello() {};`);
+    assert.equal(result.trim(), `export function hello() {};`);
   });
 
   it('should remove export for function if its not used in some other file', () => {
@@ -36,7 +37,7 @@ describe('removeUnusedFunctionExport', () => {
 
     const result = file.getFullText();
 
-    expect(result.trim()).toBe(`function world() {};`);
+    assert.equal(result.trim(), `function world() {};`);
   });
 
   it('should not remove export if it has a comment to ignore', () => {
@@ -50,7 +51,10 @@ export function world() {};`,
 
     const result = file.getFullText();
 
-    expect(result.trim()).toBe(`// ts-remove-unused-skip
-export function world() {};`);
+    assert.equal(
+      result.trim(),
+      `// ts-remove-unused-skip
+export function world() {};`,
+    );
   });
 });

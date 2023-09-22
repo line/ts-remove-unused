@@ -1,6 +1,8 @@
 import { Project } from 'ts-morph';
 import { isUsedFile } from './isUsedFile.js';
 import { IGNORE_COMMENT } from './shouldIgnore.js';
+import { describe, it } from 'node:test';
+import assert from 'node:assert/strict';
 
 describe('isUsedFile', () => {
   it('should return true if some exports are used in some other file', () => {
@@ -33,10 +35,10 @@ describe('isUsedFile', () => {
       `export function b() {}; export const c = 1; export type D = number; export interface E {};`,
     );
 
-    expect(isUsedFile(b)).toBe(true);
-    expect(isUsedFile(c)).toBe(true);
-    expect(isUsedFile(d)).toBe(true);
-    expect(isUsedFile(e)).toBe(true);
+    assert.equal(isUsedFile(b), true);
+    assert.equal(isUsedFile(c), true);
+    assert.equal(isUsedFile(d), true);
+    assert.equal(isUsedFile(e), true);
   });
 
   it('should return false if all exports are not used in any other file', () => {
@@ -49,7 +51,7 @@ describe('isUsedFile', () => {
       `export function b() {}; export const c = 1; export type D = number; export interface E {};`,
     );
 
-    expect(isUsedFile(b)).toBe(false);
+    assert.equal(isUsedFile(b), false);
   });
 
   it('should return true if some exports are marked with a skip comment', () => {
@@ -84,10 +86,10 @@ describe('isUsedFile', () => {
       export interface E {};`,
     );
 
-    expect(isUsedFile(b)).toBe(true);
-    expect(isUsedFile(c)).toBe(true);
-    expect(isUsedFile(d)).toBe(true);
-    expect(isUsedFile(e)).toBe(true);
+    assert.equal(isUsedFile(b), true);
+    assert.equal(isUsedFile(c), true);
+    assert.equal(isUsedFile(d), true);
+    assert.equal(isUsedFile(e), true);
   });
 
   it('should return true if the file has a default export', () => {
@@ -125,11 +127,11 @@ describe('isUsedFile', () => {
       `function b() {}; export const c = 1; export type D = number; interface E {}; export default E;`,
     );
 
-    expect(isUsedFile(b)).toBe(true);
-    expect(isUsedFile(bAlt)).toBe(true);
-    expect(isUsedFile(c)).toBe(true);
-    expect(isUsedFile(d)).toBe(true);
-    expect(isUsedFile(e)).toBe(true);
-    expect(isUsedFile(eAlt)).toBe(true);
+    assert.equal(isUsedFile(b), true);
+    assert.equal(isUsedFile(bAlt), true);
+    assert.equal(isUsedFile(c), true);
+    assert.equal(isUsedFile(d), true);
+    assert.equal(isUsedFile(e), true);
+    assert.equal(isUsedFile(eAlt), true);
   });
 });
