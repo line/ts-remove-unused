@@ -12,15 +12,20 @@ cli
     '--skip <regexp_pattern>',
     'Specify the regexp pattern to match files that should be skipped from transforming',
   )
+  .option('--include-d-ts', 'Include .d.ts files in target for transformation')
   .action((options) => {
+    const skip =
+      options.skip && Array.isArray(options.skip)
+        ? options.skip
+        : typeof options.skip === 'string'
+        ? [options.skip]
+        : [];
+    if (!options['includeD-ts']) {
+      skip.push('\\.d\\.ts');
+    }
     execute({
       tsConfigFilePath: options.project || './tsconfig.json',
-      skip:
-        options.skip && Array.isArray(options.skip)
-          ? options.skip
-          : typeof options.skip === 'string'
-          ? [options.skip]
-          : [],
+      skip,
     });
   });
 
