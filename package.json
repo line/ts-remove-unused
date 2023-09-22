@@ -1,6 +1,6 @@
 {
   "name": "@line/ts-remove-unused",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Remove unused code from your TypeScript project",
   "type": "module",
   "license": "Apache-2.0",
