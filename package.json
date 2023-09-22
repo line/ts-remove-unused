@@ -3,6 +3,10 @@
   "version": "0.2.0",
   "description": "Remove unused code from your TypeScript project",
   "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/line/ts-remove-unused"
+  },
   "license": "Apache-2.0",
   "bin": "dist/index.js",
   "files": [
