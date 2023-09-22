@@ -56,6 +56,7 @@ Since this CLI uses TypeScript's transformer API, it can't preserve the original
 ```bash
 npx ts-remove-unused ## execute the cli
 npx prettier --write . ## fix the format
+git add .
 git commit ## commit first
 git checkout HEAD~1 -- . && git diff HEAD~1 HEAD --ignore-blank-lines | git apply && git reset ## this will try to restore irrelevant changes of empty lines caused by the first commit
 ```
