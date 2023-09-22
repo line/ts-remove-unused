@@ -24,6 +24,7 @@ For more info, run any command with the `--help` flag:
 Options:
   --project <file>         Path to your tsconfig.json
   --skip <regexp_pattern>  Specify the regexp pattern to match files that should be skipped from transforming
+  --include-d-ts           Include .d.ts files in target for transformation
   -h, --help               Display this message
   -v, --version            Display version number
 
@@ -45,6 +46,8 @@ When you add a comment `// ts-remove-unused-skip` to your export declaration, th
 // ts-remove-unused-skip
 export const hello = 'world';
 ```
+
+By default, .d.ts files are skipped. If you want to include .d.ts files, use the --include-d-ts option.
 
 ## Known Issue
 
