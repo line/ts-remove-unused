@@ -11,6 +11,7 @@
   "scripts": {
     "lint": "eslint . --ext .ts,.cjs,.js",
     "build": "rm -rf dist && tsc --outDir dist",
+    "type-check": "tsc --noEmit",
     "prepublishOnly": "npm run build",
     "test": "jest src"
   },
