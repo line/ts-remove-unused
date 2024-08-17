@@ -14,8 +14,8 @@
   ],
   "scripts": {
     "lint": "eslint . --ext .ts,.cjs,.js",
-    "build": "rm -rf dist && tsc --outDir dist",
-    "type-check": "tsc --noEmit",
+    "build": "rm -rf dist && tsc -b -f tsconfig.lib.json",
+    "type-check": "tsc -b",
     "prepublishOnly": "npm run build",
     "test": "glob -c 'node --loader ts-node/esm --test' 'src/**/*.test.ts'"
   },
