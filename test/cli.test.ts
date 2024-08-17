@@ -42,7 +42,7 @@ const getExports = (sourceFile: ts.SourceFile, service: ts.LanguageService) => {
         }
 
         const references = service.findReferences(
-          'operations.ts',
+          sourceFile.fileName,
           variableDeclaration.getStart(),
         );
 
@@ -60,7 +60,7 @@ const getExports = (sourceFile: ts.SourceFile, service: ts.LanguageService) => {
         }
 
         result.push({
-          file: 'operations.ts',
+          file: sourceFile.fileName,
           count: references.length,
           identifier: identifier.getText(),
         });
@@ -79,8 +79,8 @@ const getExports = (sourceFile: ts.SourceFile, service: ts.LanguageService) => {
 describe('cli', () => {
   it('should find out the number of references for each export', () => {
     const files: { [name: string]: string } = {
-      'main.ts': `import { add } from './operations.js`,
-      'operations.ts': `export const add = (a: number, b: number) => a + b;
+      'main.ts': `import { add } from './util/operations.js`,
+      'util/operations.ts': `export const add = (a: number, b: number) => a + b;
         export const subtract = (a: number, b: number) => a - b;
         const multiply = (a: number, b: number) => a * b;
         `,
@@ -98,7 +98,6 @@ describe('cli', () => {
         return '';
       },
       getScriptSnapshot(fileName) {
-        console.log('script snapshot', fileName);
         return ts.ScriptSnapshot.fromString(files[fileName] || '');
       },
       getCurrentDirectory: () => '.',
@@ -116,7 +115,7 @@ describe('cli', () => {
       throw new Error('program not found');
     }
 
-    const sourceFile = program.getSourceFile('operations.ts');
+    const sourceFile = program.getSourceFile('util/operations.ts');
 
     if (!sourceFile) {
       throw new Error('source file not found');
@@ -125,8 +124,8 @@ describe('cli', () => {
     const result = getExports(sourceFile, service);
 
     assert.deepStrictEqual(result, [
-      { file: 'operations.ts', count: 2, identifier: 'add' },
-      { file: 'operations.ts', count: 1, identifier: 'subtract' },
+      { file: 'util/operations.ts', count: 2, identifier: 'add' },
+      { file: 'util/operations.ts', count: 1, identifier: 'subtract' },
     ]);
   });
 });
