@@ -76,10 +76,25 @@ const getExports = (sourceFile: ts.SourceFile, service: ts.LanguageService) => {
   return result;
 };
 
+const getExportsForService = (service: ts.LanguageService) => {
+  const program = service.getProgram();
+
+  if (!program) {
+    throw new Error('program not found');
+  }
+
+  return program
+    .getSourceFiles()
+    .map((sourceFile) => getExports(sourceFile, service))
+    .flat();
+};
+
 describe('cli', () => {
   it('should find out the number of references for each export', () => {
     const files: { [name: string]: string } = {
-      'main.ts': `import { add } from './util/operations.js`,
+      'main.ts': `import { add } from './util/operations.js';
+        export const main = () => {};
+      `,
       'util/operations.ts': `export const add = (a: number, b: number) => a + b;
         export const subtract = (a: number, b: number) => a - b;
         const multiply = (a: number, b: number) => a * b;
@@ -109,23 +124,12 @@ describe('cli', () => {
       readFile: (name) => files[name],
     });
 
-    const program = service.getProgram();
-
-    if (!program) {
-      throw new Error('program not found');
-    }
-
-    const sourceFile = program.getSourceFile('util/operations.ts');
-
-    if (!sourceFile) {
-      throw new Error('source file not found');
-    }
-
-    const result = getExports(sourceFile, service);
+    const result = getExportsForService(service);
 
     assert.deepStrictEqual(result, [
       { file: 'util/operations.ts', count: 2, identifier: 'add' },
       { file: 'util/operations.ts', count: 1, identifier: 'subtract' },
+      { file: 'main.ts', count: 1, identifier: 'main' },
     ]);
   });
 });
