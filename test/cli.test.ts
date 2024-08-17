@@ -21,11 +21,15 @@ const findFirstNodeOfKind = (root: ts.Node, kind: ts.SyntaxKind) => {
   return result;
 };
 
+const isVariableStatement = (node: ts.Node): node is ts.VariableStatement =>
+  node.kind === ts.SyntaxKind.VariableStatement;
+
 const getExports = (sourceFile: ts.SourceFile, service: ts.LanguageService) => {
-  const result: { file: string; identifier: string; count: number }[] = [];
+  const result: { file: string; node: ts.VariableStatement; count: number }[] =
+    [];
 
   const visit = (node: ts.Node) => {
-    if (node.kind === ts.SyntaxKind.VariableStatement) {
+    if (isVariableStatement(node)) {
       const hasExportKeyword = !!findFirstNodeOfKind(
         node,
         ts.SyntaxKind.ExportKeyword,
@@ -62,7 +66,7 @@ const getExports = (sourceFile: ts.SourceFile, service: ts.LanguageService) => {
         result.push({
           file: sourceFile.fileName,
           count: references.length,
-          identifier: identifier.getText(),
+          node,
         });
       }
 
@@ -126,10 +130,24 @@ describe('cli', () => {
 
     const result = getExportsForService(service);
 
-    assert.deepStrictEqual(result, [
-      { file: 'util/operations.ts', count: 2, identifier: 'add' },
-      { file: 'util/operations.ts', count: 1, identifier: 'subtract' },
-      { file: 'main.ts', count: 1, identifier: 'main' },
-    ]);
+    assert.deepStrictEqual(
+      result.map(({ node, ...rest }) => ({
+        text: node.getText(),
+        ...rest,
+      })),
+      [
+        {
+          file: 'util/operations.ts',
+          count: 2,
+          text: 'export const add = (a: number, b: number) => a + b;',
+        },
+        {
+          file: 'util/operations.ts',
+          count: 1,
+          text: 'export const subtract = (a: number, b: number) => a - b;',
+        },
+        { file: 'main.ts', count: 1, text: 'export const main = () => {};' },
+      ],
+    );
   });
 });
