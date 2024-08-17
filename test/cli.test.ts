@@ -21,6 +21,61 @@ const findFirstNodeOfKind = (root: ts.Node, kind: ts.SyntaxKind) => {
   return result;
 };
 
+const getExports = (sourceFile: ts.SourceFile, service: ts.LanguageService) => {
+  const result: { file: string; identifier: string; count: number }[] = [];
+
+  const visit = (node: ts.Node) => {
+    if (node.kind === ts.SyntaxKind.VariableStatement) {
+      const hasExportKeyword = !!findFirstNodeOfKind(
+        node,
+        ts.SyntaxKind.ExportKeyword,
+      );
+
+      if (hasExportKeyword) {
+        const variableDeclaration = findFirstNodeOfKind(
+          node,
+          ts.SyntaxKind.VariableDeclaration,
+        );
+
+        if (!variableDeclaration) {
+          throw new Error('variable declaration not found');
+        }
+
+        const references = service.findReferences(
+          'operations.ts',
+          variableDeclaration.getStart(),
+        );
+
+        if (!references) {
+          throw new Error('references not found');
+        }
+
+        const identifier = findFirstNodeOfKind(
+          variableDeclaration,
+          ts.SyntaxKind.Identifier,
+        );
+
+        if (!identifier) {
+          throw new Error('identifier not found');
+        }
+
+        result.push({
+          file: 'operations.ts',
+          count: references.length,
+          identifier: identifier.getText(),
+        });
+      }
+
+      return;
+    }
+    node.forEachChild(visit);
+  };
+
+  sourceFile.forEachChild(visit);
+
+  return result;
+};
+
 describe('cli', () => {
   it('should find out the number of references for each export', () => {
     const files: { [name: string]: string } = {
@@ -67,56 +122,8 @@ describe('cli', () => {
       throw new Error('source file not found');
     }
 
-    const result: { file: string; identifier: string; count: number }[] = [];
+    const result = getExports(sourceFile, service);
 
-    const visit = (node: ts.Node) => {
-      if (node.kind === ts.SyntaxKind.VariableStatement) {
-        const hasExportKeyword = !!findFirstNodeOfKind(
-          node,
-          ts.SyntaxKind.ExportKeyword,
-        );
-
-        if (hasExportKeyword) {
-          const variableDeclaration = findFirstNodeOfKind(
-            node,
-            ts.SyntaxKind.VariableDeclaration,
-          );
-
-          if (!variableDeclaration) {
-            throw new Error('variable declaration not found');
-          }
-
-          const references = service.findReferences(
-            'operations.ts',
-            variableDeclaration.getStart(),
-          );
-
-          if (!references) {
-            throw new Error('references not found');
-          }
-
-          const identifier = findFirstNodeOfKind(
-            variableDeclaration,
-            ts.SyntaxKind.Identifier,
-          );
-
-          if (!identifier) {
-            throw new Error('identifier not found');
-          }
-
-          result.push({
-            file: 'operations.ts',
-            count: references.length,
-            identifier: identifier.getText(),
-          });
-        }
-
-        return;
-      }
-      node.forEachChild(visit);
-    };
-
-    sourceFile.forEachChild(visit);
     assert.deepStrictEqual(result, [
       { file: 'operations.ts', count: 2, identifier: 'add' },
       { file: 'operations.ts', count: 1, identifier: 'subtract' },
