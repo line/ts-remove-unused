@@ -145,6 +145,37 @@ class FileService {
   }
 }
 
+const removeExport = ({
+  fileService,
+  targetFile,
+  languageService,
+}: {
+  fileService: FileService;
+  targetFile: string;
+  languageService: ts.LanguageService;
+}) => {
+  for (const item of getUnusedExportWhileExists(languageService, targetFile)) {
+    console.log(item.getText());
+    const exportKeyword = findFirstNodeOfKind(
+      item,
+      ts.SyntaxKind.ExportKeyword,
+    );
+
+    if (!exportKeyword) {
+      throw new Error('export keyword not found');
+    }
+
+    const content = item.getSourceFile().getFullText();
+
+    const start = exportKeyword.getStart();
+    const end = exportKeyword.getEnd();
+
+    const newContent = `${content.slice(0, start)}${content.slice(end)}`;
+
+    fileService.set(targetFile, newContent);
+  }
+};
+
 describe('cli', () => {
   it('should remove the export keyword', () => {
     const fileService = new FileService();
@@ -188,29 +219,11 @@ describe('cli', () => {
       readFile: (name) => fileService.get(name),
     });
 
-    for (const item of getUnusedExportWhileExists(
-      service,
-      'util/operations.ts',
-    )) {
-      console.log(item.getText());
-      const exportKeyword = findFirstNodeOfKind(
-        item,
-        ts.SyntaxKind.ExportKeyword,
-      );
-
-      if (!exportKeyword) {
-        throw new Error('export keyword not found');
-      }
-
-      const content = item.getSourceFile().getFullText();
-
-      const start = exportKeyword.getStart();
-      const end = exportKeyword.getEnd();
-
-      const newContent = `${content.slice(0, start)}${content.slice(end)}`;
-
-      fileService.set('util/operations.ts', newContent);
-    }
+    removeExport({
+      fileService,
+      targetFile: 'util/operations.ts',
+      languageService: service,
+    });
 
     const content = fileService.get('util/operations.ts');
 
