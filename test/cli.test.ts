@@ -24,11 +24,17 @@ const findFirstNodeOfKind = (root: ts.Node, kind: ts.SyntaxKind) => {
 const isVariableStatement = (node: ts.Node): node is ts.VariableStatement =>
   node.kind === ts.SyntaxKind.VariableStatement;
 
-const getExports = (sourceFile: ts.SourceFile, service: ts.LanguageService) => {
-  const result: { file: string; node: ts.VariableStatement; count: number }[] =
-    [];
+const getFirstUnusedExport = (
+  sourceFile: ts.SourceFile,
+  service: ts.LanguageService,
+) => {
+  let result: ts.VariableStatement | undefined;
 
   const visit = (node: ts.Node) => {
+    if (result) {
+      return;
+    }
+
     if (isVariableStatement(node)) {
       const hasExportKeyword = !!findFirstNodeOfKind(
         node,
@@ -54,23 +60,12 @@ const getExports = (sourceFile: ts.SourceFile, service: ts.LanguageService) => {
           throw new Error('references not found');
         }
 
-        const identifier = findFirstNodeOfKind(
-          variableDeclaration,
-          ts.SyntaxKind.Identifier,
-        );
-
-        if (!identifier) {
-          throw new Error('identifier not found');
+        // there will be at least one reference, the declaration itself
+        if (references.length === 1) {
+          result = node;
+          return;
         }
-
-        result.push({
-          file: sourceFile.fileName,
-          count: references.length,
-          node,
-        });
       }
-
-      return;
     }
     node.forEachChild(visit);
   };
@@ -80,130 +75,84 @@ const getExports = (sourceFile: ts.SourceFile, service: ts.LanguageService) => {
   return result;
 };
 
-const getExportsForService = (service: ts.LanguageService) => {
-  const program = service.getProgram();
+function* getUnusedExportWhileExists(
+  service: ts.LanguageService,
+  file: string,
+) {
+  let prev: ts.VariableStatement | undefined;
 
-  if (!program) {
-    throw new Error('program not found');
-  }
+  do {
+    const program = service.getProgram();
 
-  return program
-    .getSourceFiles()
-    .map((sourceFile) => getExports(sourceFile, service))
-    .flat();
-};
+    if (!program) {
+      throw new Error('program not found');
+    }
+
+    const sourceFile = program.getSourceFile(file);
+
+    if (!sourceFile) {
+      throw new Error('source file not found');
+    }
+
+    const firstExport = getFirstUnusedExport(sourceFile, service);
+
+    prev = firstExport;
+
+    if (firstExport) {
+      yield firstExport;
+    }
+  } while (prev);
+}
 
 describe('cli', () => {
-  it('should find out the number of references for each export', () => {
-    const files: { [name: string]: string } = {
-      'main.ts': `import { add } from './util/operations.js';
+  it('should remove the export keyword', () => {
+    const files = new Map<string, { content: string; version: number }>();
+    files.set('main.ts', {
+      content: `import { add } from './util/operations.js';
         export const main = () => {};
       `,
-      'util/operations.ts': `export const add = (a: number, b: number) => a + b;
+      version: 1,
+    });
+
+    files.set('util/operations.ts', {
+      content: `export const add = (a: number, b: number) => a + b;
         export const subtract = (a: number, b: number) => a - b;
         const multiply = (a: number, b: number) => a * b;
+        export const divide = (a: number, b: number) => a / b;
         `,
-    };
+      version: 1,
+    });
 
     const service = ts.createLanguageService({
       getCompilationSettings() {
         return {};
       },
       getScriptFileNames() {
-        return Object.keys(files);
+        return Array.from(files.keys());
       },
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      getScriptVersion(_fileName) {
-        return '';
+      getScriptVersion(fileName) {
+        return files.get(fileName)?.version.toString() || '';
       },
       getScriptSnapshot(fileName) {
-        return ts.ScriptSnapshot.fromString(files[fileName] || '');
+        return ts.ScriptSnapshot.fromString(files.get(fileName)?.content || '');
       },
       getCurrentDirectory: () => '.',
 
       getDefaultLibFileName(options) {
         return ts.getDefaultLibFileName(options);
       },
-      fileExists: (name) => !!files[name],
-      readFile: (name) => files[name],
+      fileExists: (name) => files.has(name),
+      readFile: (name) => files.get(name)?.content || '',
     });
 
-    const result = getExportsForService(service);
-
-    assert.deepStrictEqual(
-      result.map(({ node, ...rest }) => ({
-        text: node.getText(),
-        ...rest,
-      })),
-      [
-        {
-          file: 'util/operations.ts',
-          count: 2,
-          text: 'export const add = (a: number, b: number) => a + b;',
-        },
-        {
-          file: 'util/operations.ts',
-          count: 1,
-          text: 'export const subtract = (a: number, b: number) => a - b;',
-        },
-        { file: 'main.ts', count: 1, text: 'export const main = () => {};' },
-      ],
-    );
-  });
-
-  it('should remove the export keyword', () => {
-    const files: { [name: string]: string } = {
-      'main.ts': `import { add } from './util/operations.js';
-          export const main = () => {};
-        `,
-      'util/operations.ts': `export const add = (a: number, b: number) => a + b;
-          export const subtract = (a: number, b: number) => a - b;
-          const multiply = (a: number, b: number) => a * b;
-          export const divide = (a: number, b: number) => a / b;
-          `,
-    };
-
-    const service = ts.createLanguageService({
-      getCompilationSettings() {
-        return {};
-      },
-      getScriptFileNames() {
-        return Object.keys(files);
-      },
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      getScriptVersion(_fileName) {
-        return '';
-      },
-      getScriptSnapshot(fileName) {
-        return ts.ScriptSnapshot.fromString(files[fileName] || '');
-      },
-      getCurrentDirectory: () => '.',
-
-      getDefaultLibFileName(options) {
-        return ts.getDefaultLibFileName(options);
-      },
-      fileExists: (name) => !!files[name],
-      readFile: (name) => files[name],
-      writeFile: (name, text) => {
-        files[name] = text;
-      },
-    });
-
-    const list = getExportsForService(service);
-
-    for (const item of list) {
-      if (item.count >= 2) {
-        continue;
-      }
-
-      const text = files[item.file];
-
-      if (!text) {
-        throw new Error('file not found');
-      }
-
+    for (const item of getUnusedExportWhileExists(
+      service,
+      'util/operations.ts',
+    )) {
+      console.log(item.getText());
       const exportKeyword = findFirstNodeOfKind(
-        item.node,
+        item,
         ts.SyntaxKind.ExportKeyword,
       );
 
@@ -211,12 +160,21 @@ describe('cli', () => {
         throw new Error('export keyword not found');
       }
 
+      const content = item.getSourceFile().getFullText();
+
       const start = exportKeyword.getStart();
       const end = exportKeyword.getEnd();
 
-      const replaced = `${text.slice(0, start)}${text.slice(end)}`;
+      const newContent = `${content.slice(0, start)}${content.slice(end)}`;
 
-      console.log({ target: item.node.getText(), replaced });
+      files.set('util/operations.ts', {
+        content: newContent,
+        version: files.get('util/operations.ts')!.version + 1,
+      });
     }
+
+    const content = files.get('util/operations.ts')?.content || '';
+
+    assert.equal(content.match(/export/g)?.length, 1);
   });
 });
