@@ -104,46 +104,88 @@ function* getUnusedExportWhileExists(
   } while (prev);
 }
 
+class FileService {
+  #files: Map<string, { content: string; version: number }>;
+
+  constructor() {
+    this.#files = new Map();
+  }
+
+  set(name: string, content: string) {
+    const currentVersion = this.#files.get(name)?.version || 0;
+    this.#files.set(name, {
+      content,
+      version: currentVersion + 1,
+    });
+  }
+
+  get(name: string) {
+    const file = this.#files.get(name);
+
+    // todo: should we return an empty string or undefined?
+    return file ? file.content : '';
+  }
+
+  delete(name: string) {
+    this.#files.delete(name);
+  }
+
+  getVersion(name: string) {
+    const file = this.#files.get(name);
+
+    return file ? file.version.toString() : '';
+  }
+
+  getFileNames() {
+    return Array.from(this.#files.keys());
+  }
+
+  exists(name: string) {
+    return this.#files.has(name);
+  }
+}
+
 describe('cli', () => {
   it('should remove the export keyword', () => {
-    const files = new Map<string, { content: string; version: number }>();
-    files.set('main.ts', {
-      content: `import { add } from './util/operations.js';
+    const fileService = new FileService();
+
+    fileService.set(
+      'main.ts',
+      `import { add } from './util/operations.js';
         export const main = () => {};
       `,
-      version: 1,
-    });
+    );
 
-    files.set('util/operations.ts', {
-      content: `export const add = (a: number, b: number) => a + b;
+    fileService.set(
+      'util/operations.ts',
+      `export const add = (a: number, b: number) => a + b;
         export const subtract = (a: number, b: number) => a - b;
         const multiply = (a: number, b: number) => a * b;
         export const divide = (a: number, b: number) => a / b;
         `,
-      version: 1,
-    });
+    );
 
     const service = ts.createLanguageService({
       getCompilationSettings() {
         return {};
       },
       getScriptFileNames() {
-        return Array.from(files.keys());
+        return fileService.getFileNames();
       },
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       getScriptVersion(fileName) {
-        return files.get(fileName)?.version.toString() || '';
+        return fileService.getVersion(fileName);
       },
       getScriptSnapshot(fileName) {
-        return ts.ScriptSnapshot.fromString(files.get(fileName)?.content || '');
+        return ts.ScriptSnapshot.fromString(fileService.get(fileName));
       },
       getCurrentDirectory: () => '.',
 
       getDefaultLibFileName(options) {
         return ts.getDefaultLibFileName(options);
       },
-      fileExists: (name) => files.has(name),
-      readFile: (name) => files.get(name)?.content || '',
+      fileExists: (name) => fileService.exists(name),
+      readFile: (name) => fileService.get(name),
     });
 
     for (const item of getUnusedExportWhileExists(
@@ -167,13 +209,10 @@ describe('cli', () => {
 
       const newContent = `${content.slice(0, start)}${content.slice(end)}`;
 
-      files.set('util/operations.ts', {
-        content: newContent,
-        version: files.get('util/operations.ts')!.version + 1,
-      });
+      fileService.set('util/operations.ts', newContent);
     }
 
-    const content = files.get('util/operations.ts')?.content || '';
+    const content = fileService.get('util/operations.ts');
 
     assert.equal(content.match(/export/g)?.length, 1);
   });
