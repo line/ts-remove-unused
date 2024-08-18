@@ -177,26 +177,26 @@ const removeExport = ({
 };
 
 describe('cli', () => {
-  it('should remove the export keyword', () => {
+  const setup = () => {
     const fileService = new FileService();
 
     fileService.set(
       'main.ts',
       `import { add } from './util/operations.js';
-        export const main = () => {};
-      `,
+            export const main = () => {};
+          `,
     );
 
     fileService.set(
       'util/operations.ts',
       `export const add = (a: number, b: number) => a + b;
-        export const subtract = (a: number, b: number) => a - b;
-        const multiply = (a: number, b: number) => a * b;
-        export const divide = (a: number, b: number) => a / b;
-        `,
+            export const subtract = (a: number, b: number) => a - b;
+            const multiply = (a: number, b: number) => a * b;
+            export const divide = (a: number, b: number) => a / b;
+            `,
     );
 
-    const service = ts.createLanguageService({
+    const languageService = ts.createLanguageService({
       getCompilationSettings() {
         return {};
       },
@@ -219,10 +219,14 @@ describe('cli', () => {
       readFile: (name) => fileService.get(name),
     });
 
+    return { languageService, fileService };
+  };
+  it('should remove the export keyword', () => {
+    const { languageService, fileService } = setup();
     removeExport({
       fileService,
       targetFile: 'util/operations.ts',
-      languageService: service,
+      languageService,
     });
 
     const content = fileService.get('util/operations.ts');
