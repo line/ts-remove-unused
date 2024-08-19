@@ -3,7 +3,9 @@ import { describe, it } from 'node:test';
 import ts from 'typescript';
 
 const fixIdDelete = 'unusedIdentifier_delete';
-// const fixIdDeleteImports = 'unusedIdentifier_deleteImports';
+const fixIdDeleteImports = 'unusedIdentifier_deleteImports';
+
+type FixId = typeof fixIdDelete | typeof fixIdDeleteImports;
 
 const findFirstNodeOfKind = (root: ts.Node, kind: ts.SyntaxKind) => {
   let result: ts.Node | undefined;
@@ -202,6 +204,35 @@ const applyTextChanges = (
   return result.join('');
 };
 
+const applyCodeFix = ({
+  fixId,
+  languageService,
+  fileName,
+  fileService,
+}: {
+  fixId: FixId;
+  languageService: ts.LanguageService;
+  fileName: string;
+  fileService: FileService;
+}) => {
+  const actions = languageService.getCombinedCodeFix(
+    {
+      type: 'file',
+      fileName,
+    },
+    fixId,
+    {},
+    {},
+  );
+
+  for (const change of actions.changes) {
+    fileService.set(
+      change.fileName,
+      applyTextChanges(fileService.get(change.fileName), change.textChanges),
+    );
+  }
+};
+
 describe('cli', () => {
   const setup = () => {
     const fileService = new FileService();
@@ -279,22 +310,12 @@ describe('cli', () => {
               `,
     );
 
-    const actions = languageService.getCombinedCodeFix(
-      {
-        type: 'file',
-        fileName: 'util/operations.ts',
-      },
-      fixIdDelete,
-      {},
-      {},
-    );
-
-    for (const change of actions.changes) {
-      fileService.set(
-        change.fileName,
-        applyTextChanges(fileService.get(change.fileName), change.textChanges),
-      );
-    }
+    applyCodeFix({
+      fixId: fixIdDelete,
+      languageService,
+      fileService,
+      fileName: 'util/operations.ts',
+    });
 
     assert.equal(
       fileService.get('util/operations.ts').trim(),
