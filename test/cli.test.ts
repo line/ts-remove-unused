@@ -26,9 +26,6 @@ const findFirstNodeOfKind = (root: ts.Node, kind: ts.SyntaxKind) => {
   return result;
 };
 
-const isVariableStatement = (node: ts.Node): node is ts.VariableStatement =>
-  node.kind === ts.SyntaxKind.VariableStatement;
-
 const getFirstUnusedExport = (
   sourceFile: ts.SourceFile,
   service: ts.LanguageService,
@@ -40,7 +37,7 @@ const getFirstUnusedExport = (
       return;
     }
 
-    if (isVariableStatement(node)) {
+    if (ts.isVariableStatement(node)) {
       const hasExportKeyword = !!findFirstNodeOfKind(
         node,
         ts.SyntaxKind.ExportKeyword,
