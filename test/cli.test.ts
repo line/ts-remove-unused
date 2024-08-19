@@ -322,4 +322,32 @@ describe('cli', () => {
       'export const add = (a: number, b: number) => a + b;',
     );
   });
+
+  it('should clean up unused imports', () => {
+    const { languageService, fileService } = setup();
+    fileService.set(
+      'main.ts',
+      `import { add } from './util/operations.js';
+        `,
+    );
+
+    fileService.set(
+      'util/operations.ts',
+      `import { readFileSync } from 'node:fs';
+        export const add = (a: number, b: number) => a + b;
+`,
+    );
+
+    applyCodeFix({
+      fixId: fixIdDeleteImports,
+      languageService,
+      fileService,
+      fileName: 'util/operations.ts',
+    });
+
+    assert.equal(
+      fileService.get('util/operations.ts').trim(),
+      'export const add = (a: number, b: number) => a + b;',
+    );
+  });
 });
