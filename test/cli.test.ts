@@ -2,6 +2,9 @@ import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import ts from 'typescript';
 
+const fixIdDelete = 'unusedIdentifier_delete';
+// const fixIdDeleteImports = 'unusedIdentifier_deleteImports';
+
 const findFirstNodeOfKind = (root: ts.Node, kind: ts.SyntaxKind) => {
   let result: ts.Node | undefined;
   const visitor = (node: ts.Node) => {
@@ -155,7 +158,6 @@ const removeExport = ({
   languageService: ts.LanguageService;
 }) => {
   for (const item of getUnusedExportWhileExists(languageService, targetFile)) {
-    console.log(item.getText());
     const exportKeyword = findFirstNodeOfKind(
       item,
       ts.SyntaxKind.ExportKeyword,
@@ -176,25 +178,33 @@ const removeExport = ({
   }
 };
 
+const applyTextChanges = (
+  oldContent: string,
+  changes: readonly ts.TextChange[],
+) => {
+  const result: string[] = [];
+
+  const sortedChanges = [...changes].sort(
+    (a, b) => a.span.start - b.span.start,
+  );
+
+  let currentPos = 0;
+
+  for (const change of sortedChanges) {
+    result.push(oldContent.slice(currentPos, change.span.start));
+    result.push(change.newText);
+
+    currentPos = change.span.start + change.span.length;
+  }
+
+  result.push(oldContent.slice(currentPos));
+
+  return result.join('');
+};
+
 describe('cli', () => {
   const setup = () => {
     const fileService = new FileService();
-
-    fileService.set(
-      'main.ts',
-      `import { add } from './util/operations.js';
-            export const main = () => {};
-          `,
-    );
-
-    fileService.set(
-      'util/operations.ts',
-      `export const add = (a: number, b: number) => a + b;
-            export const subtract = (a: number, b: number) => a - b;
-            const multiply = (a: number, b: number) => a * b;
-            export const divide = (a: number, b: number) => a / b;
-            `,
-    );
 
     const languageService = ts.createLanguageService({
       getCompilationSettings() {
@@ -221,8 +231,25 @@ describe('cli', () => {
 
     return { languageService, fileService };
   };
+
   it('should remove the export keyword', () => {
     const { languageService, fileService } = setup();
+    fileService.set(
+      'main.ts',
+      `import { add } from './util/operations.js';
+              export const main = () => {};
+            `,
+    );
+
+    fileService.set(
+      'util/operations.ts',
+      `export const add = (a: number, b: number) => a + b;
+              export const subtract = (a: number, b: number) => a - b;
+              const multiply = (a: number, b: number) => a * b;
+              export const divide = (a: number, b: number) => a / b;
+              `,
+    );
+
     removeExport({
       fileService,
       targetFile: 'util/operations.ts',
@@ -232,5 +259,46 @@ describe('cli', () => {
     const content = fileService.get('util/operations.ts');
 
     assert.equal(content.match(/export/g)?.length, 1);
+  });
+
+  it('should clean up unused identifiers', () => {
+    const { languageService, fileService } = setup();
+    fileService.set(
+      'main.ts',
+      `import { add } from './util/operations.js';
+              const main = () => {};
+            `,
+    );
+
+    fileService.set(
+      'util/operations.ts',
+      `export const add = (a: number, b: number) => a + b;
+            const subtract = (a: number, b: number) => a - b;
+            const multiply = (a: number, b: number) => a * b;
+            const divide = (a: number, b: number) => a / b;
+              `,
+    );
+
+    const actions = languageService.getCombinedCodeFix(
+      {
+        type: 'file',
+        fileName: 'util/operations.ts',
+      },
+      fixIdDelete,
+      {},
+      {},
+    );
+
+    for (const change of actions.changes) {
+      fileService.set(
+        change.fileName,
+        applyTextChanges(fileService.get(change.fileName), change.textChanges),
+      );
+    }
+
+    assert.equal(
+      fileService.get('util/operations.ts').trim(),
+      'export const add = (a: number, b: number) => a + b;',
+    );
   });
 });
