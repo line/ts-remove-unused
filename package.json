@@ -17,7 +17,7 @@
     "build": "rm -rf dist && node ./esbuild.js",
     "type-check": "tsc -b",
     "prepublishOnly": "npm run build",
-    "test": "TS_NODE_PROJECT=tsconfig.test.json glob -c 'node --loader ts-node/esm --test' 'src/**/*.test.ts' 'test/**/*.test.ts'"
+    "test": "TS_NODE_PROJECT=tsconfig.test.json glob -c 'node --loader ts-node/esm --test' 'lib/**/*.test.ts' 'test/**/*.test.ts'"
   },
   "devDependencies": {
     "@types/node": "^20.6.3",
