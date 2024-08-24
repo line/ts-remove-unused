@@ -1,5 +1,6 @@
 import ts from 'typescript';
 import { FileService } from './FileService.js';
+import { applyTextChanges } from './applyCodeFix.js';
 
 const findFirstNodeOfKind = (root: ts.Node, kind: ts.SyntaxKind) => {
   let result: ts.Node | undefined;
@@ -125,17 +126,22 @@ const findReferences = (node: SupportedNode, service: ts.LanguageService) => {
   throw new Error(`unexpected node type: ${node satisfies never}`);
 };
 
-const getFirstUnusedExport = (
-  sourceFile: ts.SourceFile,
-  service: ts.LanguageService,
-) => {
-  let result: SupportedNode | undefined;
+const getExportNodes = (service: ts.LanguageService, file: string) => {
+  const program = service.getProgram();
+
+  if (!program) {
+    throw new Error('program not found');
+  }
+
+  const sourceFile = program.getSourceFile(file);
+
+  if (!sourceFile) {
+    throw new Error('source file not found');
+  }
+
+  const result: SupportedNode[] = [];
 
   const visit = (node: ts.Node) => {
-    if (result) {
-      return;
-    }
-
     if (isTarget(node)) {
       const references = findReferences(node, service);
 
@@ -147,13 +153,13 @@ const getFirstUnusedExport = (
 
       if (ts.isExportSpecifier(node) && count === 2) {
         // for export specifiers, there will be at least two reference, the declaration itself and the export specifier
-        result = node;
-        return;
+        result.push(node);
       } else if (count === 1) {
         // there will be at least one reference, the declaration itself
-        result = node;
-        return;
+        result.push(node);
       }
+
+      return;
     }
 
     node.forEachChild(visit);
@@ -164,35 +170,6 @@ const getFirstUnusedExport = (
   return result;
 };
 
-function* getUnusedExportWhileExists(
-  service: ts.LanguageService,
-  file: string,
-) {
-  let prev: SupportedNode | undefined;
-
-  do {
-    const program = service.getProgram();
-
-    if (!program) {
-      throw new Error('program not found');
-    }
-
-    const sourceFile = program.getSourceFile(file);
-
-    if (!sourceFile) {
-      throw new Error('source file not found');
-    }
-
-    const firstExport = getFirstUnusedExport(sourceFile, service);
-
-    prev = firstExport;
-
-    if (firstExport) {
-      yield firstExport;
-    }
-  } while (prev);
-}
-
 export const removeExport = ({
   fileService,
   targetFile,
@@ -202,21 +179,24 @@ export const removeExport = ({
   targetFile: string;
   languageService: ts.LanguageService;
 }) => {
-  for (const item of getUnusedExportWhileExists(languageService, targetFile)) {
-    const content = item.getSourceFile().getFullText();
+  const changes: ts.TextChange[] = [];
+  for (const node of getExportNodes(languageService, targetFile)) {
+    if (ts.isExportAssignment(node) || ts.isExportSpecifier(node)) {
+      const start = node.getStart();
+      const end = node.getEnd();
 
-    if (ts.isExportAssignment(item) || ts.isExportSpecifier(item)) {
-      const start = item.getStart();
-      const end = item.getEnd();
-
-      const newContent = `${content.slice(0, start)}${content.slice(end)}`;
-
-      fileService.set(targetFile, newContent);
+      changes.push({
+        newText: '',
+        span: {
+          start,
+          length: end - start,
+        },
+      });
       continue;
     }
 
     const exportKeyword = findFirstNodeOfKind(
-      item,
+      node,
       ts.SyntaxKind.ExportKeyword,
     );
 
@@ -227,8 +207,18 @@ export const removeExport = ({
     const start = exportKeyword.getStart();
     const end = exportKeyword.getEnd();
 
-    const newContent = `${content.slice(0, start)}${content.slice(end)}`;
-
-    fileService.set(targetFile, newContent);
+    changes.push({
+      newText: '',
+      span: {
+        start,
+        length: end - start,
+      },
+    });
   }
+
+  const oldContent = fileService.get(targetFile);
+
+  const newContent = applyTextChanges(oldContent, changes);
+
+  fileService.set(targetFile, newContent);
 };

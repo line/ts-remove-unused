@@ -6,7 +6,7 @@ export const fixIdDeleteImports = 'unusedIdentifier_deleteImports';
 
 type FixId = typeof fixIdDelete | typeof fixIdDeleteImports;
 
-const applyTextChanges = (
+export const applyTextChanges = (
   oldContent: string,
   changes: readonly ts.TextChange[],
 ) => {
