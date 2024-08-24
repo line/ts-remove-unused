@@ -287,7 +287,7 @@ export const removeExport = ({
     const sourceFile = program.getSourceFile(file);
 
     if (!sourceFile) {
-      throw new Error('source file not found');
+      continue;
     }
 
     const changes = getTextChanges(languageService, sourceFile);
@@ -317,7 +317,7 @@ export const removeUnusedFile = ({
     const sourceFile = program.getSourceFile(file);
 
     if (!sourceFile) {
-      throw new Error('source file not found');
+      continue;
     }
 
     const isUsed = isUsedFile(languageService, sourceFile);
