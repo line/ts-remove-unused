@@ -97,12 +97,26 @@ const findReferences = (node: SupportedNode, service: ts.LanguageService) => {
   if (
     ts.isFunctionDeclaration(node) ||
     ts.isInterfaceDeclaration(node) ||
-    ts.isTypeAliasDeclaration(node) ||
-    ts.isExportAssignment(node)
+    ts.isTypeAliasDeclaration(node)
   ) {
     return service.findReferences(
       node.getSourceFile().fileName,
       node.getStart(),
+    );
+  }
+
+  if (ts.isExportAssignment(node)) {
+    const defaultKeyword = node
+      .getChildren()
+      .find((n) => n.kind === ts.SyntaxKind.DefaultKeyword);
+
+    if (!defaultKeyword) {
+      return undefined;
+    }
+
+    return service.findReferences(
+      node.getSourceFile().fileName,
+      defaultKeyword.getStart(),
     );
   }
 
@@ -129,11 +143,8 @@ const getFirstUnusedExport = (
 
       const count = references.flatMap((v) => v.references).length;
 
-      // there will be at least two references, the declaration itself and the export
-      if (ts.isExportAssignment(node) && count === 2) {
-        result = node;
-      } else if (count === 1) {
-        // there will be at least one reference, the declaration itself
+      // there will be at least one reference, the declaration itself
+      if (count === 1) {
         result = node;
         return;
       }

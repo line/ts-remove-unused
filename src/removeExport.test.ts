@@ -276,11 +276,7 @@ export type World = 'world';`,
   it('should not remove default export for an identifier if its used in some other file', () => {
     const { languageService, fileService } = setup();
 
-    fileService.set(
-      '/app/index.ts',
-      `import hello from './hello.js';
-console.log(hello);`,
-    );
+    fileService.set('/app/index.ts', `import hello from './hello.js';`);
 
     fileService.set(
       '/app/hello.ts',
@@ -343,6 +339,61 @@ export default hello;`,
       `const hello = 'hello';
 // ts-remove-unused-skip
 export default hello;`,
+    );
+  });
+
+  it('should not remove default export for a literal if its used in some other file', () => {
+    const { languageService, fileService } = setup();
+
+    fileService.set('/app/index.ts', `import hello from './hello';`);
+
+    fileService.set('/app/hello.ts', `export default 'hello';`);
+
+    removeExport({
+      languageService,
+      fileService,
+      targetFile: '/app/hello.ts',
+    });
+
+    const result = fileService.get('/app/hello.ts');
+    assert.equal(result.trim(), `export default 'hello';`);
+  });
+
+  it('should remove default export for a literal if its not used in some other file', () => {
+    const { languageService, fileService } = setup();
+
+    fileService.set('/app/hello.ts', `export default hello;`);
+
+    removeExport({
+      languageService,
+      fileService,
+      targetFile: '/app/hello.ts',
+    });
+
+    const result = fileService.get('/app/hello.ts');
+    assert.equal(result.trim(), '');
+  });
+
+  it('should not remove default export for a literal if it has a comment to ignore', () => {
+    const { languageService, fileService } = setup();
+
+    fileService.set(
+      '/app/with-comment.ts',
+      `// ts-remove-unused-skip
+export default 'hello';`,
+    );
+
+    removeExport({
+      languageService,
+      fileService,
+      targetFile: '/app/with-comment.ts',
+    });
+
+    const result = fileService.get('/app/with-comment.ts');
+    assert.equal(
+      result.trim(),
+      `// ts-remove-unused-skip
+export default 'hello';`,
     );
   });
 });
