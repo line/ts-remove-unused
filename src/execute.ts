@@ -70,6 +70,8 @@ export const execute = ({
     (fileName) => !regexList.some((regex) => regex.test(fileName)),
   );
 
+  stdout.write(`Found ${targets.length} files...\n\n`);
+
   removeUnusedFile({
     fileService,
     targetFile: targets,
