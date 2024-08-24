@@ -396,4 +396,81 @@ export default 'hello';`,
 export default 'hello';`,
     );
   });
+
+  it('should not remove export specifier for an identifier if its used in some other file', () => {
+    const { languageService, fileService } = setup();
+
+    fileService.set('/app/index.ts', `import { hello } from './hello.js';`);
+
+    fileService.set(
+      '/app/hello.ts',
+      `const hello = 'hello';
+export { hello };`,
+    );
+
+    removeExport({
+      languageService,
+      fileService,
+      targetFile: '/app/hello.ts',
+    });
+
+    const result = fileService.get('/app/hello.ts');
+    assert.equal(
+      result.trim(),
+      `const hello = 'hello';
+export { hello };`,
+    );
+  });
+
+  it('should remove export specifier for an identifier if its not used in some other file', () => {
+    const { languageService, fileService } = setup();
+
+    fileService.set(
+      '/app/hello.ts',
+      `const hello = 'hello';
+export { hello };`,
+    );
+
+    removeExport({
+      languageService,
+      fileService,
+      targetFile: '/app/hello.ts',
+    });
+
+    const result = fileService.get('/app/hello.ts');
+    assert.equal(
+      result.trim(),
+      `const hello = 'hello';
+export {  };`,
+    );
+  });
+
+  it('should not remove export specifier for an identifier if it has a comment to ignore', () => {
+    const { languageService, fileService } = setup();
+
+    fileService.set(
+      '/app/hello.ts',
+      `const hello = 'hello';
+export { 
+  // ts-remove-unused-skip
+  hello
+};`,
+    );
+
+    removeExport({
+      languageService,
+      fileService,
+      targetFile: '/app/hello.ts',
+    });
+
+    const result = fileService.get('/app/hello.ts');
+    assert.equal(
+      result.trim(),
+      `const hello = 'hello';
+export { 
+  // ts-remove-unused-skip
+  hello
+};`,
+    );
+  });
 });

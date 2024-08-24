@@ -39,10 +39,11 @@ type SupportedNode =
   | ts.FunctionDeclaration
   | ts.InterfaceDeclaration
   | ts.TypeAliasDeclaration
-  | ts.ExportAssignment;
+  | ts.ExportAssignment
+  | ts.ExportSpecifier;
 
 const isTarget = (node: ts.Node): node is SupportedNode => {
-  if (ts.isExportAssignment(node)) {
+  if (ts.isExportAssignment(node) || ts.isExportSpecifier(node)) {
     if (getLeadingComment(node).includes(IGNORE_COMMENT)) {
       return false;
     }
@@ -97,7 +98,8 @@ const findReferences = (node: SupportedNode, service: ts.LanguageService) => {
   if (
     ts.isFunctionDeclaration(node) ||
     ts.isInterfaceDeclaration(node) ||
-    ts.isTypeAliasDeclaration(node)
+    ts.isTypeAliasDeclaration(node) ||
+    ts.isExportSpecifier(node)
   ) {
     return service.findReferences(
       node.getSourceFile().fileName,
@@ -143,8 +145,12 @@ const getFirstUnusedExport = (
 
       const count = references.flatMap((v) => v.references).length;
 
-      // there will be at least one reference, the declaration itself
-      if (count === 1) {
+      if (ts.isExportSpecifier(node) && count === 2) {
+        // for export specifiers, there will be at least two reference, the declaration itself and the export specifier
+        result = node;
+        return;
+      } else if (count === 1) {
+        // there will be at least one reference, the declaration itself
         result = node;
         return;
       }
@@ -199,7 +205,7 @@ export const removeExport = ({
   for (const item of getUnusedExportWhileExists(languageService, targetFile)) {
     const content = item.getSourceFile().getFullText();
 
-    if (ts.isExportAssignment(item)) {
+    if (ts.isExportAssignment(item) || ts.isExportSpecifier(item)) {
       const start = item.getStart();
       const end = item.getEnd();
 
