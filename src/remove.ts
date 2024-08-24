@@ -1,6 +1,7 @@
 import ts from 'typescript';
 import { FileService } from './FileService.js';
 import { applyTextChanges } from './util/applyTextChanges.js';
+import chalk from 'chalk';
 
 const findFirstNodeOfKind = (root: ts.Node, kind: ts.SyntaxKind) => {
   let result: ts.Node | undefined;
@@ -293,11 +294,13 @@ export const removeUnusedExport = ({
   targetFile,
   languageService,
   deleteUnusedFile = false,
+  stdout,
 }: {
   fileService: FileService;
   targetFile: string | string[];
   languageService: ts.LanguageService;
   deleteUnusedFile?: boolean;
+  stdout?: NodeJS.WriteStream;
 }) => {
   const program = languageService.getProgram();
 
@@ -317,6 +320,10 @@ export const removeUnusedExport = ({
 
       if (!isUsed) {
         fileService.delete(file);
+
+        stdout?.write(
+          `${chalk.green.bold('✓')} ${file} ${chalk.gray('(deleted)')}\n`,
+        );
         continue;
       }
     }
@@ -324,6 +331,8 @@ export const removeUnusedExport = ({
     const changes = getTextChanges(languageService, sourceFile);
 
     if (changes.length === 0) {
+      stdout?.write(`${chalk.green.bold('✓')} ${file}\n`);
+
       continue;
     }
 
@@ -331,5 +340,9 @@ export const removeUnusedExport = ({
     const newContent = applyTextChanges(oldContent, changes);
 
     fileService.set(file, newContent);
+
+    stdout?.write(
+      `${chalk.green.bold('✓')} ${file} ${chalk.gray('(modified)')}\n`,
+    );
   }
 };

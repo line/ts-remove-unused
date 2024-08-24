@@ -7,7 +7,6 @@ import {
   fixIdDelete,
   fixIdDeleteImports,
 } from './applyCodeFix.js';
-import chalk from 'chalk';
 
 export const execute = ({
   tsConfigFilePath,
@@ -70,13 +69,14 @@ export const execute = ({
     (fileName) => !regexList.some((regex) => regex.test(fileName)),
   );
 
-  stdout.write(`Found ${targets.length} files...\n\n`);
+  stdout.write(`Found ${targets.length} files...\n`);
 
   removeUnusedExport({
     fileService,
     targetFile: targets,
     languageService,
     deleteUnusedFile: true,
+    stdout,
   });
 
   applyCodeFix({
@@ -95,25 +95,14 @@ export const execute = ({
 
   for (const target of targets) {
     if (!fileService.exists(target)) {
-      stdout.write(
-        `${chalk.green.bold('✓')} ${target} ${chalk.gray('(deleted)')}\n`,
-      );
       if (!dryRun) {
         ts.sys.deleteFile?.(target);
       }
       continue;
     }
 
-    if (parseInt(fileService.getVersion(target), 10) > 1) {
-      stdout.write(
-        `${chalk.green.bold('✓')} ${target} ${chalk.gray('(modified)')}\n`,
-      );
-
-      if (!dryRun) {
-        ts.sys.writeFile(target, fileService.get(target));
-      }
-    } else {
-      stdout.write(`${chalk.green.bold('✓')} ${target}\n`);
+    if (parseInt(fileService.getVersion(target), 10) > 1 && !dryRun) {
+      ts.sys.writeFile(target, fileService.get(target));
     }
   }
 
