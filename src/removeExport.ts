@@ -184,13 +184,13 @@ const getTextChanges = (
       continue;
     }
 
-    if (ts.isFunctionDeclaration(node)) {
+    if (ts.isFunctionDeclaration(node) || ts.isClassDeclaration(node)) {
       const identifier = node
         .getChildren()
         .find((n) => n.kind === ts.SyntaxKind.Identifier);
 
-      // when the identifier is not found, it's likely a default export of an unnamed function declaration.
-      // in this case, we want to remove the whole function declaration
+      // when the identifier is not found, it's likely a default export of an unnamed function/class declaration.
+      // in this case, we want to remove the whole declaration
       if (!identifier) {
         changes.push({
           newText: '',

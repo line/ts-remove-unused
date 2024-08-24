@@ -209,8 +209,7 @@ import C from './c';`,
 
       assert.equal(fileService.get('/app/a.ts').trim(), `class A {}`);
       assert.equal(fileService.get('/app/b.ts').trim(), `class B {}`);
-      // fixme
-      assert.equal(fileService.get('/app/c.ts').trim(), `class {}`);
+      assert.equal(fileService.get('/app/c.ts').trim(), '');
     });
 
     it('should not remove export if it has a comment to ignore', () => {
