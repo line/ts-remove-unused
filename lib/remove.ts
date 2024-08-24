@@ -399,13 +399,22 @@ export const removeUnusedExport = ({
     let newContent = applyTextChanges(oldContent, changes);
 
     if (enableCodeFix) {
-      fileService.set(file, newContent);
+      // eslint-disable-next-line no-constant-condition
+      while (true) {
+        fileService.set(file, newContent);
 
-      newContent = applyCodeFix({
-        fixId: fixIdDelete,
-        fileName: file,
-        languageService,
-      });
+        const result = applyCodeFix({
+          fixId: fixIdDelete,
+          fileName: file,
+          languageService,
+        });
+
+        if (result === newContent) {
+          break;
+        }
+
+        newContent = result;
+      }
 
       fileService.set(file, newContent);
 
