@@ -52,7 +52,7 @@ const b = 'b';`,
       fixId: fixIdDelete,
       languageService,
       fileService,
-      fileName: '/app/a.ts',
+      targetFile: '/app/a.ts',
     });
 
     assert.equal(fileService.get('/app/a.ts').trim(), `export const a = 'a';`);
@@ -72,7 +72,7 @@ export const a = 'a';`,
       fixId: fixIdDeleteImports,
       languageService,
       fileService,
-      fileName: '/app/a.ts',
+      targetFile: '/app/a.ts',
     });
 
     assert.equal(fileService.get('/app/a.ts').trim(), `export const a = 'a';`);

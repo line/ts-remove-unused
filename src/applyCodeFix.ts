@@ -33,28 +33,42 @@ export const applyTextChanges = (
 export const applyCodeFix = ({
   fixId,
   languageService,
-  fileName,
+  targetFile,
   fileService,
 }: {
   fixId: FixId;
   languageService: ts.LanguageService;
-  fileName: string;
+  targetFile: string | string[];
   fileService: FileService;
 }) => {
-  const actions = languageService.getCombinedCodeFix(
-    {
-      type: 'file',
-      fileName,
-    },
-    fixId,
-    {},
-    {},
-  );
+  const program = languageService.getProgram();
 
-  for (const change of actions.changes) {
-    fileService.set(
-      change.fileName,
-      applyTextChanges(fileService.get(change.fileName), change.textChanges),
+  if (!program) {
+    throw new Error('program not found');
+  }
+
+  for (const file of Array.isArray(targetFile) ? targetFile : [targetFile]) {
+    const sourceFile = program.getSourceFile(file);
+
+    if (!sourceFile) {
+      continue;
+    }
+
+    const actions = languageService.getCombinedCodeFix(
+      {
+        type: 'file',
+        fileName: file,
+      },
+      fixId,
+      {},
+      {},
     );
+
+    for (const change of actions.changes) {
+      fileService.set(
+        change.fileName,
+        applyTextChanges(fileService.get(change.fileName), change.textChanges),
+      );
+    }
   }
 };
