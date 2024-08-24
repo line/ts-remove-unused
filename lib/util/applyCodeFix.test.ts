@@ -1,5 +1,5 @@
 import { describe, it } from 'node:test';
-import { FileService } from './FileService.js';
+import { FileService } from '../FileService.js';
 import ts from 'typescript';
 import assert from 'node:assert/strict';
 import {

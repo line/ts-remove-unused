@@ -1,5 +1,5 @@
 import ts from 'typescript';
-import { applyTextChanges } from './util/applyTextChanges.js';
+import { applyTextChanges } from './applyTextChanges.js';
 
 export const fixIdDelete = 'unusedIdentifier_delete';
 export const fixIdDeleteImports = 'unusedIdentifier_deleteImports';

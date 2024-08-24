@@ -6,7 +6,7 @@ import {
   applyCodeFix,
   fixIdDelete,
   fixIdDeleteImports,
-} from './applyCodeFix.js';
+} from './util/applyCodeFix.js';
 
 const findFirstNodeOfKind = (root: ts.Node, kind: ts.SyntaxKind) => {
   let result: ts.Node | undefined;
