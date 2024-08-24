@@ -37,12 +37,7 @@ describe('removeExport', () => {
   describe('variable statement', () => {
     it('should not remove export for variable if its used in some other file', () => {
       const { languageService, fileService } = setup();
-      fileService.set(
-        '/app/main.ts',
-        `import { a } from './a';
-        console.log(a);
-      `,
-      );
+      fileService.set('/app/main.ts', `import { a } from './a';`);
       fileService.set('/app/a.ts', `export const a = 'a';`);
 
       removeExport({
@@ -102,8 +97,7 @@ describe('removeExport', () => {
         '/app/main.ts',
         `import { a } from './a';
 import b from './b';
-import c from './c';
-      `,
+import c from './c';`,
       );
       fileService.set('/app/a.ts', `export function a() {}`);
       fileService.set('/app/b.ts', `export default function b() {}`);
@@ -176,8 +170,7 @@ import c from './c';
       fileService.set(
         '/app/main.ts',
         `import { A } from './a';
-import B from './b';
-        `,
+import B from './b';`,
       );
       fileService.set('/app/a.ts', `export interface A { a: 'a' }`);
       fileService.set('/app/b.ts', `export default interface B { b: 'b' }`);
@@ -246,12 +239,7 @@ import B from './b';
   describe('type alias declaration', () => {
     it('should not remove export for type if its used in some other file', () => {
       const { languageService, fileService } = setup();
-      fileService.set(
-        '/app/main.ts',
-        `import { A } from './a';
-        const a: A = 'a';
-      `,
-      );
+      fileService.set('/app/main.ts', `import { A } from './a';`);
       fileService.set('/app/a.ts', `export type A = 'a';`);
 
       removeExport({
@@ -307,7 +295,7 @@ import B from './b';
     it('should not remove default export for an identifier if its used in some other file', () => {
       const { languageService, fileService } = setup();
 
-      fileService.set('/app/main.ts', `import a from './a.js';`);
+      fileService.set('/app/main.ts', `import a from './a';`);
 
       fileService.set(
         '/app/a.ts',
