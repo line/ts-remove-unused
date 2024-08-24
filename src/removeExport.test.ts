@@ -105,9 +105,9 @@ import b from './b';
 import c from './c';
       `,
       );
-      fileService.set('/app/a.ts', `export function a() {};`);
-      fileService.set('/app/b.ts', `export default function b() {};`);
-      fileService.set('/app/c.ts', `export default function() {};`);
+      fileService.set('/app/a.ts', `export function a() {}`);
+      fileService.set('/app/b.ts', `export default function b() {}`);
+      fileService.set('/app/c.ts', `export default function() {}`);
 
       removeExport({
         languageService,
@@ -117,22 +117,22 @@ import c from './c';
 
       assert.equal(
         fileService.get('/app/a.ts').trim(),
-        `export function a() {};`,
+        `export function a() {}`,
       );
       assert.equal(
         fileService.get('/app/b.ts').trim(),
-        `export default function b() {};`,
+        `export default function b() {}`,
       );
       assert.equal(
         fileService.get('/app/c.ts').trim(),
-        `export default function() {};`,
+        `export default function() {}`,
       );
     });
 
     it('should remove export for function if its not used in some other file', () => {
       const { languageService, fileService } = setup();
-      fileService.set('/app/a.ts', `export function a() {};`);
-      fileService.set('/app/b.ts', `export default function b() {};`);
+      fileService.set('/app/a.ts', `export function a() {}`);
+      fileService.set('/app/b.ts', `export default function b() {}`);
       fileService.set('/app/c.ts', `export default function() {}`);
 
       removeExport({
@@ -141,8 +141,8 @@ import c from './c';
         targetFile: ['/app/a.ts', '/app/b.ts', '/app/c.ts'],
       });
 
-      assert.equal(fileService.get('/app/a.ts').trim(), `function a() {};`);
-      assert.equal(fileService.get('/app/b.ts').trim(), `function b() {};`);
+      assert.equal(fileService.get('/app/a.ts').trim(), `function a() {}`);
+      assert.equal(fileService.get('/app/b.ts').trim(), `function b() {}`);
       assert.equal(fileService.get('/app/c.ts').trim(), '');
     });
 
@@ -151,7 +151,7 @@ import c from './c';
       fileService.set(
         '/app/a.ts',
         `// ts-remove-unused-skip
-  export function b() {};`,
+  export function b() {}`,
       );
 
       removeExport({
@@ -165,7 +165,7 @@ import c from './c';
       assert.equal(
         result.trim(),
         `// ts-remove-unused-skip
-  export function b() {};`,
+  export function b() {}`,
       );
     });
   });
