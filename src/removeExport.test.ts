@@ -72,7 +72,7 @@ describe('removeExport', () => {
   it('should not remove export for variable if it has a comment to ignore', () => {
     const { languageService, fileService } = setup();
     fileService.set(
-      '/app/with-comment.ts',
+      '/app/hello.ts',
       `// ts-remove-unused-skip
 export const world = 'world';`,
     );
@@ -80,10 +80,10 @@ export const world = 'world';`,
     removeExport({
       languageService,
       fileService,
-      targetFile: '/app/with-comment.ts',
+      targetFile: '/app/hello.ts',
     });
 
-    const result = fileService.get('/app/with-comment.ts');
+    const result = fileService.get('/app/hello.ts');
 
     assert.equal(
       result.trim(),
@@ -131,7 +131,7 @@ export const world = 'world';`,
   it('should not remove export if it has a comment to ignore', () => {
     const { languageService, fileService } = setup();
     fileService.set(
-      '/app/with-comment.ts',
+      '/app/hello.ts',
       `// ts-remove-unused-skip
 export function world() {};`,
     );
@@ -139,10 +139,10 @@ export function world() {};`,
     removeExport({
       languageService,
       fileService,
-      targetFile: '/app/with-comment.ts',
+      targetFile: '/app/hello.ts',
     });
 
-    const result = fileService.get('/app/with-comment.ts');
+    const result = fileService.get('/app/hello.ts');
 
     assert.equal(
       result.trim(),
@@ -195,7 +195,7 @@ export function world() {};`,
   it('should not remove export if it has a comment to ignore', () => {
     const { languageService, fileService } = setup();
     fileService.set(
-      '/app/with-comment.ts',
+      '/app/hello.ts',
       `// ts-remove-unused-skip
 export interface World { world: 'world' }`,
     );
@@ -203,10 +203,10 @@ export interface World { world: 'world' }`,
     removeExport({
       languageService,
       fileService,
-      targetFile: '/app/with-comment.ts',
+      targetFile: '/app/hello.ts',
     });
 
-    const result = fileService.get('/app/with-comment.ts');
+    const result = fileService.get('/app/hello.ts');
 
     assert.equal(
       result.trim(),
@@ -253,7 +253,7 @@ export interface World { world: 'world' }`,
   it('should not remove export if it has a comment to ignore', () => {
     const { languageService, fileService } = setup();
     fileService.set(
-      '/app/with-comment.ts',
+      '/app/hello.ts',
       `// ts-remove-unused-skip
 export type World = 'world';`,
     );
@@ -261,10 +261,10 @@ export type World = 'world';`,
     removeExport({
       languageService,
       fileService,
-      targetFile: '/app/with-comment.ts',
+      targetFile: '/app/hello.ts',
     });
 
-    const result = fileService.get('/app/with-comment.ts');
+    const result = fileService.get('/app/hello.ts');
 
     assert.equal(
       result.trim(),
@@ -321,7 +321,7 @@ export default hello;`,
     const { languageService, fileService } = setup();
 
     fileService.set(
-      '/app/with-comment.ts',
+      '/app/hello.ts',
       `const hello = 'hello';
 // ts-remove-unused-skip
 export default hello;`,
@@ -330,10 +330,10 @@ export default hello;`,
     removeExport({
       languageService,
       fileService,
-      targetFile: '/app/with-comment.ts',
+      targetFile: '/app/hello.ts',
     });
 
-    const result = fileService.get('/app/with-comment.ts');
+    const result = fileService.get('/app/hello.ts');
     assert.equal(
       result.trim(),
       `const hello = 'hello';
@@ -378,7 +378,7 @@ export default hello;`,
     const { languageService, fileService } = setup();
 
     fileService.set(
-      '/app/with-comment.ts',
+      '/app/hello.ts',
       `// ts-remove-unused-skip
 export default 'hello';`,
     );
@@ -386,10 +386,10 @@ export default 'hello';`,
     removeExport({
       languageService,
       fileService,
-      targetFile: '/app/with-comment.ts',
+      targetFile: '/app/hello.ts',
     });
 
-    const result = fileService.get('/app/with-comment.ts');
+    const result = fileService.get('/app/hello.ts');
     assert.equal(
       result.trim(),
       `// ts-remove-unused-skip
