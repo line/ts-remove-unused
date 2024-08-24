@@ -31,8 +31,7 @@
     "ts-node": "^10.9.1"
   },
   "dependencies": {
-    "cac": "^6.7.14",
-    "ts-morph": "^17.0.1"
+    "cac": "^6.7.14"
   },
   "peerDependencies": {
     "typescript": ">=4.0.0"
