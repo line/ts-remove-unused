@@ -33,10 +33,8 @@ export const execute = ({
   );
 
   const fileService = new FileService();
-  const original = new FileService();
   for (const fileName of fileNames) {
     fileService.set(fileName, ts.sys.readFile(fileName) || '');
-    original.set(fileName, ts.sys.readFile(fileName) || '');
   }
 
   const languageService = ts.createLanguageService({
@@ -104,7 +102,7 @@ export const execute = ({
       continue;
     }
 
-    if (original.get(target) !== fileService.get(target)) {
+    if (parseInt(fileService.getVersion(target), 10) > 0) {
       stdout.write(`[modified] ${target}`);
 
       if (!dryRun) {
