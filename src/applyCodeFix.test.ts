@@ -40,60 +40,41 @@ const setup = () => {
 describe('applyCodeFix', () => {
   it('should clean up unused identifiers', () => {
     const { languageService, fileService } = setup();
-    fileService.set(
-      'main.ts',
-      `import { add } from './util/operations.js';
-                const main = () => {};
-              `,
-    );
+    fileService.set('/app/main.ts', `import { a } from './a';`);
 
     fileService.set(
-      'util/operations.ts',
-      `export const add = (a: number, b: number) => a + b;
-              const subtract = (a: number, b: number) => a - b;
-              const multiply = (a: number, b: number) => a * b;
-              const divide = (a: number, b: number) => a / b;
-                `,
+      '/app/a.ts',
+      `export const a = 'a';
+const b = 'b';`,
     );
 
     applyCodeFix({
       fixId: fixIdDelete,
       languageService,
       fileService,
-      fileName: 'util/operations.ts',
+      fileName: '/app/a.ts',
     });
 
-    assert.equal(
-      fileService.get('util/operations.ts').trim(),
-      'export const add = (a: number, b: number) => a + b;',
-    );
+    assert.equal(fileService.get('/app/a.ts').trim(), `export const a = 'a';`);
   });
 
   it('should clean up unused imports', () => {
     const { languageService, fileService } = setup();
-    fileService.set(
-      'main.ts',
-      `import { add } from './util/operations.js';
-          `,
-    );
+    fileService.set('/app/main.ts', `import { a } from './a';`);
 
     fileService.set(
-      'util/operations.ts',
+      '/app/a.ts',
       `import { readFileSync } from 'node:fs';
-          export const add = (a: number, b: number) => a + b;
-  `,
+export const a = 'a';`,
     );
 
     applyCodeFix({
       fixId: fixIdDeleteImports,
       languageService,
       fileService,
-      fileName: 'util/operations.ts',
+      fileName: '/app/a.ts',
     });
 
-    assert.equal(
-      fileService.get('util/operations.ts').trim(),
-      'export const add = (a: number, b: number) => a + b;',
-    );
+    assert.equal(fileService.get('/app/a.ts').trim(), `export const a = 'a';`);
   });
 });
