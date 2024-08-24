@@ -292,10 +292,12 @@ export const removeUnusedExport = ({
   fileService,
   targetFile,
   languageService,
+  deleteUnusedFile = false,
 }: {
   fileService: FileService;
   targetFile: string | string[];
   languageService: ts.LanguageService;
+  deleteUnusedFile?: boolean;
 }) => {
   const program = languageService.getProgram();
 
@@ -308,6 +310,15 @@ export const removeUnusedExport = ({
 
     if (!sourceFile) {
       continue;
+    }
+
+    if (deleteUnusedFile) {
+      const isUsed = isUsedFile(languageService, sourceFile);
+
+      if (!isUsed) {
+        fileService.delete(file);
+        continue;
+      }
     }
 
     const changes = getTextChanges(languageService, sourceFile);
@@ -320,35 +331,5 @@ export const removeUnusedExport = ({
     const newContent = applyTextChanges(oldContent, changes);
 
     fileService.set(file, newContent);
-  }
-};
-
-export const removeUnusedFile = ({
-  fileService,
-  targetFile,
-  languageService,
-}: {
-  fileService: FileService;
-  targetFile: string | string[];
-  languageService: ts.LanguageService;
-}) => {
-  const program = languageService.getProgram();
-
-  if (!program) {
-    throw new Error('program not found');
-  }
-
-  for (const file of Array.isArray(targetFile) ? targetFile : [targetFile]) {
-    const sourceFile = program.getSourceFile(file);
-
-    if (!sourceFile) {
-      continue;
-    }
-
-    const isUsed = isUsedFile(languageService, sourceFile);
-
-    if (!isUsed) {
-      fileService.delete(file);
-    }
   }
 };

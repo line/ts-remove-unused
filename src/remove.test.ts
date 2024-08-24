@@ -2,7 +2,7 @@ import { describe, it } from 'node:test';
 import { FileService } from './FileService.js';
 import ts from 'typescript';
 import assert from 'node:assert/strict';
-import { removeUnusedExport, removeUnusedFile } from './remove.js';
+import { removeUnusedExport } from './remove.js';
 
 const setup = () => {
   const fileService = new FileService();
@@ -31,164 +31,6 @@ const setup = () => {
 
   return { languageService, fileService };
 };
-
-describe('removeUnusedFile', () => {
-  it('should not remove file if some exports are used in other files', () => {
-    const { languageService, fileService } = setup();
-    fileService.set(
-      '/app/main.ts',
-      `import { a } from './a';
-import { b } from './b';
-import { C } from './c';
-import { D } from './d';
-import { E } from './e';`,
-    );
-    fileService.set(
-      '/app/a.ts',
-      `export const a = 'a';
-export function b() {}
-export class C {}
-export type D = 'd';
-export interface E {}`,
-    );
-    fileService.set(
-      '/app/b.ts',
-      `export const a = 'a';
-export function b() {}
-export class C {}
-export type D = 'd';
-export interface E {}`,
-    );
-    fileService.set(
-      '/app/c.ts',
-      `export const a = 'a';
-export function b() {}
-export class C {}
-export type D = 'd';
-export interface E {}`,
-    );
-    fileService.set(
-      '/app/d.ts',
-      `export const a = 'a';
-export function b() {}
-export class C {}
-export type D = 'd';
-export interface E {}`,
-    );
-    fileService.set(
-      '/app/e.ts',
-      `export const a = 'a';
-export function b() {}
-export class C {}
-export type D = 'd';
-export interface E {}`,
-    );
-
-    removeUnusedFile({
-      languageService,
-      fileService,
-      targetFile: [
-        '/app/a.ts',
-        '/app/b.ts',
-        '/app/c.ts',
-        '/app/d.ts',
-        '/app/e.ts',
-      ],
-    });
-
-    assert.equal(fileService.exists('/app/a.ts'), true);
-    assert.equal(fileService.exists('/app/b.ts'), true);
-    assert.equal(fileService.exists('/app/c.ts'), true);
-    assert.equal(fileService.exists('/app/d.ts'), true);
-    assert.equal(fileService.exists('/app/e.ts'), true);
-  });
-
-  it('should remove file if all exports are not used', () => {
-    const { languageService, fileService } = setup();
-    fileService.set(
-      '/app/a.ts',
-      `export const a = 'a';
-export function b() {}
-export class C {}
-export type D = 'd';
-export interface E {}`,
-    );
-    removeUnusedFile({
-      languageService,
-      fileService,
-      targetFile: '/app/a.ts',
-    });
-
-    assert.equal(fileService.exists('/app/a.ts'), false);
-  });
-
-  it('should not remove file if some exports are marked with skip comment', () => {
-    const { languageService, fileService } = setup();
-    fileService.set(
-      '/app/a.ts',
-      `// ts-remove-unused-skip
-export const a = 'a';
-export function b() {}
-export class C {}
-export type D = 'd';
-export interface E {}`,
-    );
-    fileService.set(
-      '/app/b.ts',
-      `export const a = 'a';
-// ts-remove-unused-skip
-export function b() {}
-export class C {}
-export type D = 'd';
-export interface E {}`,
-    );
-    fileService.set(
-      '/app/c.ts',
-      `export const a = 'a';
-export function b() {}
-// ts-remove-unused-skip
-export class C {}
-export type D = 'd';
-export interface E {}`,
-    );
-    fileService.set(
-      '/app/d.ts',
-      `export const a = 'a';
-export function b() {}
-export class C {}
-// ts-remove-unused-skip
-export type D = 'd';
-export interface E {}`,
-    );
-    fileService.set(
-      '/app/e.ts',
-      `export const a = 'a';
-export function b() {}
-export class C {}
-export type D = 'd';
-// ts-remove-unused-skip
-export interface E {}`,
-    );
-
-    removeUnusedFile({
-      languageService,
-      fileService,
-      targetFile: [
-        '/app/a.ts',
-        '/app/b.ts',
-        '/app/c.ts',
-        '/app/d.ts',
-        '/app/e.ts',
-      ],
-    });
-
-    assert.equal(fileService.exists('/app/a.ts'), true);
-    assert.equal(fileService.exists('/app/b.ts'), true);
-    assert.equal(fileService.exists('/app/c.ts'), true);
-    assert.equal(fileService.exists('/app/d.ts'), true);
-    assert.equal(fileService.exists('/app/e.ts'), true);
-  });
-});
 
 describe('removeExport', () => {
   describe('variable statement', () => {
@@ -764,6 +606,167 @@ export {  };`,
     a
   };`,
       );
+    });
+  });
+
+  describe('deleteUnusedFile', () => {
+    it('should not remove file if some exports are used in other files', () => {
+      const { languageService, fileService } = setup();
+      fileService.set(
+        '/app/main.ts',
+        `import { a } from './a';
+  import { b } from './b';
+  import { C } from './c';
+  import { D } from './d';
+  import { E } from './e';`,
+      );
+      fileService.set(
+        '/app/a.ts',
+        `export const a = 'a';
+  export function b() {}
+  export class C {}
+  export type D = 'd';
+  export interface E {}`,
+      );
+      fileService.set(
+        '/app/b.ts',
+        `export const a = 'a';
+  export function b() {}
+  export class C {}
+  export type D = 'd';
+  export interface E {}`,
+      );
+      fileService.set(
+        '/app/c.ts',
+        `export const a = 'a';
+  export function b() {}
+  export class C {}
+  export type D = 'd';
+  export interface E {}`,
+      );
+      fileService.set(
+        '/app/d.ts',
+        `export const a = 'a';
+  export function b() {}
+  export class C {}
+  export type D = 'd';
+  export interface E {}`,
+      );
+      fileService.set(
+        '/app/e.ts',
+        `export const a = 'a';
+  export function b() {}
+  export class C {}
+  export type D = 'd';
+  export interface E {}`,
+      );
+
+      removeUnusedExport({
+        languageService,
+        fileService,
+        targetFile: [
+          '/app/a.ts',
+          '/app/b.ts',
+          '/app/c.ts',
+          '/app/d.ts',
+          '/app/e.ts',
+        ],
+        deleteUnusedFile: true,
+      });
+
+      assert.equal(fileService.exists('/app/a.ts'), true);
+      assert.equal(fileService.exists('/app/b.ts'), true);
+      assert.equal(fileService.exists('/app/c.ts'), true);
+      assert.equal(fileService.exists('/app/d.ts'), true);
+      assert.equal(fileService.exists('/app/e.ts'), true);
+    });
+
+    it('should remove file if all exports are not used', () => {
+      const { languageService, fileService } = setup();
+      fileService.set(
+        '/app/a.ts',
+        `export const a = 'a';
+  export function b() {}
+  export class C {}
+  export type D = 'd';
+  export interface E {}`,
+      );
+      removeUnusedExport({
+        languageService,
+        fileService,
+        targetFile: '/app/a.ts',
+        deleteUnusedFile: true,
+      });
+
+      assert.equal(fileService.exists('/app/a.ts'), false);
+    });
+
+    it('should not remove file if some exports are marked with skip comment', () => {
+      const { languageService, fileService } = setup();
+      fileService.set(
+        '/app/a.ts',
+        `// ts-remove-unused-skip
+  export const a = 'a';
+  export function b() {}
+  export class C {}
+  export type D = 'd';
+  export interface E {}`,
+      );
+      fileService.set(
+        '/app/b.ts',
+        `export const a = 'a';
+  // ts-remove-unused-skip
+  export function b() {}
+  export class C {}
+  export type D = 'd';
+  export interface E {}`,
+      );
+      fileService.set(
+        '/app/c.ts',
+        `export const a = 'a';
+  export function b() {}
+  // ts-remove-unused-skip
+  export class C {}
+  export type D = 'd';
+  export interface E {}`,
+      );
+      fileService.set(
+        '/app/d.ts',
+        `export const a = 'a';
+  export function b() {}
+  export class C {}
+  // ts-remove-unused-skip
+  export type D = 'd';
+  export interface E {}`,
+      );
+      fileService.set(
+        '/app/e.ts',
+        `export const a = 'a';
+  export function b() {}
+  export class C {}
+  export type D = 'd';
+  // ts-remove-unused-skip
+  export interface E {}`,
+      );
+
+      removeUnusedExport({
+        languageService,
+        fileService,
+        targetFile: [
+          '/app/a.ts',
+          '/app/b.ts',
+          '/app/c.ts',
+          '/app/d.ts',
+          '/app/e.ts',
+        ],
+        deleteUnusedFile: true,
+      });
+
+      assert.equal(fileService.exists('/app/a.ts'), true);
+      assert.equal(fileService.exists('/app/b.ts'), true);
+      assert.equal(fileService.exists('/app/c.ts'), true);
+      assert.equal(fileService.exists('/app/d.ts'), true);
+      assert.equal(fileService.exists('/app/e.ts'), true);
     });
   });
 });
