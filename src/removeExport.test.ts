@@ -441,25 +441,38 @@ export default B;`,
     it('should not remove export specifier for an identifier if its used in some other file', () => {
       const { languageService, fileService } = setup();
 
-      fileService.set('/app/main.ts', `import { a } from './a.js';`);
+      fileService.set(
+        '/app/main.ts',
+        `import { a } from './a';
+import { B } from './b';`,
+      );
 
       fileService.set(
         '/app/a.ts',
         `const a = 'a';
   export { a };`,
       );
+      fileService.set(
+        '/app/b.ts',
+        `type B = 'b';
+export { B };`,
+      );
 
       removeExport({
         languageService,
         fileService,
-        targetFile: '/app/a.ts',
+        targetFile: ['/app/a.ts', '/app/b.ts'],
       });
 
-      const result = fileService.get('/app/a.ts');
       assert.equal(
-        result.trim(),
+        fileService.get('/app/a.ts').trim(),
         `const a = 'a';
   export { a };`,
+      );
+      assert.equal(
+        fileService.get('/app/b.ts').trim(),
+        `type B = 'b';
+export { B };`,
       );
     });
 
@@ -471,18 +484,27 @@ export default B;`,
         `const a = 'a';
   export { a };`,
       );
+      fileService.set(
+        '/app/b.ts',
+        `type B = 'b';
+export { B };`,
+      );
 
       removeExport({
         languageService,
         fileService,
-        targetFile: '/app/a.ts',
+        targetFile: ['/app/a.ts', '/app/b.ts'],
       });
 
-      const result = fileService.get('/app/a.ts');
       assert.equal(
-        result.trim(),
+        fileService.get('/app/a.ts').trim(),
         `const a = 'a';
   export {  };`,
+      );
+      assert.equal(
+        fileService.get('/app/b.ts').trim(),
+        `type B = 'b';
+export {  };`,
       );
     });
 
