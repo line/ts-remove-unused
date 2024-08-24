@@ -75,7 +75,7 @@ describe('removeExport', () => {
     assert.equal(result.trim(), `const world = 'world';`);
   });
 
-  it('should not remove export if it has a comment to ignore', () => {
+  it('should not remove export for variable if it has a comment to ignore', () => {
     const { languageService, fileService } = setup();
     fileService.set(
       '/tools/remove-unused-code/case/with-comment.ts',
