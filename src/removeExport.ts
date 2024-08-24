@@ -34,10 +34,10 @@ const getLeadingComment = (node: ts.Node) => {
   return ranges.map((range) => fullText.slice(range.pos, range.end)).join('');
 };
 
-const isTargetVariableStatement = (
-  node: ts.Node,
-): node is ts.VariableStatement => {
-  if (!ts.isVariableStatement(node)) {
+type SupportedNode = ts.VariableStatement | ts.FunctionDeclaration;
+
+const isTarget = (node: ts.Node): node is SupportedNode => {
+  if (!ts.isVariableStatement(node) && !ts.isFunctionDeclaration(node)) {
     return false;
   }
 
@@ -59,39 +59,47 @@ const isTargetVariableStatement = (
   return true;
 };
 
-const findReferences = (
-  node: ts.VariableStatement,
-  service: ts.LanguageService,
-) => {
-  const variableDeclaration = findFirstNodeOfKind(
-    node,
-    ts.SyntaxKind.VariableDeclaration,
-  );
+const findReferences = (node: SupportedNode, service: ts.LanguageService) => {
+  if (ts.isVariableStatement(node)) {
+    const variableDeclaration = findFirstNodeOfKind(
+      node,
+      ts.SyntaxKind.VariableDeclaration,
+    );
 
-  if (!variableDeclaration) {
-    return undefined;
+    if (!variableDeclaration) {
+      return undefined;
+    }
+
+    const references = service.findReferences(
+      node.getSourceFile().fileName,
+      variableDeclaration.getStart(),
+    );
+
+    return references;
   }
 
-  const references = service.findReferences(
-    node.getSourceFile().fileName,
-    variableDeclaration.getStart(),
-  );
+  if (ts.isFunctionDeclaration(node)) {
+    return service.findReferences(
+      node.getSourceFile().fileName,
+      node.getStart(),
+    );
+  }
 
-  return references;
+  throw new Error(`unexpected node type: ${node satisfies never}`);
 };
 
 const getFirstUnusedExport = (
   sourceFile: ts.SourceFile,
   service: ts.LanguageService,
 ) => {
-  let result: ts.VariableStatement | undefined;
+  let result: SupportedNode | undefined;
 
   const visit = (node: ts.Node) => {
     if (result) {
       return;
     }
 
-    if (isTargetVariableStatement(node)) {
+    if (isTarget(node)) {
       const references = findReferences(node, service);
 
       // there will be at least one reference, the declaration itself
@@ -113,7 +121,7 @@ function* getUnusedExportWhileExists(
   service: ts.LanguageService,
   file: string,
 ) {
-  let prev: ts.VariableStatement | undefined;
+  let prev: SupportedNode | undefined;
 
   do {
     const program = service.getProgram();
