@@ -10,14 +10,15 @@ export const execute = ({
   projectRoot,
   dryRun,
   stdout = process.stdout,
+  start,
 }: {
   tsConfigFilePath: string;
   skip: string[];
   projectRoot: string;
   dryRun: boolean;
   stdout?: NodeJS.WriteStream;
+  start?: number;
 }) => {
-  const start = performance.now();
   const { config } = ts.readConfigFile(
     resolve(projectRoot, tsConfigFilePath),
     ts.sys.readFile,
@@ -92,7 +93,11 @@ export const execute = ({
     }
   }
 
-  const end = performance.now();
+  if (start) {
+    const end = performance.now();
 
-  stdout.write(chalk.gray(`Done in ${((end - start) / 1000).toFixed(2)}s!\n`));
+    stdout.write(
+      chalk.gray(`Done in ${((end - start) / 1000).toFixed(2)}s!\n`),
+    );
+  }
 };
