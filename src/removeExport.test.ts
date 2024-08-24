@@ -176,34 +176,47 @@ import c from './c';
       fileService.set(
         '/app/main.ts',
         `import { A } from './a';
-        const a: A = { a: 'a' };
-      `,
+import B from './b';
+        `,
       );
       fileService.set('/app/a.ts', `export interface A { a: 'a' }`);
+      fileService.set('/app/b.ts', `export default interface B { b: 'b' }`);
 
       removeExport({
         languageService,
         fileService,
-        targetFile: '/app/a.ts',
+        targetFile: ['/app/a.ts', '/app/b.ts'],
       });
 
-      const result = fileService.get('/app/a.ts');
-      assert.equal(result.trim(), `export interface A { a: 'a' }`);
+      assert.equal(
+        fileService.get('/app/a.ts').trim(),
+        `export interface A { a: 'a' }`,
+      );
+      assert.equal(
+        fileService.get('/app/b.ts').trim(),
+        `export default interface B { b: 'b' }`,
+      );
     });
 
     it('should remove export for interface if its not used in some other file', () => {
       const { languageService, fileService } = setup();
-      fileService.set('/app/b.ts', `export interface B { b: 'b' }`);
+      fileService.set('/app/a.ts', `export interface A { a: 'a' }`);
+      fileService.set('/app/b.ts', `export default interface B { b: 'b' }`);
 
       removeExport({
         languageService,
         fileService,
-        targetFile: '/app/b.ts',
+        targetFile: ['/app/a.ts', '/app/b.ts'],
       });
 
-      const result = fileService.get('/app/b.ts');
-
-      assert.equal(result.trim(), `interface B { b: 'b' }`);
+      assert.equal(
+        fileService.get('/app/a.ts').trim(),
+        `interface A { a: 'a' }`,
+      );
+      assert.equal(
+        fileService.get('/app/b.ts').trim(),
+        `interface B { b: 'b' }`,
+      );
     });
 
     it('should not remove export if it has a comment to ignore', () => {
@@ -211,7 +224,7 @@ import c from './c';
       fileService.set(
         '/app/a.ts',
         `// ts-remove-unused-skip
-  export interface B { b: 'b' }`,
+  export interface A { a: 'a' }`,
       );
 
       removeExport({
@@ -225,7 +238,7 @@ import c from './c';
       assert.equal(
         result.trim(),
         `// ts-remove-unused-skip
-  export interface B { b: 'b' }`,
+  export interface A { a: 'a' }`,
       );
     });
   });
