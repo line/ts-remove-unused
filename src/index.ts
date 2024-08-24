@@ -13,6 +13,10 @@ cli
     'Specify the regexp pattern to match files that should be skipped from transforming',
   )
   .option('--include-d-ts', 'Include .d.ts files in target for transformation')
+  .option(
+    '--dry-run',
+    'Print the result of transformation without writing to files',
+  )
   .action((options) => {
     const skip =
       options.skip && Array.isArray(options.skip)
@@ -26,6 +30,8 @@ cli
     execute({
       tsConfigFilePath: options.project || './tsconfig.json',
       skip,
+      dryRun: !!options.dryRun,
+      projectRoot: process.cwd(),
     });
   });
 

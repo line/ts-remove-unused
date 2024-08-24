@@ -1,50 +1,115 @@
-import { Project } from 'ts-morph';
-import { removeUnusedFunctionExport } from './modifier/removeUnusedFunctionExport.js';
-import { removeUnusedInterfaceExport } from './modifier/removeUnusedInterfaceExport.js';
-import { removeUnusedTypeExport } from './modifier/removeUnusedTypeExport.js';
-import { removeUnusedVariableExport } from './modifier/removeUnusedVariableExport.js';
-import { isUsedFile } from './util/isUsedFile.js';
+import ts from 'typescript';
+import { resolve } from 'node:path';
+import { FileService } from './FileService.js';
+import { removeExport, removeUnusedFile } from './removeExport.js';
+import {
+  applyCodeFix,
+  fixIdDelete,
+  fixIdDeleteImports,
+} from './applyCodeFix.js';
 
 export const execute = ({
   tsConfigFilePath,
   skip,
+  projectRoot,
+  dryRun,
+  stdout = process.stdout,
 }: {
   tsConfigFilePath: string;
   skip: string[];
+  projectRoot: string;
+  dryRun: boolean;
+  stdout?: NodeJS.WriteStream;
 }) => {
-  const project = new Project({
-    tsConfigFilePath,
-  });
-  const files = project.getSourceFiles().filter((file) => {
-    const path = file.getFilePath();
+  const { config } = ts.readConfigFile(
+    resolve(projectRoot, tsConfigFilePath),
+    ts.sys.readFile,
+  );
 
-    if (skip.some((pattern) => new RegExp(pattern).test(path))) {
-      return false;
+  const { options, fileNames } = ts.parseJsonConfigFileContent(
+    config,
+    ts.sys,
+    projectRoot,
+  );
+
+  const fileService = new FileService();
+  const original = new FileService();
+  for (const fileName of fileNames) {
+    fileService.set(fileName, ts.sys.readFile(fileName) || '');
+    original.set(fileName, ts.sys.readFile(fileName) || '');
+  }
+
+  const languageService = ts.createLanguageService({
+    getCompilationSettings() {
+      return options;
+    },
+    getScriptFileNames() {
+      return fileService.getFileNames();
+    },
+    getScriptVersion(fileName) {
+      return fileService.getVersion(fileName);
+    },
+    getScriptSnapshot(fileName) {
+      return ts.ScriptSnapshot.fromString(fileService.get(fileName));
+    },
+    getCurrentDirectory: () => projectRoot,
+    getDefaultLibFileName(options) {
+      return ts.getDefaultLibFileName(options);
+    },
+    fileExists(name) {
+      return fileService.exists(name);
+    },
+    readFile(name) {
+      return fileService.get(name);
+    },
+  });
+
+  const regexList = skip.map((pattern) => new RegExp(pattern));
+
+  const targets = fileNames.filter(
+    (fileName) => !regexList.some((regex) => regex.test(fileName)),
+  );
+
+  removeUnusedFile({
+    fileService,
+    targetFile: targets,
+    languageService,
+  });
+
+  removeExport({
+    fileService,
+    targetFile: targets,
+    languageService,
+  });
+
+  applyCodeFix({
+    fixId: fixIdDelete,
+    targetFile: targets,
+    languageService,
+    fileService,
+  });
+  applyCodeFix({
+    fixId: fixIdDeleteImports,
+    targetFile: targets,
+    languageService,
+    fileService,
+  });
+
+  for (const target of targets) {
+    if (!fileService.exists(target)) {
+      stdout.write(`[deleted] ${target}`);
+      if (!dryRun) {
+        ts.sys.deleteFile?.(target);
+      }
+      continue;
     }
 
-    return true;
-  });
+    if (original.get(target) !== fileService.get(target)) {
+      stdout.write(`[modified] ${target}`);
 
-  files.forEach((file, i) => {
-    const path = file.getFilePath();
-
-    if (isUsedFile(file)) {
-      removeUnusedFunctionExport(file);
-      removeUnusedVariableExport(file);
-      removeUnusedInterfaceExport(file);
-      removeUnusedTypeExport(file);
-
-      let lastWidth: number;
-      do {
-        lastWidth = file.getFullWidth();
-        file.fixUnusedIdentifiers();
-      } while (lastWidth !== file.getFullWidth());
-    } else {
-      file.delete();
+      if (!dryRun) {
+        ts.sys.writeFile(target, fileService.get(target));
+      }
     }
-
-    console.log(`${i + 1}/${files.length}: ${path}`);
-  });
-
-  project.save();
+  }
 };
