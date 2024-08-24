@@ -65,7 +65,7 @@ export const execute = ({
     (fileName) => !regexList.some((regex) => regex.test(fileName)),
   );
 
-  stdout.write(chalk.gray(`Found ${targets.length} files...\n\n`));
+  stdout.write(chalk.gray(`Found ${targets.length} files...\n`));
 
   removeUnusedExport({
     fileService,
@@ -77,7 +77,7 @@ export const execute = ({
   });
 
   if (!dryRun) {
-    stdout.write(chalk.gray(`\nWriting to disk...\n`));
+    stdout.write(chalk.gray(`Writing to disk...\n`));
   }
   for (const target of targets) {
     if (!fileService.exists(target)) {
