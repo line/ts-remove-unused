@@ -133,7 +133,7 @@ import c from './c';
       const { languageService, fileService } = setup();
       fileService.set('/app/a.ts', `export function a() {};`);
       fileService.set('/app/b.ts', `export default function b() {};`);
-      fileService.set('/app/c.ts', `export default function() {};`);
+      fileService.set('/app/c.ts', `export default function() {}`);
 
       removeExport({
         languageService,
@@ -143,8 +143,7 @@ import c from './c';
 
       assert.equal(fileService.get('/app/a.ts').trim(), `function a() {};`);
       assert.equal(fileService.get('/app/b.ts').trim(), `function b() {};`);
-      // todo: remove this function declaration
-      assert.equal(fileService.get('/app/c.ts').trim(), `function() {};`);
+      assert.equal(fileService.get('/app/c.ts').trim(), '');
     });
 
     it('should not remove export if it has a comment to ignore', () => {

@@ -126,7 +126,7 @@ const findReferences = (node: SupportedNode, service: ts.LanguageService) => {
   throw new Error(`unexpected node type: ${node satisfies never}`);
 };
 
-const getExportNodes = (
+const getUnusedExports = (
   languageService: ts.LanguageService,
   sourceFile: ts.SourceFile,
 ) => {
@@ -166,7 +166,7 @@ const getTextChanges = (
   sourceFile: ts.SourceFile,
 ) => {
   const changes: ts.TextChange[] = [];
-  for (const node of getExportNodes(languageService, sourceFile)) {
+  for (const node of getUnusedExports(languageService, sourceFile)) {
     if (ts.isExportAssignment(node) || ts.isExportSpecifier(node)) {
       const start = node.getStart();
       const end = node.getEnd();
@@ -179,6 +179,26 @@ const getTextChanges = (
         },
       });
       continue;
+    }
+
+    if (ts.isFunctionDeclaration(node)) {
+      const identifier = node
+        .getChildren()
+        .find((n) => n.kind === ts.SyntaxKind.Identifier);
+
+      // when the identifier is not found, it's likely a default export of an unnamed function declaration.
+      // in this case, we want to remove the whole function declaration
+      if (!identifier) {
+        changes.push({
+          newText: '',
+          span: {
+            start: node.getFullStart(),
+            length: node.getFullWidth(),
+          },
+        });
+
+        continue;
+      }
     }
 
     // we want to correctly remove 'default' when its a default export so we get the syntaxList node instead of the exportKeyword node
