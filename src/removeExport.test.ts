@@ -38,58 +38,58 @@ describe('removeExport', () => {
     it('should not remove export for variable if its used in some other file', () => {
       const { languageService, fileService } = setup();
       fileService.set(
-        '/app/index.ts',
-        `import { hello } from './hello';
-        console.log(hello);
+        '/app/main.ts',
+        `import { a } from './a';
+        console.log(a);
       `,
       );
-      fileService.set('/app/hello.ts', `export const hello = 'hello';`);
+      fileService.set('/app/a.ts', `export const a = 'a';`);
 
       removeExport({
         languageService,
         fileService,
-        targetFile: '/app/hello.ts',
+        targetFile: '/app/a.ts',
       });
 
-      const result = fileService.get('/app/hello.ts');
-      assert.equal(result.trim(), `export const hello = 'hello';`);
+      const result = fileService.get('/app/a.ts');
+      assert.equal(result.trim(), `export const a = 'a';`);
     });
 
     it('should remove export for variable if its not used in some other file', () => {
       const { languageService, fileService } = setup();
-      fileService.set('/app/world.ts', `export const world = 'world';`);
+      fileService.set('/app/b.ts', `export const b = 'b';`);
 
       removeExport({
         languageService,
         fileService,
-        targetFile: '/app/world.ts',
+        targetFile: '/app/b.ts',
       });
 
-      const result = fileService.get('/app/world.ts');
+      const result = fileService.get('/app/b.ts');
 
-      assert.equal(result.trim(), `const world = 'world';`);
+      assert.equal(result.trim(), `const b = 'b';`);
     });
 
     it('should not remove export for variable if it has a comment to ignore', () => {
       const { languageService, fileService } = setup();
       fileService.set(
-        '/app/hello.ts',
+        '/app/a.ts',
         `// ts-remove-unused-skip
-  export const world = 'world';`,
+  export const b = 'b';`,
       );
 
       removeExport({
         languageService,
         fileService,
-        targetFile: '/app/hello.ts',
+        targetFile: '/app/a.ts',
       });
 
-      const result = fileService.get('/app/hello.ts');
+      const result = fileService.get('/app/a.ts');
 
       assert.equal(
         result.trim(),
         `// ts-remove-unused-skip
-  export const world = 'world';`,
+  export const b = 'b';`,
       );
     });
   });
@@ -99,58 +99,58 @@ describe('removeExport', () => {
       const { languageService, fileService } = setup();
 
       fileService.set(
-        '/app/index.ts',
-        `import { hello } from './hello';
-        hello();
+        '/app/main.ts',
+        `import { a } from './a';
+        a();
       `,
       );
-      fileService.set('/app/hello.ts', `export function hello() {};`);
+      fileService.set('/app/a.ts', `export function a() {};`);
 
       removeExport({
         languageService,
         fileService,
-        targetFile: '/app/hello.ts',
+        targetFile: '/app/a.ts',
       });
 
-      const result = fileService.get('/app/hello.ts');
-      assert.equal(result.trim(), `export function hello() {};`);
+      const result = fileService.get('/app/a.ts');
+      assert.equal(result.trim(), `export function a() {};`);
     });
 
     it('should remove export for function if its not used in some other file', () => {
       const { languageService, fileService } = setup();
-      fileService.set('/app/world.ts', `export function world() {};`);
+      fileService.set('/app/b.ts', `export function b() {};`);
 
       removeExport({
         languageService,
         fileService,
-        targetFile: '/app/world.ts',
+        targetFile: '/app/b.ts',
       });
 
-      const result = fileService.get('/app/world.ts');
+      const result = fileService.get('/app/b.ts');
 
-      assert.equal(result.trim(), `function world() {};`);
+      assert.equal(result.trim(), `function b() {};`);
     });
 
     it('should not remove export if it has a comment to ignore', () => {
       const { languageService, fileService } = setup();
       fileService.set(
-        '/app/hello.ts',
+        '/app/a.ts',
         `// ts-remove-unused-skip
-  export function world() {};`,
+  export function b() {};`,
       );
 
       removeExport({
         languageService,
         fileService,
-        targetFile: '/app/hello.ts',
+        targetFile: '/app/a.ts',
       });
 
-      const result = fileService.get('/app/hello.ts');
+      const result = fileService.get('/app/a.ts');
 
       assert.equal(
         result.trim(),
         `// ts-remove-unused-skip
-  export function world() {};`,
+  export function b() {};`,
       );
     });
   });
@@ -159,64 +159,58 @@ describe('removeExport', () => {
     it('should not remove export for interface if its used in some other file', () => {
       const { languageService, fileService } = setup();
       fileService.set(
-        '/app/index.ts',
-        `import { Hello } from './hello';
-        const hello: Hello = { hello: 'hello' };
+        '/app/main.ts',
+        `import { A } from './a';
+        const a: A = { a: 'a' };
       `,
       );
-      fileService.set(
-        '/app/hello.ts',
-        `export interface Hello { hello: 'hello' }`,
-      );
+      fileService.set('/app/a.ts', `export interface A { a: 'a' }`);
 
       removeExport({
         languageService,
         fileService,
-        targetFile: '/app/hello.ts',
+        targetFile: '/app/a.ts',
       });
 
-      const result = fileService.get('/app/hello.ts');
-      assert.equal(result.trim(), `export interface Hello { hello: 'hello' }`);
+      const result = fileService.get('/app/a.ts');
+      assert.equal(result.trim(), `export interface A { a: 'a' }`);
     });
 
     it('should remove export for interface if its not used in some other file', () => {
       const { languageService, fileService } = setup();
-      fileService.set(
-        '/app/world.ts',
-        `export interface World { world: 'world' }`,
-      );
+      fileService.set('/app/b.ts', `export interface B { b: 'b' }`);
 
       removeExport({
         languageService,
         fileService,
-        targetFile: '/app/world.ts',
+        targetFile: '/app/b.ts',
       });
 
-      const result = fileService.get('/app/world.ts');
+      const result = fileService.get('/app/b.ts');
 
-      assert.equal(result.trim(), `interface World { world: 'world' }`);
+      assert.equal(result.trim(), `interface B { b: 'b' }`);
     });
 
     it('should not remove export if it has a comment to ignore', () => {
       const { languageService, fileService } = setup();
       fileService.set(
-        '/app/hello.ts',
+        '/app/a.ts',
         `// ts-remove-unused-skip
-  export interface World { world: 'world' }`,
+  export interface B { b: 'b' }`,
       );
 
       removeExport({
         languageService,
         fileService,
-        targetFile: '/app/hello.ts',
+        targetFile: '/app/a.ts',
       });
 
-      const result = fileService.get('/app/hello.ts');
+      const result = fileService.get('/app/a.ts');
 
       assert.equal(
         result.trim(),
         `// ts-remove-unused-skip
-  export interface World { world: 'world' }`,
+  export interface B { b: 'b' }`,
       );
     });
   });
@@ -225,58 +219,58 @@ describe('removeExport', () => {
     it('should not remove export for type if its used in some other file', () => {
       const { languageService, fileService } = setup();
       fileService.set(
-        '/app/index.ts',
-        `import { Hello } from './hello';
-        const hello: Hello = 'hello';
+        '/app/main.ts',
+        `import { A } from './a';
+        const a: A = 'a';
       `,
       );
-      fileService.set('/app/hello.ts', `export type Hello = 'hello';`);
+      fileService.set('/app/a.ts', `export type A = 'a';`);
 
       removeExport({
         languageService,
         fileService,
-        targetFile: '/app/hello.ts',
+        targetFile: '/app/a.ts',
       });
 
-      const result = fileService.get('/app/hello.ts');
-      assert.equal(result.trim(), `export type Hello = 'hello';`);
+      const result = fileService.get('/app/a.ts');
+      assert.equal(result.trim(), `export type A = 'a';`);
     });
 
     it('should remove export for type if its not used in some other file', () => {
       const { languageService, fileService } = setup();
-      fileService.set('/app/world.ts', `export type World = 'world';`);
+      fileService.set('/app/b.ts', `export type B = 'b';`);
 
       removeExport({
         languageService,
         fileService,
-        targetFile: '/app/world.ts',
+        targetFile: '/app/b.ts',
       });
 
-      const result = fileService.get('/app/world.ts');
+      const result = fileService.get('/app/b.ts');
 
-      assert.equal(result.trim(), `type World = 'world';`);
+      assert.equal(result.trim(), `type B = 'b';`);
     });
 
     it('should not remove export for type if it has a comment to ignore', () => {
       const { languageService, fileService } = setup();
       fileService.set(
-        '/app/hello.ts',
+        '/app/a.ts',
         `// ts-remove-unused-skip
-  export type World = 'world';`,
+  export type B = 'b';`,
       );
 
       removeExport({
         languageService,
         fileService,
-        targetFile: '/app/hello.ts',
+        targetFile: '/app/a.ts',
       });
 
-      const result = fileService.get('/app/hello.ts');
+      const result = fileService.get('/app/a.ts');
 
       assert.equal(
         result.trim(),
         `// ts-remove-unused-skip
-  export type World = 'world';`,
+  export type B = 'b';`,
       );
     });
   });
@@ -285,25 +279,25 @@ describe('removeExport', () => {
     it('should not remove default export for an identifier if its used in some other file', () => {
       const { languageService, fileService } = setup();
 
-      fileService.set('/app/index.ts', `import hello from './hello.js';`);
+      fileService.set('/app/main.ts', `import a from './a.js';`);
 
       fileService.set(
-        '/app/hello.ts',
-        `const hello = 'hello';
-  export default hello;`,
+        '/app/a.ts',
+        `const a = 'a';
+  export default a;`,
       );
 
       removeExport({
         languageService,
         fileService,
-        targetFile: '/app/hello.ts',
+        targetFile: '/app/a.ts',
       });
 
-      const result = fileService.get('/app/hello.ts');
+      const result = fileService.get('/app/a.ts');
       assert.equal(
         result.trim(),
-        `const hello = 'hello';
-  export default hello;`,
+        `const a = 'a';
+  export default a;`,
       );
     });
 
@@ -311,43 +305,43 @@ describe('removeExport', () => {
       const { languageService, fileService } = setup();
 
       fileService.set(
-        '/app/hello.ts',
-        `const hello = 'hello';
-  export default hello;`,
+        '/app/a.ts',
+        `const a = 'a';
+  export default a;`,
       );
 
       removeExport({
         languageService,
         fileService,
-        targetFile: '/app/hello.ts',
+        targetFile: '/app/a.ts',
       });
 
-      const result = fileService.get('/app/hello.ts');
-      assert.equal(result.trim(), `const hello = 'hello';`);
+      const result = fileService.get('/app/a.ts');
+      assert.equal(result.trim(), `const a = 'a';`);
     });
 
     it('should not remove default export for an identifier if it has a comment to ignore', () => {
       const { languageService, fileService } = setup();
 
       fileService.set(
-        '/app/hello.ts',
-        `const hello = 'hello';
+        '/app/a.ts',
+        `const a = 'a';
   // ts-remove-unused-skip
-  export default hello;`,
+  export default a;`,
       );
 
       removeExport({
         languageService,
         fileService,
-        targetFile: '/app/hello.ts',
+        targetFile: '/app/a.ts',
       });
 
-      const result = fileService.get('/app/hello.ts');
+      const result = fileService.get('/app/a.ts');
       assert.equal(
         result.trim(),
-        `const hello = 'hello';
+        `const a = 'a';
   // ts-remove-unused-skip
-  export default hello;`,
+  export default a;`,
       );
     });
   });
@@ -356,32 +350,32 @@ describe('removeExport', () => {
     it('should not remove default export for a literal if its used in some other file', () => {
       const { languageService, fileService } = setup();
 
-      fileService.set('/app/index.ts', `import hello from './hello';`);
+      fileService.set('/app/main.ts', `import a from './a';`);
 
-      fileService.set('/app/hello.ts', `export default 'hello';`);
+      fileService.set('/app/a.ts', `export default 'a';`);
 
       removeExport({
         languageService,
         fileService,
-        targetFile: '/app/hello.ts',
+        targetFile: '/app/a.ts',
       });
 
-      const result = fileService.get('/app/hello.ts');
-      assert.equal(result.trim(), `export default 'hello';`);
+      const result = fileService.get('/app/a.ts');
+      assert.equal(result.trim(), `export default 'a';`);
     });
 
     it('should remove default export for a literal if its not used in some other file', () => {
       const { languageService, fileService } = setup();
 
-      fileService.set('/app/hello.ts', `export default hello;`);
+      fileService.set('/app/a.ts', `export default a;`);
 
       removeExport({
         languageService,
         fileService,
-        targetFile: '/app/hello.ts',
+        targetFile: '/app/a.ts',
       });
 
-      const result = fileService.get('/app/hello.ts');
+      const result = fileService.get('/app/a.ts');
       assert.equal(result.trim(), '');
     });
 
@@ -389,22 +383,22 @@ describe('removeExport', () => {
       const { languageService, fileService } = setup();
 
       fileService.set(
-        '/app/hello.ts',
+        '/app/a.ts',
         `// ts-remove-unused-skip
-  export default 'hello';`,
+  export default 'a';`,
       );
 
       removeExport({
         languageService,
         fileService,
-        targetFile: '/app/hello.ts',
+        targetFile: '/app/a.ts',
       });
 
-      const result = fileService.get('/app/hello.ts');
+      const result = fileService.get('/app/a.ts');
       assert.equal(
         result.trim(),
         `// ts-remove-unused-skip
-  export default 'hello';`,
+  export default 'a';`,
       );
     });
   });
@@ -413,25 +407,25 @@ describe('removeExport', () => {
     it('should not remove export specifier for an identifier if its used in some other file', () => {
       const { languageService, fileService } = setup();
 
-      fileService.set('/app/index.ts', `import { hello } from './hello.js';`);
+      fileService.set('/app/main.ts', `import { a } from './a.js';`);
 
       fileService.set(
-        '/app/hello.ts',
-        `const hello = 'hello';
-  export { hello };`,
+        '/app/a.ts',
+        `const a = 'a';
+  export { a };`,
       );
 
       removeExport({
         languageService,
         fileService,
-        targetFile: '/app/hello.ts',
+        targetFile: '/app/a.ts',
       });
 
-      const result = fileService.get('/app/hello.ts');
+      const result = fileService.get('/app/a.ts');
       assert.equal(
         result.trim(),
-        `const hello = 'hello';
-  export { hello };`,
+        `const a = 'a';
+  export { a };`,
       );
     });
 
@@ -439,21 +433,21 @@ describe('removeExport', () => {
       const { languageService, fileService } = setup();
 
       fileService.set(
-        '/app/hello.ts',
-        `const hello = 'hello';
-  export { hello };`,
+        '/app/a.ts',
+        `const a = 'a';
+  export { a };`,
       );
 
       removeExport({
         languageService,
         fileService,
-        targetFile: '/app/hello.ts',
+        targetFile: '/app/a.ts',
       });
 
-      const result = fileService.get('/app/hello.ts');
+      const result = fileService.get('/app/a.ts');
       assert.equal(
         result.trim(),
-        `const hello = 'hello';
+        `const a = 'a';
   export {  };`,
       );
     });
@@ -462,27 +456,27 @@ describe('removeExport', () => {
       const { languageService, fileService } = setup();
 
       fileService.set(
-        '/app/hello.ts',
-        `const hello = 'hello';
+        '/app/a.ts',
+        `const a = 'a';
   export { 
     // ts-remove-unused-skip
-    hello
+    a
   };`,
       );
 
       removeExport({
         languageService,
         fileService,
-        targetFile: '/app/hello.ts',
+        targetFile: '/app/a.ts',
       });
 
-      const result = fileService.get('/app/hello.ts');
+      const result = fileService.get('/app/a.ts');
       assert.equal(
         result.trim(),
-        `const hello = 'hello';
+        `const a = 'a';
   export { 
     // ts-remove-unused-skip
-    hello
+    a
   };`,
       );
     });
