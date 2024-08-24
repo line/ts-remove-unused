@@ -9,12 +9,12 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 
 describe('cli', () => {
   it('should execute', () => {
-    let output = '';
+    const output: string[] = [];
     const mockedStdout = {
       ...stdout,
       write: (text: string) => {
         stdout.write(text);
-        output += text;
+        output.push(text);
       },
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } as any;
@@ -27,7 +27,13 @@ describe('cli', () => {
       stdout: mockedStdout,
     });
 
-    assert.equal(/\[modified\].+a.ts/.test(output), true);
-    assert.equal(/\[deleted\].+b.ts/.test(output), true);
+    assert.equal(
+      output.find((line) => line.includes('a.ts'))?.includes('modified'),
+      true,
+    );
+    assert.equal(
+      output.find((line) => line.includes('b.ts'))?.includes('deleted'),
+      true,
+    );
   });
 });

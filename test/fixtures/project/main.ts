@@ -1,2 +1,3 @@
 import { a } from './a';
-console.log(a);
+import { d } from './d';
+console.log(a, d);
