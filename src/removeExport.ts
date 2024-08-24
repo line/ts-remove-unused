@@ -126,24 +126,15 @@ const findReferences = (node: SupportedNode, service: ts.LanguageService) => {
   throw new Error(`unexpected node type: ${node satisfies never}`);
 };
 
-const getExportNodes = (service: ts.LanguageService, file: string) => {
-  const program = service.getProgram();
-
-  if (!program) {
-    throw new Error('program not found');
-  }
-
-  const sourceFile = program.getSourceFile(file);
-
-  if (!sourceFile) {
-    throw new Error('source file not found');
-  }
-
+const getExportNodes = (
+  languageService: ts.LanguageService,
+  sourceFile: ts.SourceFile,
+) => {
   const result: SupportedNode[] = [];
 
   const visit = (node: ts.Node) => {
     if (isTarget(node)) {
-      const references = findReferences(node, service);
+      const references = findReferences(node, languageService);
 
       if (!references) {
         return;
@@ -170,17 +161,12 @@ const getExportNodes = (service: ts.LanguageService, file: string) => {
   return result;
 };
 
-export const removeExport = ({
-  fileService,
-  targetFile,
-  languageService,
-}: {
-  fileService: FileService;
-  targetFile: string;
-  languageService: ts.LanguageService;
-}) => {
+const getTextChanges = (
+  languageService: ts.LanguageService,
+  sourceFile: ts.SourceFile,
+) => {
   const changes: ts.TextChange[] = [];
-  for (const node of getExportNodes(languageService, targetFile)) {
+  for (const node of getExportNodes(languageService, sourceFile)) {
     if (ts.isExportAssignment(node) || ts.isExportSpecifier(node)) {
       const start = node.getStart();
       const end = node.getEnd();
@@ -216,8 +202,32 @@ export const removeExport = ({
     });
   }
 
-  const oldContent = fileService.get(targetFile);
+  return changes;
+};
 
+export const removeExport = ({
+  fileService,
+  targetFile,
+  languageService,
+}: {
+  fileService: FileService;
+  targetFile: string;
+  languageService: ts.LanguageService;
+}) => {
+  const program = languageService.getProgram();
+
+  if (!program) {
+    throw new Error('program not found');
+  }
+
+  const sourceFile = program.getSourceFile(targetFile);
+
+  if (!sourceFile) {
+    throw new Error('source file not found');
+  }
+
+  const changes = getTextChanges(languageService, sourceFile);
+  const oldContent = fileService.get(targetFile);
   const newContent = applyTextChanges(oldContent, changes);
 
   fileService.set(targetFile, newContent);
