@@ -41,7 +41,8 @@ type SupportedNode =
   | ts.InterfaceDeclaration
   | ts.TypeAliasDeclaration
   | ts.ExportAssignment
-  | ts.ExportSpecifier;
+  | ts.ExportSpecifier
+  | ts.ClassDeclaration;
 
 const isTarget = (node: ts.Node): node is SupportedNode => {
   if (ts.isExportAssignment(node) || ts.isExportSpecifier(node)) {
@@ -56,7 +57,8 @@ const isTarget = (node: ts.Node): node is SupportedNode => {
     ts.isVariableStatement(node) ||
     ts.isFunctionDeclaration(node) ||
     ts.isInterfaceDeclaration(node) ||
-    ts.isTypeAliasDeclaration(node)
+    ts.isTypeAliasDeclaration(node) ||
+    ts.isClassDeclaration(node)
   ) {
     const hasExportKeyword = !!findFirstNodeOfKind(
       node,
@@ -100,7 +102,8 @@ const findReferences = (node: SupportedNode, service: ts.LanguageService) => {
     ts.isFunctionDeclaration(node) ||
     ts.isInterfaceDeclaration(node) ||
     ts.isTypeAliasDeclaration(node) ||
-    ts.isExportSpecifier(node)
+    ts.isExportSpecifier(node) ||
+    ts.isClassDeclaration(node)
   ) {
     return service.findReferences(
       node.getSourceFile().fileName,

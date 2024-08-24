@@ -164,6 +164,79 @@ import c from './c';`,
     });
   });
 
+  describe('class declaration', () => {
+    it('should not remove export for function if its used in some other file', () => {
+      const { languageService, fileService } = setup();
+
+      fileService.set(
+        '/app/main.ts',
+        `import { A } from './a';
+import B from './b';
+import C from './c';`,
+      );
+      fileService.set('/app/a.ts', `export class A {}`);
+      fileService.set('/app/b.ts', `export default class B {}`);
+      fileService.set('/app/c.ts', `export default class {}`);
+
+      removeExport({
+        languageService,
+        fileService,
+        targetFile: ['/app/a.ts', '/app/b.ts', '/app/c.ts'],
+      });
+
+      assert.equal(fileService.get('/app/a.ts').trim(), `export class A {}`);
+      assert.equal(
+        fileService.get('/app/b.ts').trim(),
+        `export default class B {}`,
+      );
+      assert.equal(
+        fileService.get('/app/c.ts').trim(),
+        `export default class {}`,
+      );
+    });
+
+    it('should remove export for function if its not used in some other file', () => {
+      const { languageService, fileService } = setup();
+      fileService.set('/app/a.ts', `export class A {}`);
+      fileService.set('/app/b.ts', `export default class B {}`);
+      fileService.set('/app/c.ts', `export default class {}`);
+
+      removeExport({
+        languageService,
+        fileService,
+        targetFile: ['/app/a.ts', '/app/b.ts', '/app/c.ts'],
+      });
+
+      assert.equal(fileService.get('/app/a.ts').trim(), `class A {}`);
+      assert.equal(fileService.get('/app/b.ts').trim(), `class B {}`);
+      // fixme
+      assert.equal(fileService.get('/app/c.ts').trim(), `class {}`);
+    });
+
+    it('should not remove export if it has a comment to ignore', () => {
+      const { languageService, fileService } = setup();
+      fileService.set(
+        '/app/a.ts',
+        `// ts-remove-unused-skip
+  export class A {}`,
+      );
+
+      removeExport({
+        languageService,
+        fileService,
+        targetFile: '/app/a.ts',
+      });
+
+      const result = fileService.get('/app/a.ts');
+
+      assert.equal(
+        result.trim(),
+        `// ts-remove-unused-skip
+  export class A {}`,
+      );
+    });
+  });
+
   describe('interface declaration', () => {
     it('should not remove export for interface if its used in some other file', () => {
       const { languageService, fileService } = setup();
