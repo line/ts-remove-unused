@@ -347,11 +347,15 @@ export const removeUnusedExport = ({
     let newContent = applyTextChanges(oldContent, changes);
 
     if (enableCodeFix) {
+      fileService.set(file, newContent);
+
       newContent = applyCodeFix({
         fixId: fixIdDelete,
         fileName: file,
         languageService,
       });
+
+      fileService.set(file, newContent);
 
       newContent = applyCodeFix({
         fixId: fixIdDeleteImports,
