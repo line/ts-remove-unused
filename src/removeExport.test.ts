@@ -37,40 +37,34 @@ describe('removeExport', () => {
   it('should not remove export for variable if its used in some other file', () => {
     const { languageService, fileService } = setup();
     fileService.set(
-      '/tools/remove-unused-code/case/index.ts',
+      '/app/index.ts',
       `import { hello } from './hello';
       console.log(hello);
     `,
     );
-    fileService.set(
-      '/tools/remove-unused-code/case/hello.ts',
-      `export const hello = 'hello';`,
-    );
+    fileService.set('/app/hello.ts', `export const hello = 'hello';`);
 
     removeExport({
       languageService,
       fileService,
-      targetFile: '/tools/remove-unused-code/case/hello.ts',
+      targetFile: '/app/hello.ts',
     });
 
-    const result = fileService.get('/tools/remove-unused-code/case/hello.ts');
+    const result = fileService.get('/app/hello.ts');
     assert.equal(result.trim(), `export const hello = 'hello';`);
   });
 
   it('should remove export for variable if its not used in some other file', () => {
     const { languageService, fileService } = setup();
-    fileService.set(
-      '/tools/remove-unused-code/case/world.ts',
-      `export const world = 'world';`,
-    );
+    fileService.set('/app/world.ts', `export const world = 'world';`);
 
     removeExport({
       languageService,
       fileService,
-      targetFile: '/tools/remove-unused-code/case/world.ts',
+      targetFile: '/app/world.ts',
     });
 
-    const result = fileService.get('/tools/remove-unused-code/case/world.ts');
+    const result = fileService.get('/app/world.ts');
 
     assert.equal(result.trim(), `const world = 'world';`);
   });
@@ -78,7 +72,7 @@ describe('removeExport', () => {
   it('should not remove export for variable if it has a comment to ignore', () => {
     const { languageService, fileService } = setup();
     fileService.set(
-      '/tools/remove-unused-code/case/with-comment.ts',
+      '/app/with-comment.ts',
       `// ts-remove-unused-skip
 export const world = 'world';`,
     );
@@ -86,12 +80,10 @@ export const world = 'world';`,
     removeExport({
       languageService,
       fileService,
-      targetFile: '/tools/remove-unused-code/case/with-comment.ts',
+      targetFile: '/app/with-comment.ts',
     });
 
-    const result = fileService.get(
-      '/tools/remove-unused-code/case/with-comment.ts',
-    );
+    const result = fileService.get('/app/with-comment.ts');
 
     assert.equal(
       result.trim(),
@@ -104,40 +96,34 @@ export const world = 'world';`,
     const { languageService, fileService } = setup();
 
     fileService.set(
-      '/tools/remove-unused-code/case/index.ts',
+      '/app/index.ts',
       `import { hello } from './hello';
       hello();
     `,
     );
-    fileService.set(
-      '/tools/remove-unused-code/case/hello.ts',
-      `export function hello() {};`,
-    );
+    fileService.set('/app/hello.ts', `export function hello() {};`);
 
     removeExport({
       languageService,
       fileService,
-      targetFile: '/tools/remove-unused-code/case/hello.ts',
+      targetFile: '/app/hello.ts',
     });
 
-    const result = fileService.get('/tools/remove-unused-code/case/hello.ts');
+    const result = fileService.get('/app/hello.ts');
     assert.equal(result.trim(), `export function hello() {};`);
   });
 
   it('should remove export for function if its not used in some other file', () => {
     const { languageService, fileService } = setup();
-    fileService.set(
-      '/tools/remove-unused-code/case/world.ts',
-      `export function world() {};`,
-    );
+    fileService.set('/app/world.ts', `export function world() {};`);
 
     removeExport({
       languageService,
       fileService,
-      targetFile: '/tools/remove-unused-code/case/world.ts',
+      targetFile: '/app/world.ts',
     });
 
-    const result = fileService.get('/tools/remove-unused-code/case/world.ts');
+    const result = fileService.get('/app/world.ts');
 
     assert.equal(result.trim(), `function world() {};`);
   });
@@ -145,7 +131,7 @@ export const world = 'world';`,
   it('should not remove export if it has a comment to ignore', () => {
     const { languageService, fileService } = setup();
     fileService.set(
-      '/tools/remove-unused-code/case/with-comment.ts',
+      '/app/with-comment.ts',
       `// ts-remove-unused-skip
 export function world() {};`,
     );
@@ -153,12 +139,10 @@ export function world() {};`,
     removeExport({
       languageService,
       fileService,
-      targetFile: '/tools/remove-unused-code/case/with-comment.ts',
+      targetFile: '/app/with-comment.ts',
     });
 
-    const result = fileService.get(
-      '/tools/remove-unused-code/case/with-comment.ts',
-    );
+    const result = fileService.get('/app/with-comment.ts');
 
     assert.equal(
       result.trim(),
@@ -170,40 +154,40 @@ export function world() {};`,
   it('should not remove export for interface if its used in some other file', () => {
     const { languageService, fileService } = setup();
     fileService.set(
-      '/tools/remove-unused-code/case/index.ts',
+      '/app/index.ts',
       `import { Hello } from './hello';
       const hello: Hello = { hello: 'hello' };
     `,
     );
     fileService.set(
-      '/tools/remove-unused-code/case/hello.ts',
+      '/app/hello.ts',
       `export interface Hello { hello: 'hello' }`,
     );
 
     removeExport({
       languageService,
       fileService,
-      targetFile: '/tools/remove-unused-code/case/hello.ts',
+      targetFile: '/app/hello.ts',
     });
 
-    const result = fileService.get('/tools/remove-unused-code/case/hello.ts');
+    const result = fileService.get('/app/hello.ts');
     assert.equal(result.trim(), `export interface Hello { hello: 'hello' }`);
   });
 
   it('should remove export for interface if its not used in some other file', () => {
     const { languageService, fileService } = setup();
     fileService.set(
-      '/tools/remove-unused-code/case/world.ts',
+      '/app/world.ts',
       `export interface World { world: 'world' }`,
     );
 
     removeExport({
       languageService,
       fileService,
-      targetFile: '/tools/remove-unused-code/case/world.ts',
+      targetFile: '/app/world.ts',
     });
 
-    const result = fileService.get('/tools/remove-unused-code/case/world.ts');
+    const result = fileService.get('/app/world.ts');
 
     assert.equal(result.trim(), `interface World { world: 'world' }`);
   });
@@ -211,7 +195,7 @@ export function world() {};`,
   it('should not remove export if it has a comment to ignore', () => {
     const { languageService, fileService } = setup();
     fileService.set(
-      '/tools/remove-unused-code/case/with-comment.ts',
+      '/app/with-comment.ts',
       `// ts-remove-unused-skip
 export interface World { world: 'world' }`,
     );
@@ -219,12 +203,10 @@ export interface World { world: 'world' }`,
     removeExport({
       languageService,
       fileService,
-      targetFile: '/tools/remove-unused-code/case/with-comment.ts',
+      targetFile: '/app/with-comment.ts',
     });
 
-    const result = fileService.get(
-      '/tools/remove-unused-code/case/with-comment.ts',
-    );
+    const result = fileService.get('/app/with-comment.ts');
 
     assert.equal(
       result.trim(),
@@ -236,40 +218,34 @@ export interface World { world: 'world' }`,
   it('should not remove export for type if its used in some other file', () => {
     const { languageService, fileService } = setup();
     fileService.set(
-      '/tools/remove-unused-code/case/index.ts',
+      '/app/index.ts',
       `import { Hello } from './hello';
       const hello: Hello = 'hello';
     `,
     );
-    fileService.set(
-      '/tools/remove-unused-code/case/hello.ts',
-      `export type Hello = 'hello';`,
-    );
+    fileService.set('/app/hello.ts', `export type Hello = 'hello';`);
 
     removeExport({
       languageService,
       fileService,
-      targetFile: '/tools/remove-unused-code/case/hello.ts',
+      targetFile: '/app/hello.ts',
     });
 
-    const result = fileService.get('/tools/remove-unused-code/case/hello.ts');
+    const result = fileService.get('/app/hello.ts');
     assert.equal(result.trim(), `export type Hello = 'hello';`);
   });
 
   it('should remove export for type if its not used in some other file', () => {
     const { languageService, fileService } = setup();
-    fileService.set(
-      '/tools/remove-unused-code/case/world.ts',
-      `export type World = 'world';`,
-    );
+    fileService.set('/app/world.ts', `export type World = 'world';`);
 
     removeExport({
       languageService,
       fileService,
-      targetFile: '/tools/remove-unused-code/case/world.ts',
+      targetFile: '/app/world.ts',
     });
 
-    const result = fileService.get('/tools/remove-unused-code/case/world.ts');
+    const result = fileService.get('/app/world.ts');
 
     assert.equal(result.trim(), `type World = 'world';`);
   });
@@ -277,7 +253,7 @@ export interface World { world: 'world' }`,
   it('should not remove export if it has a comment to ignore', () => {
     const { languageService, fileService } = setup();
     fileService.set(
-      '/tools/remove-unused-code/case/with-comment.ts',
+      '/app/with-comment.ts',
       `// ts-remove-unused-skip
 export type World = 'world';`,
     );
@@ -285,12 +261,10 @@ export type World = 'world';`,
     removeExport({
       languageService,
       fileService,
-      targetFile: '/tools/remove-unused-code/case/with-comment.ts',
+      targetFile: '/app/with-comment.ts',
     });
 
-    const result = fileService.get(
-      '/tools/remove-unused-code/case/with-comment.ts',
-    );
+    const result = fileService.get('/app/with-comment.ts');
 
     assert.equal(
       result.trim(),
@@ -303,13 +277,13 @@ export type World = 'world';`,
     const { languageService, fileService } = setup();
 
     fileService.set(
-      '/tools/remove-unused-code/case/index.ts',
+      '/app/index.ts',
       `import hello from './hello.js';
 console.log(hello);`,
     );
 
     fileService.set(
-      '/tools/remove-unused-code/case/hello.ts',
+      '/app/hello.ts',
       `const hello = 'hello';
 export default hello;`,
     );
@@ -317,10 +291,10 @@ export default hello;`,
     removeExport({
       languageService,
       fileService,
-      targetFile: '/tools/remove-unused-code/case/hello.ts',
+      targetFile: '/app/hello.ts',
     });
 
-    const result = fileService.get('/tools/remove-unused-code/case/hello.ts');
+    const result = fileService.get('/app/hello.ts');
     assert.equal(
       result.trim(),
       `const hello = 'hello';
@@ -332,7 +306,7 @@ export default hello;`,
     const { languageService, fileService } = setup();
 
     fileService.set(
-      '/tools/remove-unused-code/case/hello.ts',
+      '/app/hello.ts',
       `const hello = 'hello';
 export default hello;`,
     );
@@ -340,10 +314,10 @@ export default hello;`,
     removeExport({
       languageService,
       fileService,
-      targetFile: '/tools/remove-unused-code/case/hello.ts',
+      targetFile: '/app/hello.ts',
     });
 
-    const result = fileService.get('/tools/remove-unused-code/case/hello.ts');
+    const result = fileService.get('/app/hello.ts');
     assert.equal(result.trim(), `const hello = 'hello';`);
   });
 
@@ -351,7 +325,7 @@ export default hello;`,
     const { languageService, fileService } = setup();
 
     fileService.set(
-      '/tools/remove-unused-code/case/with-comment.ts',
+      '/app/with-comment.ts',
       `const hello = 'hello';
 // ts-remove-unused-skip
 export default hello;`,
@@ -360,12 +334,10 @@ export default hello;`,
     removeExport({
       languageService,
       fileService,
-      targetFile: '/tools/remove-unused-code/case/with-comment.ts',
+      targetFile: '/app/with-comment.ts',
     });
 
-    const result = fileService.get(
-      '/tools/remove-unused-code/case/with-comment.ts',
-    );
+    const result = fileService.get('/app/with-comment.ts');
     assert.equal(
       result.trim(),
       `const hello = 'hello';
