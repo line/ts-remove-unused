@@ -311,6 +311,11 @@ export const removeUnusedExport = ({
     }
 
     const changes = getTextChanges(languageService, sourceFile);
+
+    if (changes.length === 0) {
+      continue;
+    }
+
     const oldContent = fileService.get(file);
     const newContent = applyTextChanges(oldContent, changes);
 
