@@ -13,7 +13,7 @@ npm i -D @line/ts-remove-unused
 
 ```
 Usage:
-  $ ts-remove-unused
+  $ ts-remove-unused 
 
 Commands:
     There are no subcommands. Simply execute ts-remove-unused
@@ -22,12 +22,12 @@ For more info, run any command with the `--help` flag:
   $ ts-remove-unused --help
 
 Options:
-  --project <file>         Path to your tsconfig.json
-  --skip <regexp_pattern>  Specify the regexp pattern to match files that should be skipped from transforming
-  --include-d-ts           Include .d.ts files in target for transformation
-  -h, --help               Display this message
-  -v, --version            Display version number
-
+  --project <file>         Path to your tsconfig.json 
+  --skip <regexp_pattern>  Specify the regexp pattern to match files that should be skipped from transforming 
+  --include-d-ts           Include .d.ts files in target for transformation 
+  --dry-run                Print the result of transformation without writing to files 
+  -h, --help               Display this message 
+  -v, --version            Display version number 
 ```
 
 The CLI will respect the `tsconfig.json` for loading source files.
@@ -48,18 +48,6 @@ export const hello = 'world';
 ```
 
 By default, .d.ts files are skipped. If you want to include .d.ts files, use the --include-d-ts option.
-
-## Known Issue
-
-Since this CLI uses TypeScript's transformer API, it can't preserve the original format of the file. Although most of the format change can be restored using linters like prettier, empty lines will be omitted. Here's a workaround for this issue using git.
-
-```bash
-npx ts-remove-unused ## execute the cli
-npx prettier --write . ## fix the format
-git add .
-git commit ## commit first
-git checkout HEAD~1 -- . && git diff HEAD~1 HEAD --ignore-blank-lines | git apply && git reset ## this will try to restore irrelevant changes of empty lines caused by the first commit
-```
 
 ## License
 
