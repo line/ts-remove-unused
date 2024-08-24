@@ -181,17 +181,18 @@ const getTextChanges = (
       continue;
     }
 
-    const exportKeyword = findFirstNodeOfKind(
-      node,
-      ts.SyntaxKind.ExportKeyword,
-    );
+    // we want to correctly remove 'default' when its a default export so we get the syntaxList node instead of the exportKeyword node
+    // note: the first syntaxList node should contain the export keyword
+    const syntaxList = node
+      .getChildren()
+      .find((n) => n.kind === ts.SyntaxKind.SyntaxList);
 
-    if (!exportKeyword) {
-      throw new Error('export keyword not found');
+    if (!syntaxList) {
+      throw new Error('syntax list not found');
     }
 
-    const start = exportKeyword.getStart();
-    const end = exportKeyword.getEnd();
+    const start = syntaxList.getStart();
+    const end = syntaxList.getEnd();
 
     changes.push({
       newText: '',

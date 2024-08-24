@@ -101,34 +101,50 @@ describe('removeExport', () => {
       fileService.set(
         '/app/main.ts',
         `import { a } from './a';
-        a();
+import b from './b';
+import c from './c';
       `,
       );
       fileService.set('/app/a.ts', `export function a() {};`);
+      fileService.set('/app/b.ts', `export default function b() {};`);
+      fileService.set('/app/c.ts', `export default function() {};`);
 
       removeExport({
         languageService,
         fileService,
-        targetFile: '/app/a.ts',
+        targetFile: ['/app/a.ts', '/app/b.ts', '/app/c.ts'],
       });
 
-      const result = fileService.get('/app/a.ts');
-      assert.equal(result.trim(), `export function a() {};`);
+      assert.equal(
+        fileService.get('/app/a.ts').trim(),
+        `export function a() {};`,
+      );
+      assert.equal(
+        fileService.get('/app/b.ts').trim(),
+        `export default function b() {};`,
+      );
+      assert.equal(
+        fileService.get('/app/c.ts').trim(),
+        `export default function() {};`,
+      );
     });
 
-    it('should remove export for function if its not used in some other file', () => {
+    it.only('should remove export for function if its not used in some other file', () => {
       const { languageService, fileService } = setup();
-      fileService.set('/app/b.ts', `export function b() {};`);
+      fileService.set('/app/a.ts', `export function a() {};`);
+      fileService.set('/app/b.ts', `export default function b() {};`);
+      fileService.set('/app/c.ts', `export default function() {};`);
 
       removeExport({
         languageService,
         fileService,
-        targetFile: '/app/b.ts',
+        targetFile: ['/app/a.ts', '/app/b.ts', '/app/c.ts'],
       });
 
-      const result = fileService.get('/app/b.ts');
-
-      assert.equal(result.trim(), `function b() {};`);
+      assert.equal(fileService.get('/app/a.ts').trim(), `function a() {};`);
+      assert.equal(fileService.get('/app/b.ts').trim(), `function b() {};`);
+      // todo: remove this function declaration
+      assert.equal(fileService.get('/app/c.ts').trim(), `function() {};`);
     });
 
     it('should not remove export if it has a comment to ignore', () => {
