@@ -34,32 +34,46 @@ const setup = () => {
 };
 
 describe('removeExport', () => {
-  it('should remove the export keyword', () => {
+  it('should not remove export for variable if its used in some other file', () => {
     const { languageService, fileService } = setup();
     fileService.set(
-      'main.ts',
-      `import { add } from './util/operations.js';
-              export const main = () => {};
-            `,
+      '/tools/remove-unused-code/case/index.ts',
+      `import { hello } from './hello';
+      console.log(hello);
+    `,
     );
-
     fileService.set(
-      'util/operations.ts',
-      `export const add = (a: number, b: number) => a + b;
-              export const subtract = (a: number, b: number) => a - b;
-              const multiply = (a: number, b: number) => a * b;
-              export const divide = (a: number, b: number) => a / b;
-              `,
+      '/tools/remove-unused-code/case/hello.ts',
+      `export const hello = 'hello';`,
     );
 
     removeExport({
-      fileService,
-      targetFile: 'util/operations.ts',
       languageService,
+      fileService,
+      targetFile: '/tools/remove-unused-code/case/hello.ts',
     });
 
-    const content = fileService.get('util/operations.ts');
+    const result = fileService.get('/tools/remove-unused-code/case/hello.ts');
+    assert.equal(result.trim(), `export const hello = 'hello';`);
+  });
 
-    assert.equal(content.match(/export/g)?.length, 1);
+  it('should remove export for variable if its not used in some other file', () => {
+    const { languageService, fileService } = setup();
+    fileService.set(
+      '/tools/remove-unused-code/case/world.ts',
+      `export const world = 'world';`,
+    );
+
+    removeExport({
+      languageService,
+      fileService,
+      targetFile: '/tools/remove-unused-code/case/world.ts',
+    });
+
+    const result = fileService.get('/tools/remove-unused-code/case/world.ts');
+
+    console.log(result);
+
+    assert.equal(result.trim(), `const world = 'world';`);
   });
 });
