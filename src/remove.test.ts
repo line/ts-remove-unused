@@ -2,7 +2,7 @@ import { describe, it } from 'node:test';
 import { FileService } from './FileService.js';
 import ts from 'typescript';
 import assert from 'node:assert/strict';
-import { removeUnusedExport, removeUnusedFile } from './removeExport.js';
+import { removeUnusedExport, removeUnusedFile } from './remove.js';
 
 const setup = () => {
   const fileService = new FileService();
