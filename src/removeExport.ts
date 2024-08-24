@@ -43,38 +43,36 @@ type SupportedNode =
 
 const isTarget = (node: ts.Node): node is SupportedNode => {
   if (ts.isExportAssignment(node)) {
-    if (!getLeadingComment(node).includes(IGNORE_COMMENT)) {
-      return true;
+    if (getLeadingComment(node).includes(IGNORE_COMMENT)) {
+      return false;
     }
 
-    return false;
+    return true;
   }
 
   if (
-    !ts.isVariableStatement(node) &&
-    !ts.isFunctionDeclaration(node) &&
-    !ts.isInterfaceDeclaration(node) &&
-    !ts.isTypeAliasDeclaration(node)
+    ts.isVariableStatement(node) ||
+    ts.isFunctionDeclaration(node) ||
+    ts.isInterfaceDeclaration(node) ||
+    ts.isTypeAliasDeclaration(node)
   ) {
-    return false;
+    const hasExportKeyword = !!findFirstNodeOfKind(
+      node,
+      ts.SyntaxKind.ExportKeyword,
+    );
+
+    if (!hasExportKeyword) {
+      return false;
+    }
+
+    if (getLeadingComment(node).includes(IGNORE_COMMENT)) {
+      return false;
+    }
+
+    return true;
   }
 
-  const hasExportKeyword = !!findFirstNodeOfKind(
-    node,
-    ts.SyntaxKind.ExportKeyword,
-  );
-
-  if (!hasExportKeyword) {
-    return false;
-  }
-
-  const leadingComment = getLeadingComment(node);
-
-  if (leadingComment.includes(IGNORE_COMMENT)) {
-    return false;
-  }
-
-  return true;
+  return false;
 };
 
 const findReferences = (node: SupportedNode, service: ts.LanguageService) => {
