@@ -48,14 +48,13 @@ describe('applyCodeFix', () => {
 const b = 'b';`,
     );
 
-    applyCodeFix({
+    const result = applyCodeFix({
       fixId: fixIdDelete,
       languageService,
-      fileService,
-      targetFile: '/app/a.ts',
+      fileName: '/app/a.ts',
     });
 
-    assert.equal(fileService.get('/app/a.ts').trim(), `export const a = 'a';`);
+    assert.equal(result.trim(), `export const a = 'a';`);
   });
 
   it('should clean up unused imports', () => {
@@ -68,13 +67,12 @@ const b = 'b';`,
 export const a = 'a';`,
     );
 
-    applyCodeFix({
+    const result = applyCodeFix({
       fixId: fixIdDeleteImports,
       languageService,
-      fileService,
-      targetFile: '/app/a.ts',
+      fileName: '/app/a.ts',
     });
 
-    assert.equal(fileService.get('/app/a.ts').trim(), `export const a = 'a';`);
+    assert.equal(result.trim(), `export const a = 'a';`);
   });
 });

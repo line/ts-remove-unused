@@ -2,11 +2,6 @@ import ts from 'typescript';
 import { resolve } from 'node:path';
 import { FileService } from './FileService.js';
 import { removeUnusedExport } from './remove.js';
-import {
-  applyCodeFix,
-  fixIdDelete,
-  fixIdDeleteImports,
-} from './applyCodeFix.js';
 
 export const execute = ({
   tsConfigFilePath,
@@ -76,21 +71,8 @@ export const execute = ({
     targetFile: targets,
     languageService,
     deleteUnusedFile: true,
+    enableCodeFix: true,
     stdout,
-  });
-
-  applyCodeFix({
-    fixId: fixIdDelete,
-    targetFile: targets,
-    languageService,
-    fileService,
-  });
-
-  applyCodeFix({
-    fixId: fixIdDeleteImports,
-    targetFile: targets,
-    languageService,
-    fileService,
   });
 
   for (const target of targets) {

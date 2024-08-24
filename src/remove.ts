@@ -2,6 +2,11 @@ import ts from 'typescript';
 import { FileService } from './FileService.js';
 import { applyTextChanges } from './util/applyTextChanges.js';
 import chalk from 'chalk';
+import {
+  applyCodeFix,
+  fixIdDelete,
+  fixIdDeleteImports,
+} from './applyCodeFix.js';
 
 const findFirstNodeOfKind = (root: ts.Node, kind: ts.SyntaxKind) => {
   let result: ts.Node | undefined;
@@ -294,11 +299,13 @@ export const removeUnusedExport = ({
   targetFile,
   languageService,
   deleteUnusedFile = false,
+  enableCodeFix = false,
   stdout,
 }: {
   fileService: FileService;
   targetFile: string | string[];
   languageService: ts.LanguageService;
+  enableCodeFix?: boolean;
   deleteUnusedFile?: boolean;
   stdout?: NodeJS.WriteStream;
 }) => {
@@ -337,7 +344,21 @@ export const removeUnusedExport = ({
     }
 
     const oldContent = fileService.get(file);
-    const newContent = applyTextChanges(oldContent, changes);
+    let newContent = applyTextChanges(oldContent, changes);
+
+    if (enableCodeFix) {
+      newContent = applyCodeFix({
+        fixId: fixIdDelete,
+        fileName: file,
+        languageService,
+      });
+
+      newContent = applyCodeFix({
+        fixId: fixIdDeleteImports,
+        fileName: file,
+        languageService,
+      });
+    }
 
     fileService.set(file, newContent);
 

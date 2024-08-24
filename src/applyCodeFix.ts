@@ -1,5 +1,4 @@
 import ts from 'typescript';
-import { FileService } from './FileService.js';
 import { applyTextChanges } from './util/applyTextChanges.js';
 
 export const fixIdDelete = 'unusedIdentifier_delete';
@@ -10,13 +9,11 @@ type FixId = typeof fixIdDelete | typeof fixIdDeleteImports;
 export const applyCodeFix = ({
   fixId,
   languageService,
-  targetFile,
-  fileService,
+  fileName,
 }: {
   fixId: FixId;
+  fileName: string;
   languageService: ts.LanguageService;
-  targetFile: string | string[];
-  fileService: FileService;
 }) => {
   const program = languageService.getProgram();
 
@@ -24,28 +21,27 @@ export const applyCodeFix = ({
     throw new Error('program not found');
   }
 
-  for (const file of Array.isArray(targetFile) ? targetFile : [targetFile]) {
-    const sourceFile = program.getSourceFile(file);
+  const sourceFile = program.getSourceFile(fileName);
 
-    if (!sourceFile) {
-      continue;
-    }
-
-    const actions = languageService.getCombinedCodeFix(
-      {
-        type: 'file',
-        fileName: file,
-      },
-      fixId,
-      {},
-      {},
-    );
-
-    for (const change of actions.changes) {
-      fileService.set(
-        change.fileName,
-        applyTextChanges(fileService.get(change.fileName), change.textChanges),
-      );
-    }
+  if (!sourceFile) {
+    throw new Error(`source file not found: ${fileName}`);
   }
+
+  let content = sourceFile.getFullText();
+
+  const actions = languageService.getCombinedCodeFix(
+    {
+      type: 'file',
+      fileName,
+    },
+    fixId,
+    {},
+    {},
+  );
+
+  for (const change of actions.changes) {
+    content = applyTextChanges(content, change.textChanges);
+  }
+
+  return content;
 };
