@@ -211,7 +211,7 @@ export const removeExport = ({
   languageService,
 }: {
   fileService: FileService;
-  targetFile: string;
+  targetFile: string | string[];
   languageService: ts.LanguageService;
 }) => {
   const program = languageService.getProgram();
@@ -220,15 +220,17 @@ export const removeExport = ({
     throw new Error('program not found');
   }
 
-  const sourceFile = program.getSourceFile(targetFile);
+  for (const file of Array.isArray(targetFile) ? targetFile : [targetFile]) {
+    const sourceFile = program.getSourceFile(file);
 
-  if (!sourceFile) {
-    throw new Error('source file not found');
+    if (!sourceFile) {
+      throw new Error('source file not found');
+    }
+
+    const changes = getTextChanges(languageService, sourceFile);
+    const oldContent = fileService.get(file);
+    const newContent = applyTextChanges(oldContent, changes);
+
+    fileService.set(file, newContent);
   }
-
-  const changes = getTextChanges(languageService, sourceFile);
-  const oldContent = fileService.get(targetFile);
-  const newContent = applyTextChanges(oldContent, changes);
-
-  fileService.set(targetFile, newContent);
 };
