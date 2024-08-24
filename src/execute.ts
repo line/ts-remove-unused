@@ -95,7 +95,7 @@ export const execute = ({
 
   for (const target of targets) {
     if (!fileService.exists(target)) {
-      stdout.write(`[deleted] ${target}`);
+      stdout.write(`[deleted] ${target}\n`);
       if (!dryRun) {
         ts.sys.deleteFile?.(target);
       }
@@ -103,7 +103,7 @@ export const execute = ({
     }
 
     if (parseInt(fileService.getVersion(target), 10) > 0) {
-      stdout.write(`[modified] ${target}`);
+      stdout.write(`[modified] ${target}\n`);
 
       if (!dryRun) {
         ts.sys.writeFile(target, fileService.get(target));
