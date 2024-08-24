@@ -21,6 +21,7 @@ export const execute = ({
   dryRun: boolean;
   stdout?: NodeJS.WriteStream;
 }) => {
+  const start = performance.now();
   const { config } = ts.readConfigFile(
     resolve(projectRoot, tsConfigFilePath),
     ts.sys.readFile,
@@ -110,4 +111,8 @@ export const execute = ({
       }
     }
   }
+
+  const end = performance.now();
+
+  stdout.write(`Done in ${((end - start) / 1000).toFixed(2)}s\n`);
 };
