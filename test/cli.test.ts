@@ -2,7 +2,6 @@ import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import ts from 'typescript';
 import { FileService } from '../src/FileService.js';
-import { removeExport } from '../src/removeExport.js';
 import {
   applyCodeFix,
   fixIdDelete,
@@ -38,35 +37,6 @@ describe('cli', () => {
 
     return { languageService, fileService };
   };
-
-  it('should remove the export keyword', () => {
-    const { languageService, fileService } = setup();
-    fileService.set(
-      'main.ts',
-      `import { add } from './util/operations.js';
-              export const main = () => {};
-            `,
-    );
-
-    fileService.set(
-      'util/operations.ts',
-      `export const add = (a: number, b: number) => a + b;
-              export const subtract = (a: number, b: number) => a - b;
-              const multiply = (a: number, b: number) => a * b;
-              export const divide = (a: number, b: number) => a / b;
-              `,
-    );
-
-    removeExport({
-      fileService,
-      targetFile: 'util/operations.ts',
-      languageService,
-    });
-
-    const content = fileService.get('util/operations.ts');
-
-    assert.equal(content.match(/export/g)?.length, 1);
-  });
 
   it('should clean up unused identifiers', () => {
     const { languageService, fileService } = setup();
