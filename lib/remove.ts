@@ -236,14 +236,11 @@ const getTextChanges = (
   const changes: ts.TextChange[] = [];
   for (const node of getUnusedExports(languageService, sourceFile)) {
     if (ts.isExportAssignment(node) || ts.isExportSpecifier(node)) {
-      const start = node.getStart();
-      const end = node.getEnd();
-
       changes.push({
         newText: '',
         span: {
-          start,
-          length: end - start,
+          start: node.getFullStart(),
+          length: node.getFullWidth(),
         },
       });
       continue;
@@ -279,14 +276,11 @@ const getTextChanges = (
       throw new Error('syntax list not found');
     }
 
-    const start = syntaxList.getStart();
-    const end = syntaxList.getEnd();
-
     changes.push({
       newText: '',
       span: {
-        start,
-        length: end - start,
+        start: syntaxList.getFullStart(),
+        length: syntaxList.getFullWidth(),
       },
     });
   }

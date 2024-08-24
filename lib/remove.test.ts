@@ -570,12 +570,12 @@ export { B };`,
       assert.equal(
         fileService.get('/app/a.ts').trim(),
         `const a = 'a';
-  export {  };`,
+  export { };`,
       );
       assert.equal(
         fileService.get('/app/b.ts').trim(),
         `type B = 'b';
-export {  };`,
+export { };`,
       );
     });
 
