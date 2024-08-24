@@ -37,13 +37,15 @@ const getLeadingComment = (node: ts.Node) => {
 type SupportedNode =
   | ts.VariableStatement
   | ts.FunctionDeclaration
-  | ts.InterfaceDeclaration;
+  | ts.InterfaceDeclaration
+  | ts.TypeAliasDeclaration;
 
 const isTarget = (node: ts.Node): node is SupportedNode => {
   if (
     !ts.isVariableStatement(node) &&
     !ts.isFunctionDeclaration(node) &&
-    !ts.isInterfaceDeclaration(node)
+    !ts.isInterfaceDeclaration(node) &&
+    !ts.isTypeAliasDeclaration(node)
   ) {
     return false;
   }
@@ -85,7 +87,11 @@ const findReferences = (node: SupportedNode, service: ts.LanguageService) => {
     return references;
   }
 
-  if (ts.isFunctionDeclaration(node) || ts.isInterfaceDeclaration(node)) {
+  if (
+    ts.isFunctionDeclaration(node) ||
+    ts.isInterfaceDeclaration(node) ||
+    ts.isTypeAliasDeclaration(node)
+  ) {
     return service.findReferences(
       node.getSourceFile().fileName,
       node.getStart(),

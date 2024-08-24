@@ -232,4 +232,70 @@ export interface World { world: 'world' }`,
 export interface World { world: 'world' }`,
     );
   });
+
+  it('should not remove export for type if its used in some other file', () => {
+    const { languageService, fileService } = setup();
+    fileService.set(
+      '/tools/remove-unused-code/case/index.ts',
+      `import { Hello } from './hello';
+      const hello: Hello = 'hello';
+    `,
+    );
+    fileService.set(
+      '/tools/remove-unused-code/case/hello.ts',
+      `export type Hello = 'hello';`,
+    );
+
+    removeExport({
+      languageService,
+      fileService,
+      targetFile: '/tools/remove-unused-code/case/hello.ts',
+    });
+
+    const result = fileService.get('/tools/remove-unused-code/case/hello.ts');
+    assert.equal(result.trim(), `export type Hello = 'hello';`);
+  });
+
+  it('should remove export for type if its not used in some other file', () => {
+    const { languageService, fileService } = setup();
+    fileService.set(
+      '/tools/remove-unused-code/case/world.ts',
+      `export type World = 'world';`,
+    );
+
+    removeExport({
+      languageService,
+      fileService,
+      targetFile: '/tools/remove-unused-code/case/world.ts',
+    });
+
+    const result = fileService.get('/tools/remove-unused-code/case/world.ts');
+
+    assert.equal(result.trim(), `type World = 'world';`);
+  });
+
+  it('should not remove export if it has a comment to ignore', () => {
+    const { languageService, fileService } = setup();
+    fileService.set(
+      '/tools/remove-unused-code/case/with-comment.ts',
+      `// ts-remove-unused-skip
+export type World = 'world';`,
+    );
+
+    removeExport({
+      languageService,
+      fileService,
+      targetFile: '/tools/remove-unused-code/case/with-comment.ts',
+    });
+
+    const result = fileService.get(
+      '/tools/remove-unused-code/case/with-comment.ts',
+    );
+
+    assert.equal(
+      result.trim(),
+      `// ts-remove-unused-skip
+export type World = 'world';`,
+    );
+  });
 });
