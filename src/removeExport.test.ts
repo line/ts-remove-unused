@@ -2,7 +2,7 @@ import { describe, it } from 'node:test';
 import { FileService } from './FileService.js';
 import ts from 'typescript';
 import assert from 'node:assert/strict';
-import { removeExport, removeUnusedFile } from './removeExport.js';
+import { removeUnusedExport, removeUnusedFile } from './removeExport.js';
 
 const setup = () => {
   const fileService = new FileService();
@@ -198,7 +198,7 @@ describe('removeExport', () => {
       fileService.set('/app/main.ts', `import { a } from './a';`);
       fileService.set('/app/a.ts', `export const a = 'a';`);
 
-      removeExport({
+      removeUnusedExport({
         languageService,
         fileService,
         targetFile: '/app/a.ts',
@@ -212,7 +212,7 @@ describe('removeExport', () => {
       const { languageService, fileService } = setup();
       fileService.set('/app/b.ts', `export const b = 'b';`);
 
-      removeExport({
+      removeUnusedExport({
         languageService,
         fileService,
         targetFile: '/app/b.ts',
@@ -231,7 +231,7 @@ describe('removeExport', () => {
   export const b = 'b';`,
       );
 
-      removeExport({
+      removeUnusedExport({
         languageService,
         fileService,
         targetFile: '/app/a.ts',
@@ -261,7 +261,7 @@ import c from './c';`,
       fileService.set('/app/b.ts', `export default function b() {}`);
       fileService.set('/app/c.ts', `export default function() {}`);
 
-      removeExport({
+      removeUnusedExport({
         languageService,
         fileService,
         targetFile: ['/app/a.ts', '/app/b.ts', '/app/c.ts'],
@@ -287,7 +287,7 @@ import c from './c';`,
       fileService.set('/app/b.ts', `export default function b() {}`);
       fileService.set('/app/c.ts', `export default function() {}`);
 
-      removeExport({
+      removeUnusedExport({
         languageService,
         fileService,
         targetFile: ['/app/a.ts', '/app/b.ts', '/app/c.ts'],
@@ -306,7 +306,7 @@ import c from './c';`,
   export function b() {}`,
       );
 
-      removeExport({
+      removeUnusedExport({
         languageService,
         fileService,
         targetFile: '/app/a.ts',
@@ -336,7 +336,7 @@ import C from './c';`,
       fileService.set('/app/b.ts', `export default class B {}`);
       fileService.set('/app/c.ts', `export default class {}`);
 
-      removeExport({
+      removeUnusedExport({
         languageService,
         fileService,
         targetFile: ['/app/a.ts', '/app/b.ts', '/app/c.ts'],
@@ -359,7 +359,7 @@ import C from './c';`,
       fileService.set('/app/b.ts', `export default class B {}`);
       fileService.set('/app/c.ts', `export default class {}`);
 
-      removeExport({
+      removeUnusedExport({
         languageService,
         fileService,
         targetFile: ['/app/a.ts', '/app/b.ts', '/app/c.ts'],
@@ -378,7 +378,7 @@ import C from './c';`,
   export class A {}`,
       );
 
-      removeExport({
+      removeUnusedExport({
         languageService,
         fileService,
         targetFile: '/app/a.ts',
@@ -405,7 +405,7 @@ import B from './b';`,
       fileService.set('/app/a.ts', `export interface A { a: 'a' }`);
       fileService.set('/app/b.ts', `export default interface B { b: 'b' }`);
 
-      removeExport({
+      removeUnusedExport({
         languageService,
         fileService,
         targetFile: ['/app/a.ts', '/app/b.ts'],
@@ -426,7 +426,7 @@ import B from './b';`,
       fileService.set('/app/a.ts', `export interface A { a: 'a' }`);
       fileService.set('/app/b.ts', `export default interface B { b: 'b' }`);
 
-      removeExport({
+      removeUnusedExport({
         languageService,
         fileService,
         targetFile: ['/app/a.ts', '/app/b.ts'],
@@ -450,7 +450,7 @@ import B from './b';`,
   export interface A { a: 'a' }`,
       );
 
-      removeExport({
+      removeUnusedExport({
         languageService,
         fileService,
         targetFile: '/app/a.ts',
@@ -472,7 +472,7 @@ import B from './b';`,
       fileService.set('/app/main.ts', `import { A } from './a';`);
       fileService.set('/app/a.ts', `export type A = 'a';`);
 
-      removeExport({
+      removeUnusedExport({
         languageService,
         fileService,
         targetFile: '/app/a.ts',
@@ -486,7 +486,7 @@ import B from './b';`,
       const { languageService, fileService } = setup();
       fileService.set('/app/b.ts', `export type B = 'b';`);
 
-      removeExport({
+      removeUnusedExport({
         languageService,
         fileService,
         targetFile: '/app/b.ts',
@@ -505,7 +505,7 @@ import B from './b';`,
   export type B = 'b';`,
       );
 
-      removeExport({
+      removeUnusedExport({
         languageService,
         fileService,
         targetFile: '/app/a.ts',
@@ -542,7 +542,7 @@ import B from './b';`,
 export default B;`,
       );
 
-      removeExport({
+      removeUnusedExport({
         languageService,
         fileService,
         targetFile: ['/app/a.ts', '/app/b.ts'],
@@ -574,7 +574,7 @@ export default B;`,
 export default B;`,
       );
 
-      removeExport({
+      removeUnusedExport({
         languageService,
         fileService,
         targetFile: ['/app/a.ts', '/app/b.ts'],
@@ -594,7 +594,7 @@ export default B;`,
   export default a;`,
       );
 
-      removeExport({
+      removeUnusedExport({
         languageService,
         fileService,
         targetFile: '/app/a.ts',
@@ -618,7 +618,7 @@ export default B;`,
 
       fileService.set('/app/a.ts', `export default 'a';`);
 
-      removeExport({
+      removeUnusedExport({
         languageService,
         fileService,
         targetFile: '/app/a.ts',
@@ -633,7 +633,7 @@ export default B;`,
 
       fileService.set('/app/a.ts', `export default a;`);
 
-      removeExport({
+      removeUnusedExport({
         languageService,
         fileService,
         targetFile: '/app/a.ts',
@@ -652,7 +652,7 @@ export default B;`,
   export default 'a';`,
       );
 
-      removeExport({
+      removeUnusedExport({
         languageService,
         fileService,
         targetFile: '/app/a.ts',
@@ -688,7 +688,7 @@ import { B } from './b';`,
 export { B };`,
       );
 
-      removeExport({
+      removeUnusedExport({
         languageService,
         fileService,
         targetFile: ['/app/a.ts', '/app/b.ts'],
@@ -720,7 +720,7 @@ export { B };`,
 export { B };`,
       );
 
-      removeExport({
+      removeUnusedExport({
         languageService,
         fileService,
         targetFile: ['/app/a.ts', '/app/b.ts'],
@@ -750,7 +750,7 @@ export {  };`,
   };`,
       );
 
-      removeExport({
+      removeUnusedExport({
         languageService,
         fileService,
         targetFile: '/app/a.ts',

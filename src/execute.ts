@@ -1,7 +1,7 @@
 import ts from 'typescript';
 import { resolve } from 'node:path';
 import { FileService } from './FileService.js';
-import { removeExport, removeUnusedFile } from './removeExport.js';
+import { removeUnusedExport, removeUnusedFile } from './removeExport.js';
 import {
   applyCodeFix,
   fixIdDelete,
@@ -76,7 +76,7 @@ export const execute = ({
     languageService,
   });
 
-  removeExport({
+  removeUnusedExport({
     fileService,
     targetFile: targets,
     languageService,

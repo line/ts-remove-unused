@@ -288,7 +288,7 @@ const getTextChanges = (
   return changes;
 };
 
-export const removeExport = ({
+export const removeUnusedExport = ({
   fileService,
   targetFile,
   languageService,
