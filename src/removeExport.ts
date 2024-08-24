@@ -22,7 +22,8 @@ const findFirstNodeOfKind = (root: ts.Node, kind: ts.SyntaxKind) => {
 
 const IGNORE_COMMENT = 'ts-remove-unused-skip';
 
-const getLeadingComment = (node: ts.Node, sourceFile: ts.SourceFile) => {
+const getLeadingComment = (node: ts.Node) => {
+  const sourceFile = node.getSourceFile();
   const fullText = sourceFile.getFullText();
   const ranges = ts.getLeadingCommentRanges(fullText, node.getFullStart());
 
@@ -31,6 +32,52 @@ const getLeadingComment = (node: ts.Node, sourceFile: ts.SourceFile) => {
   }
 
   return ranges.map((range) => fullText.slice(range.pos, range.end)).join('');
+};
+
+const isTargetVariableStatement = (
+  node: ts.Node,
+): node is ts.VariableStatement => {
+  if (!ts.isVariableStatement(node)) {
+    return false;
+  }
+
+  const hasExportKeyword = !!findFirstNodeOfKind(
+    node,
+    ts.SyntaxKind.ExportKeyword,
+  );
+
+  if (!hasExportKeyword) {
+    return false;
+  }
+
+  const leadingComment = getLeadingComment(node);
+
+  if (leadingComment.includes(IGNORE_COMMENT)) {
+    return false;
+  }
+
+  return true;
+};
+
+const findReferences = (
+  node: ts.VariableStatement,
+  service: ts.LanguageService,
+) => {
+  const variableDeclaration = findFirstNodeOfKind(
+    node,
+    ts.SyntaxKind.VariableDeclaration,
+  );
+
+  if (!variableDeclaration) {
+    return undefined;
+  }
+
+  const references = service.findReferences(
+    node.getSourceFile().fileName,
+    variableDeclaration.getStart(),
+  );
+
+  return references;
 };
 
 const getFirstUnusedExport = (
@@ -44,45 +91,16 @@ const getFirstUnusedExport = (
       return;
     }
 
-    if (ts.isVariableStatement(node)) {
-      const hasExportKeyword = !!findFirstNodeOfKind(
-        node,
-        ts.SyntaxKind.ExportKeyword,
-      );
+    if (isTargetVariableStatement(node)) {
+      const references = findReferences(node, service);
 
-      if (hasExportKeyword) {
-        const leadingComment = getLeadingComment(node, sourceFile);
-
-        if (leadingComment.includes(IGNORE_COMMENT)) {
-          node.forEachChild(visit);
-          return;
-        }
-
-        const variableDeclaration = findFirstNodeOfKind(
-          node,
-          ts.SyntaxKind.VariableDeclaration,
-        );
-
-        if (!variableDeclaration) {
-          throw new Error('variable declaration not found');
-        }
-
-        const references = service.findReferences(
-          sourceFile.fileName,
-          variableDeclaration.getStart(),
-        );
-
-        if (!references) {
-          throw new Error('references not found');
-        }
-
-        // there will be at least one reference, the declaration itself
-        if (references.length === 1) {
-          result = node;
-          return;
-        }
+      // there will be at least one reference, the declaration itself
+      if (references && references.length === 1) {
+        result = node;
+        return;
       }
     }
+
     node.forEachChild(visit);
   };
 
