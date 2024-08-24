@@ -229,13 +229,71 @@ const getUnusedExports = (
   return result;
 };
 
+const getUpdatedExportDeclaration = (
+  exportDeclaration: ts.ExportDeclaration,
+  removeTarget: ts.ExportSpecifier,
+) => {
+  const tmpFile = ts.createSourceFile(
+    'tmp.ts',
+    exportDeclaration.getText(),
+    exportDeclaration.getSourceFile().languageVersion,
+  );
+
+  const transformer: ts.TransformerFactory<ts.SourceFile> =
+    (context: ts.TransformationContext) => (rootNode: ts.SourceFile) => {
+      const visitor = (node: ts.Node): ts.Node | undefined => {
+        if (
+          ts.isExportSpecifier(node) &&
+          node.getText(tmpFile) === removeTarget.getText()
+        ) {
+          return undefined;
+        }
+        return ts.visitEachChild(node, visitor, context);
+      };
+
+      return ts.visitEachChild(rootNode, visitor, context);
+    };
+
+  const result = ts.transform(tmpFile, [transformer]).transformed[0];
+
+  const printer = ts.createPrinter();
+
+  return result ? printer.printFile(result) : '';
+};
+
 const getTextChanges = (
   languageService: ts.LanguageService,
   sourceFile: ts.SourceFile,
 ) => {
   const changes: ts.TextChange[] = [];
   for (const node of getUnusedExports(languageService, sourceFile)) {
-    if (ts.isExportAssignment(node) || ts.isExportSpecifier(node)) {
+    if (ts.isExportSpecifier(node)) {
+      const specifierCount = Array.from(node.parent.elements).length;
+
+      if (specifierCount === 1) {
+        // special case: if the export specifier is the only specifier in the export declaration, we want to remove the whole export declaration
+        changes.push({
+          newText: '',
+          span: {
+            start: node.parent.parent.getFullStart(),
+            length: node.parent.parent.getFullWidth(),
+          },
+        });
+        continue;
+      }
+
+      changes.push({
+        newText: getUpdatedExportDeclaration(node.parent.parent, node),
+        span: {
+          start: node.parent.parent.getStart(),
+          length: node.parent.parent.getWidth(),
+        },
+      });
+
+      continue;
+    }
+
+    if (ts.isExportAssignment(node)) {
       changes.push({
         newText: '',
         span: {
