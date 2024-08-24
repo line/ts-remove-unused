@@ -44,6 +44,23 @@ type SupportedNode =
   | ts.ExportSpecifier
   | ts.ClassDeclaration;
 
+const isTargetWithIgnore = (node: ts.Node): node is SupportedNode => {
+  if (
+    ts.isExportAssignment(node) ||
+    ts.isExportSpecifier(node) ||
+    ts.isVariableStatement(node) ||
+    ts.isFunctionDeclaration(node) ||
+    ts.isInterfaceDeclaration(node) ||
+    ts.isTypeAliasDeclaration(node) ||
+    ts.isClassDeclaration(node)
+  ) {
+    if (getLeadingComment(node).includes(IGNORE_COMMENT)) {
+      return true;
+    }
+  }
+  return false;
+};
+
 const isTarget = (node: ts.Node): node is SupportedNode => {
   if (ts.isExportAssignment(node) || ts.isExportSpecifier(node)) {
     if (getLeadingComment(node).includes(IGNORE_COMMENT)) {
@@ -140,7 +157,10 @@ const isUsedFile = (
       return;
     }
 
-    if (isTarget(node)) {
+    if (isTargetWithIgnore(node)) {
+      isUsed = true;
+      return;
+    } else if (isTarget(node)) {
       const references = findReferences(node, languageService);
 
       if (!references) {

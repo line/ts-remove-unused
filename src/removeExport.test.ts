@@ -122,6 +122,73 @@ export interface E {}`,
 
     assert.equal(fileService.exists('/app/a.ts'), false);
   });
+
+  it('should not remove file if some exports are marked with skip comment', () => {
+    const { languageService, fileService } = setup();
+    fileService.set(
+      '/app/a.ts',
+      `// ts-remove-unused-skip
+export const a = 'a';
+export function b() {}
+export class C {}
+export type D = 'd';
+export interface E {}`,
+    );
+    fileService.set(
+      '/app/b.ts',
+      `export const a = 'a';
+// ts-remove-unused-skip
+export function b() {}
+export class C {}
+export type D = 'd';
+export interface E {}`,
+    );
+    fileService.set(
+      '/app/c.ts',
+      `export const a = 'a';
+export function b() {}
+// ts-remove-unused-skip
+export class C {}
+export type D = 'd';
+export interface E {}`,
+    );
+    fileService.set(
+      '/app/d.ts',
+      `export const a = 'a';
+export function b() {}
+export class C {}
+// ts-remove-unused-skip
+export type D = 'd';
+export interface E {}`,
+    );
+    fileService.set(
+      '/app/e.ts',
+      `export const a = 'a';
+export function b() {}
+export class C {}
+export type D = 'd';
+// ts-remove-unused-skip
+export interface E {}`,
+    );
+
+    removeUnusedFile({
+      languageService,
+      fileService,
+      targetFile: [
+        '/app/a.ts',
+        '/app/b.ts',
+        '/app/c.ts',
+        '/app/d.ts',
+        '/app/e.ts',
+      ],
+    });
+
+    assert.equal(fileService.exists('/app/a.ts'), true);
+    assert.equal(fileService.exists('/app/b.ts'), true);
+    assert.equal(fileService.exists('/app/c.ts'), true);
+    assert.equal(fileService.exists('/app/d.ts'), true);
+    assert.equal(fileService.exists('/app/e.ts'), true);
+  });
 });
 
 describe('removeExport', () => {
