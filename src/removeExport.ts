@@ -38,9 +38,18 @@ type SupportedNode =
   | ts.VariableStatement
   | ts.FunctionDeclaration
   | ts.InterfaceDeclaration
-  | ts.TypeAliasDeclaration;
+  | ts.TypeAliasDeclaration
+  | ts.ExportAssignment;
 
 const isTarget = (node: ts.Node): node is SupportedNode => {
+  if (ts.isExportAssignment(node)) {
+    if (!getLeadingComment(node).includes(IGNORE_COMMENT)) {
+      return true;
+    }
+
+    return false;
+  }
+
   if (
     !ts.isVariableStatement(node) &&
     !ts.isFunctionDeclaration(node) &&
@@ -90,7 +99,8 @@ const findReferences = (node: SupportedNode, service: ts.LanguageService) => {
   if (
     ts.isFunctionDeclaration(node) ||
     ts.isInterfaceDeclaration(node) ||
-    ts.isTypeAliasDeclaration(node)
+    ts.isTypeAliasDeclaration(node) ||
+    ts.isExportAssignment(node)
   ) {
     return service.findReferences(
       node.getSourceFile().fileName,
@@ -115,8 +125,17 @@ const getFirstUnusedExport = (
     if (isTarget(node)) {
       const references = findReferences(node, service);
 
-      // there will be at least one reference, the declaration itself
-      if (references && references.length === 1) {
+      if (!references) {
+        return;
+      }
+
+      const count = references.flatMap((v) => v.references).length;
+
+      // there will be at least two references, the declaration itself and the export
+      if (ts.isExportAssignment(node) && count === 2) {
+        result = node;
+      } else if (count === 1) {
+        // there will be at least one reference, the declaration itself
         result = node;
         return;
       }
@@ -169,6 +188,18 @@ export const removeExport = ({
   languageService: ts.LanguageService;
 }) => {
   for (const item of getUnusedExportWhileExists(languageService, targetFile)) {
+    const content = item.getSourceFile().getFullText();
+
+    if (ts.isExportAssignment(item)) {
+      const start = item.getStart();
+      const end = item.getEnd();
+
+      const newContent = `${content.slice(0, start)}${content.slice(end)}`;
+
+      fileService.set(targetFile, newContent);
+      continue;
+    }
+
     const exportKeyword = findFirstNodeOfKind(
       item,
       ts.SyntaxKind.ExportKeyword,
@@ -177,8 +208,6 @@ export const removeExport = ({
     if (!exportKeyword) {
       throw new Error('export keyword not found');
     }
-
-    const content = item.getSourceFile().getFullText();
 
     const start = exportKeyword.getStart();
     const end = exportKeyword.getEnd();

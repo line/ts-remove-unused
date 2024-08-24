@@ -298,4 +298,79 @@ export type World = 'world';`,
 export type World = 'world';`,
     );
   });
+
+  it('should not remove default export for an identifier if its used in some other file', () => {
+    const { languageService, fileService } = setup();
+
+    fileService.set(
+      '/tools/remove-unused-code/case/index.ts',
+      `import hello from './hello.js';
+console.log(hello);`,
+    );
+
+    fileService.set(
+      '/tools/remove-unused-code/case/hello.ts',
+      `const hello = 'hello';
+export default hello;`,
+    );
+
+    removeExport({
+      languageService,
+      fileService,
+      targetFile: '/tools/remove-unused-code/case/hello.ts',
+    });
+
+    const result = fileService.get('/tools/remove-unused-code/case/hello.ts');
+    assert.equal(
+      result.trim(),
+      `const hello = 'hello';
+export default hello;`,
+    );
+  });
+
+  it('should remove default export for an identifier if its not used in some other file', () => {
+    const { languageService, fileService } = setup();
+
+    fileService.set(
+      '/tools/remove-unused-code/case/hello.ts',
+      `const hello = 'hello';
+export default hello;`,
+    );
+
+    removeExport({
+      languageService,
+      fileService,
+      targetFile: '/tools/remove-unused-code/case/hello.ts',
+    });
+
+    const result = fileService.get('/tools/remove-unused-code/case/hello.ts');
+    assert.equal(result.trim(), `const hello = 'hello';`);
+  });
+
+  it('should not remove default export for an identifier if it has a comment to ignore', () => {
+    const { languageService, fileService } = setup();
+
+    fileService.set(
+      '/tools/remove-unused-code/case/with-comment.ts',
+      `const hello = 'hello';
+// ts-remove-unused-skip
+export default hello;`,
+    );
+
+    removeExport({
+      languageService,
+      fileService,
+      targetFile: '/tools/remove-unused-code/case/with-comment.ts',
+    });
+
+    const result = fileService.get(
+      '/tools/remove-unused-code/case/with-comment.ts',
+    );
+    assert.equal(
+      result.trim(),
+      `const hello = 'hello';
+// ts-remove-unused-skip
+export default hello;`,
+    );
+  });
 });
