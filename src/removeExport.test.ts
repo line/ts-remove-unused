@@ -295,25 +295,38 @@ import B from './b';`,
     it('should not remove default export for an identifier if its used in some other file', () => {
       const { languageService, fileService } = setup();
 
-      fileService.set('/app/main.ts', `import a from './a';`);
+      fileService.set(
+        '/app/main.ts',
+        `import a from './a';
+import B from './b';`,
+      );
 
       fileService.set(
         '/app/a.ts',
         `const a = 'a';
   export default a;`,
       );
+      fileService.set(
+        '/app/b.ts',
+        `type B = 'b';
+export default B;`,
+      );
 
       removeExport({
         languageService,
         fileService,
-        targetFile: '/app/a.ts',
+        targetFile: ['/app/a.ts', '/app/b.ts'],
       });
 
-      const result = fileService.get('/app/a.ts');
       assert.equal(
-        result.trim(),
+        fileService.get('/app/a.ts').trim(),
         `const a = 'a';
   export default a;`,
+      );
+      assert.equal(
+        fileService.get('/app/b.ts').trim(),
+        `type B = 'b';
+export default B;`,
       );
     });
 
@@ -325,15 +338,20 @@ import B from './b';`,
         `const a = 'a';
   export default a;`,
       );
+      fileService.set(
+        '/app/b.ts',
+        `type B = 'b';
+export default B;`,
+      );
 
       removeExport({
         languageService,
         fileService,
-        targetFile: '/app/a.ts',
+        targetFile: ['/app/a.ts', '/app/b.ts'],
       });
 
-      const result = fileService.get('/app/a.ts');
-      assert.equal(result.trim(), `const a = 'a';`);
+      assert.equal(fileService.get('/app/a.ts').trim(), `const a = 'a';`);
+      assert.equal(fileService.get('/app/b.ts').trim(), `type B = 'b';`);
     });
 
     it('should not remove default export for an identifier if it has a comment to ignore', () => {
