@@ -98,7 +98,9 @@ export const execute = ({
 
   for (const target of targets) {
     if (!fileService.exists(target)) {
-      stdout.write(`${chalk.green.bold('✓')} ${target} (deleted)\n`);
+      stdout.write(
+        `${chalk.green.bold('✓')} ${target} ${chalk.gray('(deleted)')}\n`,
+      );
       if (!dryRun) {
         ts.sys.deleteFile?.(target);
       }
@@ -106,7 +108,9 @@ export const execute = ({
     }
 
     if (parseInt(fileService.getVersion(target), 10) > 1) {
-      stdout.write(`${chalk.green.bold('✓')} ${target} (modified)\n`);
+      stdout.write(
+        `${chalk.green.bold('✓')} ${target} ${chalk.gray('(modified)')}\n`,
+      );
 
       if (!dryRun) {
         ts.sys.writeFile(target, fileService.get(target));
