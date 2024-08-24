@@ -1,6 +1,6 @@
 import ts from 'typescript';
 import { FileService } from './FileService.js';
-import { applyTextChanges } from './applyCodeFix.js';
+import { applyTextChanges } from './util/applyTextChanges.js';
 
 const findFirstNodeOfKind = (root: ts.Node, kind: ts.SyntaxKind) => {
   let result: ts.Node | undefined;
