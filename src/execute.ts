@@ -2,6 +2,7 @@ import ts from 'typescript';
 import { resolve } from 'node:path';
 import { FileService } from './FileService.js';
 import { removeUnusedExport } from './remove.js';
+import chalk from 'chalk';
 
 export const execute = ({
   tsConfigFilePath,
@@ -64,7 +65,7 @@ export const execute = ({
     (fileName) => !regexList.some((regex) => regex.test(fileName)),
   );
 
-  stdout.write(`Found ${targets.length} files...\n`);
+  stdout.write(chalk.gray(`Found ${targets.length} files...\n\n`));
 
   removeUnusedExport({
     fileService,
@@ -74,6 +75,8 @@ export const execute = ({
     enableCodeFix: true,
     stdout,
   });
+
+  stdout.write(chalk.gray(`\nWriting to disk...\n`));
 
   for (const target of targets) {
     if (!fileService.exists(target)) {
@@ -90,5 +93,5 @@ export const execute = ({
 
   const end = performance.now();
 
-  stdout.write(`\nDone in ${((end - start) / 1000).toFixed(2)}s!\n`);
+  stdout.write(chalk.gray(`Done in ${((end - start) / 1000).toFixed(2)}s!\n`));
 };
