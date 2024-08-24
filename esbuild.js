@@ -1,7 +1,7 @@
 import { build } from 'esbuild';
 
 build({
-  entryPoints: ['src/index.ts'],
+  entryPoints: ['lib/main.ts'],
   outdir: 'dist',
   bundle: true,
   external: ['chalk', 'cac', 'typescript'],

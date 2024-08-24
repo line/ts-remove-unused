@@ -1,5 +1,5 @@
 import { dirname, resolve } from 'node:path';
-import { execute } from '../src/execute.js';
+import { execute } from '../lib/execute.js';
 import { fileURLToPath } from 'node:url';
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
