@@ -76,8 +76,9 @@ export const execute = ({
     stdout,
   });
 
-  stdout.write(chalk.gray(`\nWriting to disk...\n`));
-
+  if (!dryRun) {
+    stdout.write(chalk.gray(`\nWriting to disk...\n`));
+  }
   for (const target of targets) {
     if (!fileService.exists(target)) {
       if (!dryRun) {
