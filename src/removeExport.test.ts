@@ -129,7 +129,7 @@ import c from './c';
       );
     });
 
-    it.only('should remove export for function if its not used in some other file', () => {
+    it('should remove export for function if its not used in some other file', () => {
       const { languageService, fileService } = setup();
       fileService.set('/app/a.ts', `export function a() {};`);
       fileService.set('/app/b.ts', `export default function b() {};`);
