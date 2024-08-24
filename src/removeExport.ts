@@ -20,6 +20,19 @@ const findFirstNodeOfKind = (root: ts.Node, kind: ts.SyntaxKind) => {
   return result;
 };
 
+const IGNORE_COMMENT = 'ts-remove-unused-skip';
+
+const getLeadingComment = (node: ts.Node, sourceFile: ts.SourceFile) => {
+  const fullText = sourceFile.getFullText();
+  const ranges = ts.getLeadingCommentRanges(fullText, node.getFullStart());
+
+  if (!ranges) {
+    return '';
+  }
+
+  return ranges.map((range) => fullText.slice(range.pos, range.end)).join('');
+};
+
 const getFirstUnusedExport = (
   sourceFile: ts.SourceFile,
   service: ts.LanguageService,
@@ -38,6 +51,13 @@ const getFirstUnusedExport = (
       );
 
       if (hasExportKeyword) {
+        const leadingComment = getLeadingComment(node, sourceFile);
+
+        if (leadingComment.includes(IGNORE_COMMENT)) {
+          node.forEachChild(visit);
+          return;
+        }
+
         const variableDeclaration = findFirstNodeOfKind(
           node,
           ts.SyntaxKind.VariableDeclaration,

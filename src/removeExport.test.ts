@@ -72,8 +72,31 @@ describe('removeExport', () => {
 
     const result = fileService.get('/tools/remove-unused-code/case/world.ts');
 
-    console.log(result);
-
     assert.equal(result.trim(), `const world = 'world';`);
+  });
+
+  it('should not remove export if it has a comment to ignore', () => {
+    const { languageService, fileService } = setup();
+    fileService.set(
+      '/tools/remove-unused-code/case/with-comment.ts',
+      `// ts-remove-unused-skip
+export const world = 'world';`,
+    );
+
+    removeExport({
+      languageService,
+      fileService,
+      targetFile: '/tools/remove-unused-code/case/with-comment.ts',
+    });
+
+    const result = fileService.get(
+      '/tools/remove-unused-code/case/with-comment.ts',
+    );
+
+    assert.equal(
+      result.trim(),
+      `// ts-remove-unused-skip
+export const world = 'world';`,
+    );
   });
 });
