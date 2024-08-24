@@ -166,4 +166,70 @@ export function world() {};`,
 export function world() {};`,
     );
   });
+
+  it('should not remove export for interface if its used in some other file', () => {
+    const { languageService, fileService } = setup();
+    fileService.set(
+      '/tools/remove-unused-code/case/index.ts',
+      `import { Hello } from './hello';
+      const hello: Hello = { hello: 'hello' };
+    `,
+    );
+    fileService.set(
+      '/tools/remove-unused-code/case/hello.ts',
+      `export interface Hello { hello: 'hello' }`,
+    );
+
+    removeExport({
+      languageService,
+      fileService,
+      targetFile: '/tools/remove-unused-code/case/hello.ts',
+    });
+
+    const result = fileService.get('/tools/remove-unused-code/case/hello.ts');
+    assert.equal(result.trim(), `export interface Hello { hello: 'hello' }`);
+  });
+
+  it('should remove export for interface if its not used in some other file', () => {
+    const { languageService, fileService } = setup();
+    fileService.set(
+      '/tools/remove-unused-code/case/world.ts',
+      `export interface World { world: 'world' }`,
+    );
+
+    removeExport({
+      languageService,
+      fileService,
+      targetFile: '/tools/remove-unused-code/case/world.ts',
+    });
+
+    const result = fileService.get('/tools/remove-unused-code/case/world.ts');
+
+    assert.equal(result.trim(), `interface World { world: 'world' }`);
+  });
+
+  it('should not remove export if it has a comment to ignore', () => {
+    const { languageService, fileService } = setup();
+    fileService.set(
+      '/tools/remove-unused-code/case/with-comment.ts',
+      `// ts-remove-unused-skip
+export interface World { world: 'world' }`,
+    );
+
+    removeExport({
+      languageService,
+      fileService,
+      targetFile: '/tools/remove-unused-code/case/with-comment.ts',
+    });
+
+    const result = fileService.get(
+      '/tools/remove-unused-code/case/with-comment.ts',
+    );
+
+    assert.equal(
+      result.trim(),
+      `// ts-remove-unused-skip
+export interface World { world: 'world' }`,
+    );
+  });
 });

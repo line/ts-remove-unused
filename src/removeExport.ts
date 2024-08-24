@@ -34,10 +34,17 @@ const getLeadingComment = (node: ts.Node) => {
   return ranges.map((range) => fullText.slice(range.pos, range.end)).join('');
 };
 
-type SupportedNode = ts.VariableStatement | ts.FunctionDeclaration;
+type SupportedNode =
+  | ts.VariableStatement
+  | ts.FunctionDeclaration
+  | ts.InterfaceDeclaration;
 
 const isTarget = (node: ts.Node): node is SupportedNode => {
-  if (!ts.isVariableStatement(node) && !ts.isFunctionDeclaration(node)) {
+  if (
+    !ts.isVariableStatement(node) &&
+    !ts.isFunctionDeclaration(node) &&
+    !ts.isInterfaceDeclaration(node)
+  ) {
     return false;
   }
 
@@ -78,7 +85,7 @@ const findReferences = (node: SupportedNode, service: ts.LanguageService) => {
     return references;
   }
 
-  if (ts.isFunctionDeclaration(node)) {
+  if (ts.isFunctionDeclaration(node) || ts.isInterfaceDeclaration(node)) {
     return service.findReferences(
       node.getSourceFile().fileName,
       node.getStart(),
