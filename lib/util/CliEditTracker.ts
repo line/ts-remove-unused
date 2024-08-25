@@ -61,21 +61,12 @@ export class CliEditTracker implements EditTracker {
     return item;
   }
 
-  #clearStartLog() {
-    this.#logger.moveCursor(0, -3);
-    this.#logger.clearLine(0);
-  }
-
   start(file: string, content: string): void {
     this.#status.set(file, {
       content,
       status: 'processing',
       removedExports: [],
     });
-
-    this.#logger.write(
-      chalk.gray(`${this.#logger.isTTY ? '\n\n' : ''}[working on] ${file}\n`),
-    );
   }
 
   end(file: string): void {
@@ -85,10 +76,6 @@ export class CliEditTracker implements EditTracker {
       ...item,
       status: 'done',
     });
-
-    if (item.removedExports.length === 0) {
-      this.#clearStartLog();
-    }
   }
 
   delete(file: string): void {
@@ -100,7 +87,6 @@ export class CliEditTracker implements EditTracker {
     });
 
     this.#logger.write(`${chalk.yellow('file')}   ${file}\n`);
-    this.#clearStartLog();
   }
 
   removeExport(
@@ -108,12 +94,6 @@ export class CliEditTracker implements EditTracker {
     { code, position }: { code: string; position: number },
   ): void {
     const item = this.#getProcessingFile(file);
-
-    const isFirstExport = item.removedExports.length === 0;
-
-    if (isFirstExport) {
-      this.#clearStartLog();
-    }
 
     this.#status.set(file, {
       ...item,

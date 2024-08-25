@@ -8,9 +8,6 @@ import { CliEditTracker } from './util/CliEditTracker.js';
 
 const createNodeJsLogger = (): Logger => ({
   write: stdout.write.bind(stdout),
-  moveCursor: stdout.moveCursor.bind(stdout),
-  clearLine: stdout.clearLine.bind(stdout),
-  isTTY: stdout.isTTY,
 });
 
 export const remove = ({
