@@ -14,18 +14,18 @@ export const remove = ({
   configPath,
   skip,
   projectRoot,
-  dryRun,
+  mode,
   system = ts.sys,
   logger = nodeJsLogger,
 }: {
   configPath: string;
   skip: string[];
   projectRoot: string;
-  dryRun: boolean;
+  mode: 'check' | 'write';
   system?: ts.System;
   logger?: Logger;
 }) => {
-  const editTracker = new CliEditTracker(logger, 'check');
+  const editTracker = new CliEditTracker(logger, mode);
   const { config } = ts.readConfigFile(configPath, system.readFile);
 
   const { options, fileNames } = ts.parseJsonConfigFileContent(
@@ -81,21 +81,25 @@ export const remove = ({
     editTracker,
   });
 
-  if (!dryRun) {
+  if (mode === 'write') {
     logger.write(chalk.gray(`Writing to disk...\n`));
   }
   for (const target of targets) {
     if (!fileService.exists(target)) {
-      if (!dryRun) {
+      if (mode == 'write') {
         system.deleteFile?.(target);
       }
       continue;
     }
 
-    if (parseInt(fileService.getVersion(target), 10) > 1 && !dryRun) {
+    if (parseInt(fileService.getVersion(target), 10) > 1 && mode === 'write') {
       system.writeFile(target, fileService.get(target));
     }
   }
 
   editTracker.result();
+
+  if (mode === 'check' && !editTracker.isClean()) {
+    system.exit(1);
+  }
 };

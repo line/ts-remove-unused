@@ -4,6 +4,7 @@ import { fileURLToPath } from 'node:url';
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import { stdout } from 'node:process';
+import ts from 'typescript';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -25,8 +26,12 @@ describe('cli', () => {
       configPath: resolve(__dirname, 'fixtures/project/tsconfig.json'),
       skip: ['main.ts'],
       projectRoot: resolve(__dirname, 'fixtures/project'),
-      dryRun: true,
+      mode: 'check',
       logger,
+      system: {
+        ...ts.sys,
+        exit: () => {},
+      },
     });
 
     assert.equal(!!output.find((line) => line.includes('a.ts')), true);

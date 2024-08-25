@@ -15,8 +15,8 @@ cli
   )
   .option('--include-d-ts', 'Include .d.ts files in target for transformation')
   .option(
-    '--dry-run',
-    'Print the result of transformation without writing to files',
+    '--check',
+    'Check if there are any unused exports without removing them',
   )
   .action((options) => {
     const skip =
@@ -31,7 +31,7 @@ cli
     remove({
       configPath: resolve(options.project || './tsconfig.json'),
       skip,
-      dryRun: !!options.dryRun,
+      mode: options.check ? 'check' : 'write',
       projectRoot: process.cwd(),
     });
   });

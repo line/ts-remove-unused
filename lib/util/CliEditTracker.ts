@@ -116,7 +116,7 @@ export class CliEditTracker implements EditTracker {
   result() {
     const values = Array.from(this.#status.values());
     this.#logger.write(
-      chalk.yellow(
+      chalk.red(
         `\ndelete ${format(
           values.filter((v) => v.status === 'delete').length,
         )}, edit ${format(
@@ -124,6 +124,12 @@ export class CliEditTracker implements EditTracker {
             .length,
         )}\n`,
       ),
+    );
+  }
+
+  isClean() {
+    return !Array.from(this.#status.values()).some(
+      (v) => v.status === 'delete' || v.removedExports.length > 0,
     );
   }
 }
