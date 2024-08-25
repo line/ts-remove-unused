@@ -25,7 +25,7 @@ Options:
   --project <file>         Path to your tsconfig.json 
   --skip <regexp_pattern>  Specify the regexp pattern to match files that should be skipped from transforming 
   --include-d-ts           Include .d.ts files in target for transformation 
-  --dry-run                Print the result of transformation without writing to files 
+  --check                  Check if there are any unused exports without removing them 
   -h, --help               Display this message 
   -v, --version            Display version number 
 ```
