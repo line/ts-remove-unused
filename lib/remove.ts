@@ -8,6 +8,9 @@ import { CliEditTracker } from './util/CliEditTracker.js';
 
 const createNodeJsLogger = (): Logger => ({
   write: stdout.write.bind(stdout),
+  clearLine: stdout.clearLine.bind(stdout),
+  cursorTo: stdout.cursorTo.bind(stdout),
+  isTTY: stdout.isTTY,
 });
 
 export const remove = ({
@@ -75,6 +78,8 @@ export const remove = ({
   const targets = fileNames.filter(
     (fileName) => !regexList.some((regex) => regex.test(fileName)),
   );
+
+  editTracker.setTotal(targets.length);
 
   logger.write(
     chalk.gray(

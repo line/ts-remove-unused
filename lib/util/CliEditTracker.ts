@@ -41,6 +41,7 @@ export class CliEditTracker implements EditTracker {
   #logger: Logger;
   #status: Map<string, FileStatus> = new Map();
   #mode: 'check' | 'write';
+  #total = 0;
 
   constructor(logger: Logger, mode: 'check' | 'write') {
     this.#logger = logger;
@@ -61,12 +62,27 @@ export class CliEditTracker implements EditTracker {
     return item;
   }
 
+  setTotal(total: number) {
+    this.#total = total;
+  }
+
+  #cleanStatus() {
+    if (this.#logger.isTTY) {
+      this.#logger.cursorTo(0);
+      this.#logger.clearLine(0);
+    } else {
+      this.#logger.write('\n');
+    }
+  }
+
   start(file: string, content: string): void {
     this.#status.set(file, {
       content,
       status: 'processing',
       removedExports: [],
     });
+
+    this.#logger.write(chalk.gray(`${this.#status.size}/${this.#total}`));
   }
 
   end(file: string): void {
@@ -76,6 +92,10 @@ export class CliEditTracker implements EditTracker {
       ...item,
       status: 'done',
     });
+
+    if (item.removedExports.length === 0) {
+      this.#cleanStatus();
+    }
   }
 
   delete(file: string): void {
@@ -86,6 +106,7 @@ export class CliEditTracker implements EditTracker {
       content: item.content,
     });
 
+    this.#cleanStatus();
     this.#logger.write(`${chalk.yellow('file')}   ${file}\n`);
   }
 
@@ -94,6 +115,10 @@ export class CliEditTracker implements EditTracker {
     { code, position }: { code: string; position: number },
   ): void {
     const item = this.#getProcessingFile(file);
+
+    if (item.removedExports.length === 0) {
+      this.#cleanStatus();
+    }
 
     this.#status.set(file, {
       ...item,
