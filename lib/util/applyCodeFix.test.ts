@@ -1,5 +1,5 @@
 import { describe, it } from 'node:test';
-import { FileService } from '../FileService.js';
+import { MemoryFileService } from '../MemoryFileService.js';
 import ts from 'typescript';
 import assert from 'node:assert/strict';
 import {
@@ -9,7 +9,7 @@ import {
 } from './applyCodeFix.js';
 
 const setup = () => {
-  const fileService = new FileService();
+  const fileService = new MemoryFileService();
 
   const languageService = ts.createLanguageService({
     getCompilationSettings() {

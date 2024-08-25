@@ -1,6 +1,6 @@
 import ts from 'typescript';
 import { resolve } from 'node:path';
-import { FileService } from './FileService.js';
+import { MemoryFileService } from './MemoryFileService.js';
 import { removeUnusedExport } from './remove.js';
 import chalk from 'chalk';
 
@@ -30,7 +30,7 @@ export const execute = ({
     projectRoot,
   );
 
-  const fileService = new FileService();
+  const fileService = new MemoryFileService();
   for (const fileName of fileNames) {
     fileService.set(fileName, ts.sys.readFile(fileName) || '');
   }
