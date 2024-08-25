@@ -35,7 +35,31 @@ The CLI will respect the `tsconfig.json` for loading source files.
 Here's an example of using the cli.
 
 ```
-ts-remove-unused --skip 'src\/index\.ts'
+npx ts-remove-unused --skip 'src\/index\.ts'
+```
+
+### Check
+
+Use `--check` to check for unused files and exports without making changes to project files. The command will exit with
+code: 1 if there are any unused files or exports discovered.
+
+```
+npx ts-remove-unused --check
+```
+
+### Use the JavaScript API
+
+Alternatively, you can use the JavaScript API to execute ts-remove-unused.
+
+```typescript
+import { remove } from '@line/ts-remove-unused';
+
+remove({
+  configPath: '/path/to/project/tsconfig.json',
+  projectRoot: '/path/to/project',
+  skip: [/main.ts/],
+  mode: 'write',
+});
 ```
 
 ### Skip removing unused exports
