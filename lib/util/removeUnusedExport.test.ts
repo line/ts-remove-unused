@@ -2,7 +2,7 @@ import { describe, it } from 'node:test';
 import { MemoryFileService } from './MemoryFileService.js';
 import ts from 'typescript';
 import assert from 'node:assert/strict';
-import { removeUnusedExport } from './remove.js';
+import { removeUnusedExport } from './removeUnusedExport.js';
 
 const setup = () => {
   const fileService = new MemoryFileService();
@@ -32,7 +32,7 @@ const setup = () => {
   return { languageService, fileService };
 };
 
-describe('removeExport', () => {
+describe('removeUnusedExport', () => {
   describe('variable statement', () => {
     it('should not remove export for variable if its used in some other file', () => {
       const { languageService, fileService } = setup();
