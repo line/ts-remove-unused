@@ -19,15 +19,19 @@ cli
     'Check if there are any unused exports without removing them',
   )
   .action((options) => {
+    const skipArg = options.skip;
+
     const skip =
-      options.skip && Array.isArray(options.skip)
-        ? options.skip
-        : typeof options.skip === 'string'
-        ? [options.skip]
+      skipArg && Array.isArray(skipArg)
+        ? skipArg.map((s) => new RegExp(s))
+        : typeof skipArg === 'string'
+        ? [new RegExp(skipArg)]
         : [];
+
     if (!options['includeD-ts']) {
-      skip.push('\\.d\\.ts');
+      skip.push(new RegExp('\\.d\\.ts'));
     }
+
     remove({
       configPath: resolve(options.project || './tsconfig.json'),
       skip,

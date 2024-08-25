@@ -22,7 +22,7 @@ export const remove = ({
   logger = createNodeJsLogger(),
 }: {
   configPath: string;
-  skip: string[];
+  skip: RegExp[];
   projectRoot: string;
   mode: 'check' | 'write';
   system?: ts.System;
@@ -73,10 +73,8 @@ export const remove = ({
     },
   });
 
-  const regexList = skip.map((pattern) => new RegExp(pattern));
-
   const targets = fileNames.filter(
-    (fileName) => !regexList.some((regex) => regex.test(fileName)),
+    (fileName) => !skip.some((regex) => regex.test(fileName)),
   );
 
   editTracker.setTotal(targets.length);

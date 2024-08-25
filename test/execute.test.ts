@@ -27,7 +27,7 @@ describe('cli', () => {
 
     remove({
       configPath: resolve(__dirname, 'fixtures/project/tsconfig.json'),
-      skip: ['main.ts'],
+      skip: [/main.ts/],
       projectRoot: resolve(__dirname, 'fixtures/project'),
       mode: 'check',
       logger,
