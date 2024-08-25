@@ -15,6 +15,7 @@
   "exports": {
     ".": "./dist/main.js"
   },
+  "types": "./dist/main.d.ts",
   "scripts": {
     "lint": "eslint . --ext .ts,.cjs,.js",
     "build": "rm -rf dist && node ./build.js",
