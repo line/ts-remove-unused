@@ -6,8 +6,6 @@ import { createRequire } from 'node:module';
 import { resolve } from 'node:path';
 const cli = cac('ts-remove-unused');
 
-const start = performance.now();
-
 cli
   .command('', 'There are no subcommands. Simply execute ts-remove-unused')
   .option('--project <file>', 'Path to your tsconfig.json')
@@ -35,7 +33,6 @@ cli
       skip,
       dryRun: !!options.dryRun,
       projectRoot: process.cwd(),
-      start,
     });
   });
 

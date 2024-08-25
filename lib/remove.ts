@@ -14,7 +14,6 @@ export const remove = ({
   skip,
   projectRoot,
   dryRun,
-  start,
   system = ts.sys,
   logger = nodeJsLogger,
 }: {
@@ -22,7 +21,6 @@ export const remove = ({
   skip: string[];
   projectRoot: string;
   dryRun: boolean;
-  start?: number;
   system?: ts.System;
   logger?: Logger;
 }) => {
@@ -95,13 +93,5 @@ export const remove = ({
     if (parseInt(fileService.getVersion(target), 10) > 1 && !dryRun) {
       system.writeFile(target, fileService.get(target));
     }
-  }
-
-  if (start) {
-    const end = performance.now();
-
-    logger.write(
-      chalk.gray(`Done in ${((end - start) / 1000).toFixed(2)}s!\n`),
-    );
   }
 };
