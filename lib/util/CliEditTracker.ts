@@ -61,10 +61,6 @@ export class CliEditTracker implements EditTracker {
     return item;
   }
 
-  get #isCheck() {
-    return this.#mode === 'check';
-  }
-
   start(file: string, content: string): void {
     this.#status.set(file, {
       content,
@@ -80,6 +76,10 @@ export class CliEditTracker implements EditTracker {
       ...item,
       status: 'done',
     });
+
+    if (item.removedExports.length === 0) {
+      this.#logger.write(chalk.gray(`no_issues ${file}\n`));
+    }
   }
 
   delete(file: string): void {
@@ -90,7 +90,7 @@ export class CliEditTracker implements EditTracker {
       content: item.content,
     });
 
-    this.#logger.write(`${badge('delete')} ${file}\n`);
+    this.#logger.write(`${chalk.yellow('file')}      ${file}\n`);
   }
 
   removeExport(
@@ -104,13 +104,11 @@ export class CliEditTracker implements EditTracker {
       removedExports: [...item.removedExports, { position, code }],
     });
 
-    if (this.#isCheck) {
-      this.#logger.write(
-        `${badge('edit')}   ${file}:${chalk.gray(
-          getLinePosition(item.content, position).padEnd(7),
-        )} ${chalk.gray(`'${code}'`)}\n`,
-      );
-    }
+    this.#logger.write(
+      `${chalk.yellow('export')}    ${file}:${chalk.gray(
+        getLinePosition(item.content, position).padEnd(7),
+      )} ${chalk.gray(`'${code}'`)}\n`,
+    );
   }
 
   logResult() {
@@ -121,7 +119,7 @@ export class CliEditTracker implements EditTracker {
       v.status === 'done' ? v.removedExports : [],
     ).length;
 
-    if (this.#isCheck) {
+    if (this.#mode === 'check') {
       const result = [
         deleteCount > 0 ? `delete ${deleteCount} file(s)` : '',
         editCount > 0 ? `remove ${editCount} export(s)` : '',
@@ -145,7 +143,11 @@ export class CliEditTracker implements EditTracker {
 
       this.#logger.write(
         chalk.green.bold(
-          `\n✔ done; ${result.filter((t) => !!t).join(', ')}\n`,
+          `\n✔ ${
+            result.length > 0
+              ? result.filter((t) => !!t).join(', ')
+              : 'no changes required'
+          }\n`,
         ),
       );
     }
@@ -157,5 +159,3 @@ export class CliEditTracker implements EditTracker {
     );
   }
 }
-
-const badge = (text: string) => `[${chalk.yellow(text)}]`;

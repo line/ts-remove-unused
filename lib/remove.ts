@@ -36,7 +36,7 @@ export const remove = ({
 
   if (!error) {
     logger.write(
-      `[${chalk.blue('tsconfig')}] ${chalk.gray('using')} ${configPath}\n\n`,
+      `${chalk.blue('tsconfig')} ${chalk.gray('using')} ${configPath}\n\n`,
     );
   }
 
