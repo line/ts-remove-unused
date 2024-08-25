@@ -98,6 +98,8 @@ export const remove = ({
     editTracker,
   });
 
+  editTracker.clearProgressOutput();
+
   if (mode === 'write') {
     logger.write(chalk.gray(`Writing to disk...\n`));
   }

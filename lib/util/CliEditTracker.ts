@@ -37,11 +37,16 @@ const getLinePosition = (content: string, position: number) => {
   throw new Error('position is out of range');
 };
 
+const spinner = ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏'];
+
 export class CliEditTracker implements EditTracker {
   #logger: Logger;
   #status: Map<string, FileStatus> = new Map();
   #mode: 'check' | 'write';
   #total = 0;
+  #progressText = '';
+  #lastUpdate = performance.now();
+  #spinnerIndex = 0;
 
   constructor(logger: Logger, mode: 'check' | 'write') {
     this.#logger = logger;
@@ -66,12 +71,39 @@ export class CliEditTracker implements EditTracker {
     this.#total = total;
   }
 
-  #cleanStatus() {
-    if (this.#logger.isTTY) {
-      this.#logger.cursorTo(0);
-      this.#logger.clearLine(0);
-    } else {
-      this.#logger.write('\n');
+  clearProgressOutput() {
+    if (!this.#progressText) {
+      return;
+    }
+
+    if (!this.#logger.isTTY) {
+      return;
+    }
+
+    this.#logger.cursorTo(0);
+    this.#logger.clearLine(0);
+    this.#progressText = '';
+  }
+
+  updateProgressOutput() {
+    if (!this.#logger.isTTY) {
+      return;
+    }
+
+    const diff = performance.now() - this.#lastUpdate;
+
+    if (diff > 50) {
+      this.#spinnerIndex = (this.#spinnerIndex + 1) % spinner.length;
+      const output = chalk.gray(
+        `${chalk.yellow(spinner[this.#spinnerIndex])} ${this.#status.size}/${
+          this.#total
+        }`,
+      );
+
+      this.clearProgressOutput();
+      this.#logger.write(output);
+      this.#progressText = output;
+      this.#lastUpdate = performance.now();
     }
   }
 
@@ -82,7 +114,7 @@ export class CliEditTracker implements EditTracker {
       removedExports: [],
     });
 
-    this.#logger.write(chalk.gray(`${this.#status.size}/${this.#total}`));
+    this.updateProgressOutput();
   }
 
   end(file: string): void {
@@ -92,10 +124,6 @@ export class CliEditTracker implements EditTracker {
       ...item,
       status: 'done',
     });
-
-    if (item.removedExports.length === 0) {
-      this.#cleanStatus();
-    }
   }
 
   delete(file: string): void {
@@ -106,7 +134,7 @@ export class CliEditTracker implements EditTracker {
       content: item.content,
     });
 
-    this.#cleanStatus();
+    this.clearProgressOutput();
     this.#logger.write(`${chalk.yellow('file')}   ${file}\n`);
   }
 
@@ -117,7 +145,7 @@ export class CliEditTracker implements EditTracker {
     const item = this.#getProcessingFile(file);
 
     if (item.removedExports.length === 0) {
-      this.#cleanStatus();
+      this.clearProgressOutput();
     }
 
     this.#status.set(file, {
