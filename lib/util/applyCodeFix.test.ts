@@ -18,7 +18,6 @@ const setup = () => {
     getScriptFileNames() {
       return fileService.getFileNames();
     },
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     getScriptVersion(fileName) {
       return fileService.getVersion(fileName);
     },
