@@ -10,21 +10,19 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 describe('cli', () => {
   it('should execute', () => {
     const output: string[] = [];
-    const mockedStdout = {
-      ...stdout,
+    const logger = {
       write: (text: string) => {
         stdout.write(text);
         output.push(text);
       },
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } as any;
+    };
 
     remove({
-      tsConfigFilePath: 'tsconfig.json',
+      configPath: resolve(__dirname, 'fixtures/project/tsconfig.json'),
       skip: ['main.ts'],
       projectRoot: resolve(__dirname, 'fixtures/project'),
       dryRun: true,
-      stdout: mockedStdout,
+      logger,
     });
 
     assert.equal(

@@ -3,6 +3,7 @@
 import { cac } from 'cac';
 import { remove } from './remove.js';
 import { createRequire } from 'node:module';
+import { resolve } from 'node:path';
 const cli = cac('ts-remove-unused');
 
 const start = performance.now();
@@ -30,7 +31,7 @@ cli
       skip.push('\\.d\\.ts');
     }
     remove({
-      tsConfigFilePath: options.project || './tsconfig.json',
+      configPath: resolve(options.project || './tsconfig.json'),
       skip,
       dryRun: !!options.dryRun,
       projectRoot: process.cwd(),

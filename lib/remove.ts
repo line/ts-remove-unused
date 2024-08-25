@@ -1,38 +1,42 @@
 import ts from 'typescript';
-import { resolve } from 'node:path';
 import { MemoryFileService } from './util/MemoryFileService.js';
 import { removeUnusedExport } from './util/removeUnusedExport.js';
 import chalk from 'chalk';
+import { Logger } from './util/Logger.js';
+import { stdout } from 'node:process';
+
+const nodeJsLogger: Logger = {
+  write: stdout.write.bind(stdout),
+};
 
 export const remove = ({
-  tsConfigFilePath,
+  configPath,
   skip,
   projectRoot,
   dryRun,
-  stdout = process.stdout,
   start,
+  system = ts.sys,
+  logger = nodeJsLogger,
 }: {
-  tsConfigFilePath: string;
+  configPath: string;
   skip: string[];
   projectRoot: string;
   dryRun: boolean;
-  stdout?: NodeJS.WriteStream;
   start?: number;
+  system?: ts.System;
+  logger?: Logger;
 }) => {
-  const { config } = ts.readConfigFile(
-    resolve(projectRoot, tsConfigFilePath),
-    ts.sys.readFile,
-  );
+  const { config } = ts.readConfigFile(configPath, system.readFile);
 
   const { options, fileNames } = ts.parseJsonConfigFileContent(
     config,
-    ts.sys,
+    system,
     projectRoot,
   );
 
   const fileService = new MemoryFileService();
   for (const fileName of fileNames) {
-    fileService.set(fileName, ts.sys.readFile(fileName) || '');
+    fileService.set(fileName, system.readFile(fileName) || '');
   }
 
   const languageService = ts.createLanguageService({
@@ -66,7 +70,7 @@ export const remove = ({
     (fileName) => !regexList.some((regex) => regex.test(fileName)),
   );
 
-  stdout.write(chalk.gray(`Found ${targets.length} files...\n`));
+  logger.write(chalk.gray(`Found ${targets.length} files...\n`));
 
   removeUnusedExport({
     fileService,
@@ -74,29 +78,29 @@ export const remove = ({
     languageService,
     deleteUnusedFile: true,
     enableCodeFix: true,
-    stdout,
+    logger,
   });
 
   if (!dryRun) {
-    stdout.write(chalk.gray(`Writing to disk...\n`));
+    logger.write(chalk.gray(`Writing to disk...\n`));
   }
   for (const target of targets) {
     if (!fileService.exists(target)) {
       if (!dryRun) {
-        ts.sys.deleteFile?.(target);
+        system.deleteFile?.(target);
       }
       continue;
     }
 
     if (parseInt(fileService.getVersion(target), 10) > 1 && !dryRun) {
-      ts.sys.writeFile(target, fileService.get(target));
+      system.writeFile(target, fileService.get(target));
     }
   }
 
   if (start) {
     const end = performance.now();
 
-    stdout.write(
+    logger.write(
       chalk.gray(`Done in ${((end - start) / 1000).toFixed(2)}s!\n`),
     );
   }

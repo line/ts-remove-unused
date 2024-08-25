@@ -7,6 +7,7 @@ import {
   fixIdDelete,
   fixIdDeleteImports,
 } from './applyCodeFix.js';
+import { Logger } from './Logger.js';
 
 const findFirstNodeOfKind = (root: ts.Node, kind: ts.SyntaxKind) => {
   let result: ts.Node | undefined;
@@ -346,20 +347,24 @@ const getTextChanges = (
   return changes;
 };
 
+const disabledLogger: Logger = {
+  write: () => {},
+};
+
 export const removeUnusedExport = ({
   fileService,
   targetFile,
   languageService,
   deleteUnusedFile = false,
   enableCodeFix = false,
-  stdout,
+  logger = disabledLogger,
 }: {
   fileService: FileService;
   targetFile: string | string[];
   languageService: ts.LanguageService;
   enableCodeFix?: boolean;
   deleteUnusedFile?: boolean;
-  stdout?: NodeJS.WriteStream;
+  logger?: Logger;
 }) => {
   const program = languageService.getProgram();
 
@@ -380,7 +385,7 @@ export const removeUnusedExport = ({
       if (!isUsed) {
         fileService.delete(file);
 
-        stdout?.write(
+        logger.write(
           `${chalk.green.bold('✓')} ${file} ${chalk.gray('(deleted)')}\n`,
         );
         continue;
@@ -390,7 +395,7 @@ export const removeUnusedExport = ({
     const changes = getTextChanges(languageService, sourceFile);
 
     if (changes.length === 0) {
-      stdout?.write(`${chalk.green.bold('✓')} ${file}\n`);
+      logger.write(`${chalk.green.bold('✓')} ${file}\n`);
 
       continue;
     }
@@ -427,7 +432,7 @@ export const removeUnusedExport = ({
 
     fileService.set(file, newContent);
 
-    stdout?.write(
+    logger.write(
       `${chalk.green.bold('✓')} ${file} ${chalk.gray('(modified)')}\n`,
     );
   }
