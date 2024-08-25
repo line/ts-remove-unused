@@ -15,6 +15,28 @@ type FileStatus =
       removedExports: { position: number; code: string }[];
     };
 
+const getLinePosition = (content: string, position: number) => {
+  const result = {
+    line: 0,
+    pos: 0,
+  };
+
+  for (let i = 0; i < content.length; i++) {
+    if (i === position) {
+      return `${result.line}:${result.pos}`;
+    }
+
+    if (content[i] === '\n') {
+      result.line++;
+      result.pos = 0;
+    } else {
+      result.pos++;
+    }
+  }
+
+  throw new Error('position is out of range');
+};
+
 export class CliEditTracker implements EditTracker {
   #logger: Logger;
   #status: Map<string, FileStatus> = new Map();
@@ -72,7 +94,7 @@ export class CliEditTracker implements EditTracker {
       content: item.content,
     });
 
-    this.#logger.write(`\t${chalk.gray('0:0')}\t${chalk.red('deletable')}\n`);
+    this.#logger.write(`  ${chalk.gray('0:0')}\t${chalk.red('deletable')}\n`);
   }
 
   removeExport(
@@ -88,7 +110,9 @@ export class CliEditTracker implements EditTracker {
 
     if (this.#isCheck) {
       this.#logger.write(
-        `\t${chalk.gray(position)}\t${chalk.red('unused')}\t\t'${code}'\n`,
+        `  ${chalk.gray(getLinePosition(item.content, position))}\t${chalk.red(
+          'removable',
+        )}\t'${code}'\n`,
       );
     }
   }
