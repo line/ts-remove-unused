@@ -172,12 +172,10 @@ export class CliEditTracker implements EditTracker {
       const result = [
         deleteCount > 0 ? `delete ${deleteCount} file(s)` : '',
         editCount > 0 ? `remove ${editCount} export(s)` : '',
-      ];
+      ].filter((t) => !!t);
 
       if (result.length > 0) {
-        this.#logger.write(
-          chalk.red.bold(`\n✖ ${result.filter((t) => !!t).join(', ')}\n`),
-        );
+        this.#logger.write(chalk.red.bold(`\n✖ ${result.join(', ')}\n`));
 
         return;
       }
@@ -188,15 +186,11 @@ export class CliEditTracker implements EditTracker {
       const result = [
         deleteCount > 0 ? `deleted ${deleteCount} file(s)` : '',
         editCount > 0 ? `removed ${editCount} export(s)` : '',
-      ];
+      ].filter((t) => !!t);
 
       this.#logger.write(
         chalk.green.bold(
-          `\n✔ ${
-            result.length > 0
-              ? result.filter((t) => !!t).join(', ')
-              : 'no changes required'
-          }\n`,
+          `\n✔ ${result.length > 0 ? result.join(', ') : 'all good!'}\n`,
         ),
       );
     }
