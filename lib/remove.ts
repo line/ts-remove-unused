@@ -26,13 +26,19 @@ export const remove = ({
   logger?: Logger;
 }) => {
   const editTracker = new CliEditTracker(logger, mode);
-  const { config } = ts.readConfigFile(configPath, system.readFile);
+  const { config, error } = ts.readConfigFile(configPath, system.readFile);
 
   const { options, fileNames } = ts.parseJsonConfigFileContent(
     config,
     system,
     projectRoot,
   );
+
+  if (!error) {
+    logger.write(
+      `[${chalk.blue('tsconfig')}] ${chalk.gray('using')} ${configPath}\n\n`,
+    );
+  }
 
   const fileService = new MemoryFileService();
   for (const fileName of fileNames) {
@@ -70,7 +76,13 @@ export const remove = ({
     (fileName) => !regexList.some((regex) => regex.test(fileName)),
   );
 
-  logger.write(chalk.gray(`Found ${targets.length} files...\n`));
+  logger.write(
+    chalk.gray(
+      `Found ${targets.length} file(s), skipping ${
+        fileNames.length - targets.length
+      } file(s)...\n\n`,
+    ),
+  );
 
   removeUnusedExport({
     fileService,
@@ -84,6 +96,7 @@ export const remove = ({
   if (mode === 'write') {
     logger.write(chalk.gray(`Writing to disk...\n`));
   }
+
   for (const target of targets) {
     if (!fileService.exists(target)) {
       if (mode == 'write') {
@@ -97,9 +110,9 @@ export const remove = ({
     }
   }
 
-  editTracker.result();
+  editTracker.logResult();
 
-  if (mode === 'check' && !editTracker.isClean()) {
+  if (mode === 'check' && !editTracker.isClean) {
     system.exit(1);
   }
 };

@@ -113,37 +113,38 @@ export class CliEditTracker implements EditTracker {
     }
   }
 
-  result() {
-    const values = Array.from(this.#status.values());
-    this.#logger.write(
-      chalk.red(
-        `\ndelete ${format(
-          values.filter((v) => v.status === 'delete').length,
-        )}, edit ${format(
-          values.flatMap((v) => (v.status === 'done' ? v.removedExports : []))
-            .length,
-        )}\n`,
-      ),
-    );
+  logResult() {
+    if (this.#isCheck) {
+      const values = Array.from(this.#status.values());
+
+      const deleteCount = values.filter((v) => v.status === 'delete').length;
+      const editCount = values.flatMap((v) =>
+        v.status === 'done' ? v.removedExports : [],
+      ).length;
+
+      const result = [
+        deleteCount > 0 ? `delete ${deleteCount} file(s)` : '',
+        editCount > 0 ? `remove ${editCount} export(s)` : '',
+      ];
+
+      if (result.length > 0) {
+        this.#logger.write(
+          chalk.red.bold(`\n✖ ${result.filter((t) => !!t).join(', ')}\n`),
+        );
+
+        return;
+      }
+
+      this.#logger.write(chalk.green.bold('\n✔ all good!\n'));
+      return;
+    }
   }
 
-  isClean() {
+  get isClean() {
     return !Array.from(this.#status.values()).some(
       (v) => v.status === 'delete' || v.removedExports.length > 0,
     );
   }
 }
-
-const format = (count: number) => {
-  if (count === 0) {
-    return 'no files';
-  }
-
-  if (count === 1) {
-    return '1 file';
-  }
-
-  return `${count} files`;
-};
 
 const badge = (text: string) => `[${chalk.yellow(text)}]`;
