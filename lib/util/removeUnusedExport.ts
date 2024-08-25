@@ -178,7 +178,7 @@ const isUsedFile = (
       if (ts.isExportSpecifier(node) && count > 2) {
         // for export specifiers, there will be at least two reference, the declaration itself and the export specifier
         isUsed = true;
-      } else if (count > 1) {
+      } else if (!ts.isExportSpecifier(node) && count > 1) {
         // there will be at least one reference, the declaration itself
         isUsed = true;
       }
@@ -213,7 +213,7 @@ const getUnusedExports = (
       if (ts.isExportSpecifier(node) && count === 2) {
         // for export specifiers, there will be at least two reference, the declaration itself and the export specifier
         result.push(node);
-      } else if (count === 1) {
+      } else if (!ts.isExportSpecifier(node) && count === 1) {
         // there will be at least one reference, the declaration itself
         result.push(node);
       }
