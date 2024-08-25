@@ -114,14 +114,14 @@ export class CliEditTracker implements EditTracker {
   }
 
   logResult() {
+    const values = Array.from(this.#status.values());
+
+    const deleteCount = values.filter((v) => v.status === 'delete').length;
+    const editCount = values.flatMap((v) =>
+      v.status === 'done' ? v.removedExports : [],
+    ).length;
+
     if (this.#isCheck) {
-      const values = Array.from(this.#status.values());
-
-      const deleteCount = values.filter((v) => v.status === 'delete').length;
-      const editCount = values.flatMap((v) =>
-        v.status === 'done' ? v.removedExports : [],
-      ).length;
-
       const result = [
         deleteCount > 0 ? `delete ${deleteCount} file(s)` : '',
         editCount > 0 ? `remove ${editCount} export(s)` : '',
@@ -137,6 +137,17 @@ export class CliEditTracker implements EditTracker {
 
       this.#logger.write(chalk.green.bold('\n✔ all good!\n'));
       return;
+    } else {
+      const result = [
+        deleteCount > 0 ? `deleted ${deleteCount} file(s)` : '',
+        editCount > 0 ? `removed ${editCount} export(s)` : '',
+      ];
+
+      this.#logger.write(
+        chalk.green.bold(
+          `\n✔ done; ${result.filter((t) => !!t).join(', ')}\n`,
+        ),
+      );
     }
   }
 
