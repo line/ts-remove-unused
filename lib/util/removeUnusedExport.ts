@@ -1,13 +1,12 @@
 import ts from 'typescript';
 import { FileService } from './FileService.js';
 import { applyTextChanges } from './applyTextChanges.js';
-import chalk from 'chalk';
 import {
   applyCodeFix,
   fixIdDelete,
   fixIdDeleteImports,
 } from './applyCodeFix.js';
-import { Logger } from './Logger.js';
+import { EditTracker } from './EditTracker.js';
 
 const findFirstNodeOfKind = (root: ts.Node, kind: ts.SyntaxKind) => {
   let result: ts.Node | undefined;
@@ -347,8 +346,11 @@ const getTextChanges = (
   return changes;
 };
 
-const disabledLogger: Logger = {
-  write: () => {},
+const disabledEditTracker: EditTracker = {
+  start: () => {},
+  end: () => {},
+  delete: () => {},
+  removeExport: () => {},
 };
 
 export const removeUnusedExport = ({
@@ -357,14 +359,14 @@ export const removeUnusedExport = ({
   languageService,
   deleteUnusedFile = false,
   enableCodeFix = false,
-  logger = disabledLogger,
+  editTracker = disabledEditTracker,
 }: {
   fileService: FileService;
   targetFile: string | string[];
   languageService: ts.LanguageService;
   enableCodeFix?: boolean;
   deleteUnusedFile?: boolean;
-  logger?: Logger;
+  editTracker?: EditTracker;
 }) => {
   const program = languageService.getProgram();
 
@@ -379,15 +381,14 @@ export const removeUnusedExport = ({
       continue;
     }
 
+    editTracker.start(file, sourceFile.getFullText());
+
     if (deleteUnusedFile) {
       const isUsed = isUsedFile(languageService, sourceFile);
 
       if (!isUsed) {
         fileService.delete(file);
-
-        logger.write(
-          `${chalk.green.bold('✓')} ${file} ${chalk.gray('(deleted)')}\n`,
-        );
+        editTracker.delete(file);
         continue;
       }
     }
@@ -395,10 +396,15 @@ export const removeUnusedExport = ({
     const changes = getTextChanges(languageService, sourceFile);
 
     if (changes.length === 0) {
-      logger.write(`${chalk.green.bold('✓')} ${file}\n`);
-
+      editTracker.end(file);
       continue;
     }
+
+    for (const change of changes) {
+      editTracker.removeExport(file, change.span);
+    }
+
+    editTracker.end(file);
 
     const oldContent = fileService.get(file);
     let newContent = applyTextChanges(oldContent, changes);
@@ -431,9 +437,5 @@ export const removeUnusedExport = ({
     }
 
     fileService.set(file, newContent);
-
-    logger.write(
-      `${chalk.green.bold('✓')} ${file} ${chalk.gray('(modified)')}\n`,
-    );
   }
 };
