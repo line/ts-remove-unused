@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 import { cac } from 'cac';
-import { execute } from './execute.js';
+import { remove } from './remove.js';
 import { createRequire } from 'node:module';
 const cli = cac('ts-remove-unused');
 
@@ -29,7 +29,7 @@ cli
     if (!options['includeD-ts']) {
       skip.push('\\.d\\.ts');
     }
-    execute({
+    remove({
       tsConfigFilePath: options.project || './tsconfig.json',
       skip,
       dryRun: !!options.dryRun,

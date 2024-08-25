@@ -1,5 +1,5 @@
 import { dirname, resolve } from 'node:path';
-import { execute } from '../lib/execute.js';
+import { remove } from '../lib/remove.js';
 import { fileURLToPath } from 'node:url';
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
@@ -19,7 +19,7 @@ describe('cli', () => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } as any;
 
-    execute({
+    remove({
       tsConfigFilePath: 'tsconfig.json',
       skip: ['main.ts'],
       projectRoot: resolve(__dirname, 'fixtures/project'),

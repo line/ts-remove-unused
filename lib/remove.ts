@@ -4,7 +4,7 @@ import { MemoryFileService } from './util/MemoryFileService.js';
 import { removeUnusedExport } from './util/remove.js';
 import chalk from 'chalk';
 
-export const execute = ({
+export const remove = ({
   tsConfigFilePath,
   skip,
   projectRoot,
