@@ -6,9 +6,12 @@ import { Logger } from './util/Logger.js';
 import { stdout } from 'node:process';
 import { CliEditTracker } from './util/CliEditTracker.js';
 
-const nodeJsLogger: Logger = {
+const createNodeJsLogger = (): Logger => ({
   write: stdout.write.bind(stdout),
-};
+  moveCursor: stdout.moveCursor.bind(stdout),
+  clearLine: stdout.clearLine.bind(stdout),
+  isTTY: stdout.isTTY,
+});
 
 export const remove = ({
   configPath,
@@ -16,7 +19,7 @@ export const remove = ({
   projectRoot,
   mode,
   system = ts.sys,
-  logger = nodeJsLogger,
+  logger = createNodeJsLogger(),
 }: {
   configPath: string;
   skip: string[];

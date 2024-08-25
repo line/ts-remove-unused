@@ -61,12 +61,21 @@ export class CliEditTracker implements EditTracker {
     return item;
   }
 
+  #clearStartLog() {
+    this.#logger.moveCursor(0, -3);
+    this.#logger.clearLine(0);
+  }
+
   start(file: string, content: string): void {
     this.#status.set(file, {
       content,
       status: 'processing',
       removedExports: [],
     });
+
+    this.#logger.write(
+      chalk.gray(`${this.#logger.isTTY ? '\n\n' : ''}[working on] ${file}\n`),
+    );
   }
 
   end(file: string): void {
@@ -78,7 +87,7 @@ export class CliEditTracker implements EditTracker {
     });
 
     if (item.removedExports.length === 0) {
-      this.#logger.write(chalk.gray(`no_issues ${file}\n`));
+      this.#clearStartLog();
     }
   }
 
@@ -90,7 +99,8 @@ export class CliEditTracker implements EditTracker {
       content: item.content,
     });
 
-    this.#logger.write(`${chalk.yellow('file')}      ${file}\n`);
+    this.#logger.write(`${chalk.yellow('file')}   ${file}\n`);
+    this.#clearStartLog();
   }
 
   removeExport(
@@ -99,13 +109,19 @@ export class CliEditTracker implements EditTracker {
   ): void {
     const item = this.#getProcessingFile(file);
 
+    const isFirstExport = item.removedExports.length === 0;
+
+    if (isFirstExport) {
+      this.#clearStartLog();
+    }
+
     this.#status.set(file, {
       ...item,
       removedExports: [...item.removedExports, { position, code }],
     });
 
     this.#logger.write(
-      `${chalk.yellow('export')}    ${file}:${chalk.gray(
+      `${chalk.yellow('export')} ${file}:${chalk.gray(
         getLinePosition(item.content, position).padEnd(7),
       )} ${chalk.gray(`'${code}'`)}\n`,
     );
