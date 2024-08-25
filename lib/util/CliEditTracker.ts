@@ -71,10 +71,6 @@ export class CliEditTracker implements EditTracker {
       status: 'processing',
       removedExports: [],
     });
-
-    if (this.#isCheck) {
-      this.#logger.write(`${chalk.underline(file)}\n`);
-    }
   }
 
   end(file: string): void {
@@ -94,7 +90,7 @@ export class CliEditTracker implements EditTracker {
       content: item.content,
     });
 
-    this.#logger.write(`  ${chalk.gray('0:0')}\t${chalk.red('deletable')}\n`);
+    this.#logger.write(`${badge('delete')} ${file}\n`);
   }
 
   removeExport(
@@ -110,9 +106,9 @@ export class CliEditTracker implements EditTracker {
 
     if (this.#isCheck) {
       this.#logger.write(
-        `  ${chalk.gray(getLinePosition(item.content, position))}\t${chalk.red(
-          'removable',
-        )}\t'${code}'\n`,
+        `${badge('edit')}   ${file}:${chalk.gray(
+          getLinePosition(item.content, position).padEnd(7),
+        )} ${chalk.gray(`'${code}'`)}\n`,
       );
     }
   }
@@ -120,14 +116,28 @@ export class CliEditTracker implements EditTracker {
   result() {
     const values = Array.from(this.#status.values());
     this.#logger.write(
-      chalk.red(
-        `${
-          values.filter((v) => v.status === 'delete').length
-        } file deletable, ${
+      chalk.yellow(
+        `\ndelete ${format(
+          values.filter((v) => v.status === 'delete').length,
+        )}, edit ${format(
           values.flatMap((v) => (v.status === 'done' ? v.removedExports : []))
-            .length
-        } exports removable\n`,
+            .length,
+        )}\n`,
       ),
     );
   }
 }
+
+const format = (count: number) => {
+  if (count === 0) {
+    return 'no files';
+  }
+
+  if (count === 1) {
+    return '1 file';
+  }
+
+  return `${count} files`;
+};
+
+const badge = (text: string) => `[${chalk.yellow(text)}]`;
