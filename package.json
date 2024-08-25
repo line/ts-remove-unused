@@ -12,9 +12,12 @@
   "files": [
     "dist"
   ],
+  "exports": {
+    ".": "./dist/main.js"
+  },
   "scripts": {
     "lint": "eslint . --ext .ts,.cjs,.js",
-    "build": "rm -rf dist && node ./esbuild.js",
+    "build": "rm -rf dist && node ./build.js",
     "type-check": "tsc -b",
     "prepublishOnly": "npm run build",
     "test": "TS_NODE_PROJECT=tsconfig.test.json glob -c 'node --loader ts-node/esm --test' 'lib/**/*.test.ts' 'test/**/*.test.ts'"
