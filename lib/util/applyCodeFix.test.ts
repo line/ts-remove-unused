@@ -1,5 +1,5 @@
 import { describe, it } from 'node:test';
-import { MemoryFileService } from '../MemoryFileService.js';
+import { MemoryFileService } from './MemoryFileService.js';
 import ts from 'typescript';
 import assert from 'node:assert/strict';
 import {

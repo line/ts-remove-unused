@@ -1,12 +1,12 @@
 import ts from 'typescript';
 import { FileService } from './FileService.js';
-import { applyTextChanges } from './util/applyTextChanges.js';
+import { applyTextChanges } from './applyTextChanges.js';
 import chalk from 'chalk';
 import {
   applyCodeFix,
   fixIdDelete,
   fixIdDeleteImports,
-} from './util/applyCodeFix.js';
+} from './applyCodeFix.js';
 
 const findFirstNodeOfKind = (root: ts.Node, kind: ts.SyntaxKind) => {
   let result: ts.Node | undefined;

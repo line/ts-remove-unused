@@ -1,7 +1,7 @@
 import ts from 'typescript';
 import { resolve } from 'node:path';
-import { MemoryFileService } from './MemoryFileService.js';
-import { removeUnusedExport } from './remove.js';
+import { MemoryFileService } from './util/MemoryFileService.js';
+import { removeUnusedExport } from './util/remove.js';
 import chalk from 'chalk';
 
 export const execute = ({
