@@ -264,6 +264,7 @@ const getUpdatedExportDeclaration = (
 const getTextChanges = (
   languageService: ts.LanguageService,
   sourceFile: ts.SourceFile,
+  editTracker: EditTracker,
 ) => {
   const changes: ts.TextChange[] = [];
   for (const node of getUnusedExports(languageService, sourceFile)) {
@@ -279,6 +280,12 @@ const getTextChanges = (
             length: node.parent.parent.getFullWidth(),
           },
         });
+
+        editTracker.removeExport(sourceFile.fileName, {
+          position: node.parent.parent.getStart(),
+          code: node.parent.parent.getText(),
+        });
+
         continue;
       }
 
@@ -288,6 +295,11 @@ const getTextChanges = (
           start: node.parent.parent.getStart(),
           length: node.parent.parent.getWidth(),
         },
+      });
+
+      editTracker.removeExport(sourceFile.fileName, {
+        position: node.getStart(),
+        code: `export { ${node.getText()} };`,
       });
 
       continue;
@@ -300,6 +312,11 @@ const getTextChanges = (
           start: node.getFullStart(),
           length: node.getFullWidth(),
         },
+      });
+
+      editTracker.removeExport(sourceFile.fileName, {
+        position: node.getStart(),
+        code: node.getText(),
       });
       continue;
     }
@@ -318,6 +335,21 @@ const getTextChanges = (
             start: node.getFullStart(),
             length: node.getFullWidth(),
           },
+        });
+
+        // there's no identifier so we try to get something like `export default function()` or `export default class`
+        const code = node
+          .getText()
+          .slice(
+            0,
+            ts.isFunctionDeclaration(node)
+              ? node.getText().indexOf(')') + 1
+              : node.getText().indexOf('{') - 1,
+          );
+
+        editTracker.removeExport(sourceFile.fileName, {
+          position: node.getStart(),
+          code,
         });
 
         continue;
@@ -340,6 +372,12 @@ const getTextChanges = (
         start: syntaxList.getFullStart(),
         length: syntaxList.getFullWidth(),
       },
+    });
+
+    editTracker.removeExport(sourceFile.fileName, {
+      position: node.getStart(),
+      code:
+        findFirstNodeOfKind(node, ts.SyntaxKind.Identifier)?.getText() || '',
     });
   }
 
@@ -393,16 +431,7 @@ export const removeUnusedExport = ({
       }
     }
 
-    const changes = getTextChanges(languageService, sourceFile);
-
-    if (changes.length === 0) {
-      editTracker.end(file);
-      continue;
-    }
-
-    for (const change of changes) {
-      editTracker.removeExport(file, change.span);
-    }
+    const changes = getTextChanges(languageService, sourceFile, editTracker);
 
     editTracker.end(file);
 

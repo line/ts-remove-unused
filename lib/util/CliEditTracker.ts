@@ -12,15 +12,17 @@ type FileStatus =
   | {
       status: 'processing' | 'done';
       content: string;
-      removedExports: { start: number; length: number }[];
+      removedExports: { position: number; code: string }[];
     };
 
 export class CliEditTracker implements EditTracker {
   #logger: Logger;
   #status: Map<string, FileStatus> = new Map();
+  #mode: 'check' | 'write';
 
-  constructor(logger: Logger) {
+  constructor(logger: Logger, mode: 'check' | 'write') {
     this.#logger = logger;
+    this.#mode = mode;
   }
 
   #getProcessingFile(file: string) {
@@ -37,12 +39,20 @@ export class CliEditTracker implements EditTracker {
     return item;
   }
 
+  get #isCheck() {
+    return this.#mode === 'check';
+  }
+
   start(file: string, content: string): void {
     this.#status.set(file, {
       content,
       status: 'processing',
       removedExports: [],
     });
+
+    if (this.#isCheck) {
+      this.#logger.write(`${chalk.underline(file)}\n`);
+    }
   }
 
   end(file: string): void {
@@ -52,12 +62,6 @@ export class CliEditTracker implements EditTracker {
       ...item,
       status: 'done',
     });
-
-    this.#logger.write(
-      `${chalk.green.bold('✓')} ${file} ${
-        item.removedExports.length > 0 ? chalk.gray('(modified)') : ''
-      }\n`,
-    );
   }
 
   delete(file: string): void {
@@ -68,21 +72,38 @@ export class CliEditTracker implements EditTracker {
       content: item.content,
     });
 
-    this.#logger.write(
-      `${chalk.green.bold('✓')} ${file} ${chalk.gray('(deleted)')}\n`,
-    );
+    this.#logger.write(`\t${chalk.gray('0:0')}\t${chalk.red('deletable')}\n`);
   }
 
-  removeExport(file: string, span: { start: number; length: number }): void {
+  removeExport(
+    file: string,
+    { code, position }: { code: string; position: number },
+  ): void {
     const item = this.#getProcessingFile(file);
 
     this.#status.set(file, {
       ...item,
-      removedExports: [...item.removedExports, span],
+      removedExports: [...item.removedExports, { position, code }],
     });
+
+    if (this.#isCheck) {
+      this.#logger.write(
+        `\t${chalk.gray(position)}\t${chalk.red('unused')}\t\t'${code}'\n`,
+      );
+    }
   }
 
   result() {
-    console.log(this.#status.values());
+    const values = Array.from(this.#status.values());
+    this.#logger.write(
+      chalk.red(
+        `${
+          values.filter((v) => v.status === 'delete').length
+        } file deletable, ${
+          values.flatMap((v) => (v.status === 'done' ? v.removedExports : []))
+            .length
+        } exports removable\n`,
+      ),
+    );
   }
 }

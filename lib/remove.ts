@@ -25,7 +25,7 @@ export const remove = ({
   system?: ts.System;
   logger?: Logger;
 }) => {
-  const editTracker = new CliEditTracker(logger);
+  const editTracker = new CliEditTracker(logger, 'check');
   const { config } = ts.readConfigFile(configPath, system.readFile);
 
   const { options, fileNames } = ts.parseJsonConfigFileContent(
