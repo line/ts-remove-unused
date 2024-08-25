@@ -7,12 +7,16 @@ import { stdout } from 'node:process';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
+const LOG = !!process.env.LOG;
+
 describe('cli', () => {
   it('should execute', () => {
     const output: string[] = [];
     const logger = {
       write: (text: string) => {
-        stdout.write(text);
+        if (LOG) {
+          stdout.write(text);
+        }
         output.push(text);
       },
     };
