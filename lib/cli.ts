@@ -1,8 +1,9 @@
 #!/usr/bin/env node
 
 import { cac } from 'cac';
-import { execute } from './execute.js';
+import { remove } from './remove.js';
 import { createRequire } from 'node:module';
+import { resolve } from 'node:path';
 const cli = cac('ts-remove-unused');
 
 cli
@@ -13,19 +14,29 @@ cli
     'Specify the regexp pattern to match files that should be skipped from transforming',
   )
   .option('--include-d-ts', 'Include .d.ts files in target for transformation')
+  .option(
+    '--check',
+    'Check if there are any unused exports without removing them',
+  )
   .action((options) => {
+    const skipArg = options.skip;
+
     const skip =
-      options.skip && Array.isArray(options.skip)
-        ? options.skip
-        : typeof options.skip === 'string'
-        ? [options.skip]
+      skipArg && Array.isArray(skipArg)
+        ? skipArg.map((s) => new RegExp(s))
+        : typeof skipArg === 'string'
+        ? [new RegExp(skipArg)]
         : [];
+
     if (!options['includeD-ts']) {
-      skip.push('\\.d\\.ts');
+      skip.push(new RegExp('\\.d\\.ts'));
     }
-    execute({
-      tsConfigFilePath: options.project || './tsconfig.json',
+
+    remove({
+      configPath: resolve(options.project || './tsconfig.json'),
       skip,
+      mode: options.check ? 'check' : 'write',
+      projectRoot: process.cwd(),
     });
   });
 

@@ -1,6 +1,5 @@
 {
   "name": "@line/ts-remove-unused",
-  "version": "0.2.0",
   "description": "Remove unused code from your TypeScript project",
   "type": "module",
   "repository": {
@@ -8,21 +7,26 @@
     "url": "git+https://github.com/line/ts-remove-unused"
   },
   "license": "Apache-2.0",
-  "bin": "dist/index.js",
+  "bin": "dist/cli.js",
   "files": [
     "dist"
   ],
+  "exports": {
+    ".": "./dist/main.js"
+  },
+  "types": "./dist/main.d.ts",
   "scripts": {
     "lint": "eslint . --ext .ts,.cjs,.js",
-    "build": "rm -rf dist && tsc --outDir dist",
-    "type-check": "tsc --noEmit",
+    "build": "rm -rf dist && node ./build.js",
+    "type-check": "tsc -b",
     "prepublishOnly": "npm run build",
-    "test": "glob -c 'node --loader ts-node/esm --test' 'src/**/*.test.ts'"
+    "test": "TS_NODE_PROJECT=tsconfig.test.json glob -c 'node --loader ts-node/esm --test' 'lib/**/*.test.ts' 'test/**/*.test.ts'"
   },
   "devDependencies": {
     "@types/node": "^20.6.3",
     "@typescript-eslint/eslint-plugin": "^6.4.1",
     "@typescript-eslint/parser": "^6.4.1",
+    "esbuild": "^0.23.1",
     "eslint": "^8.48.0",
     "eslint-config-prettier": "^9.0.0",
     "eslint-plugin-prettier": "^5.0.0",
@@ -32,7 +36,7 @@
   },
   "dependencies": {
     "cac": "^6.7.14",
-    "ts-morph": "^17.0.1"
+    "chalk": "^5.3.0"
   },
   "peerDependencies": {
     "typescript": ">=4.0.0"
