@@ -156,6 +156,7 @@ const isUsedFile = (
   languageService: ts.LanguageService,
   sourceFile: ts.SourceFile,
 ) => {
+  const { fileName } = sourceFile;
   let isUsed = false;
 
   const visit = (node: ts.Node) => {
@@ -173,13 +174,11 @@ const isUsedFile = (
         return;
       }
 
-      const count = references.flatMap((v) => v.references).length;
+      const count = references
+        .filter((v) => v.definition.fileName !== fileName)
+        .flatMap((v) => v.references).length;
 
-      if (ts.isExportSpecifier(node) && count > 2) {
-        // for export specifiers, there will be at least two reference, the declaration itself and the export specifier
-        isUsed = true;
-      } else if (!ts.isExportSpecifier(node) && count > 1) {
-        // there will be at least one reference, the declaration itself
+      if (count > 0) {
         isUsed = true;
       }
 
@@ -198,6 +197,7 @@ const getUnusedExports = (
   languageService: ts.LanguageService,
   sourceFile: ts.SourceFile,
 ) => {
+  const { fileName } = sourceFile;
   const result: SupportedNode[] = [];
 
   const visit = (node: ts.Node) => {
@@ -208,13 +208,11 @@ const getUnusedExports = (
         return;
       }
 
-      const count = references.flatMap((v) => v.references).length;
+      const count = references
+        .filter((v) => v.definition.fileName !== fileName)
+        .flatMap((v) => v.references).length;
 
-      if (ts.isExportSpecifier(node) && count === 2) {
-        // for export specifiers, there will be at least two reference, the declaration itself and the export specifier
-        result.push(node);
-      } else if (!ts.isExportSpecifier(node) && count === 1) {
-        // there will be at least one reference, the declaration itself
+      if (count === 0) {
         result.push(node);
       }
 
