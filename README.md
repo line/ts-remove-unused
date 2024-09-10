@@ -52,7 +52,7 @@ export const e = 'e';
 
 When `d` and `e` are not used in all other files across the project, ts-remove-unused will delete the file for you.
 
-Now you don't have to worry about removing your unused code!
+Now you don't have to worry about removing your unused code! ts-remove-unused supports various exports including variable declarations (`export const`, `export let`), function declarations, class declarations, interface declarations, type alias declarations, default exports...
 
 ## Install
 
