@@ -614,6 +614,33 @@ export { remain };`,
     });
   });
 
+  describe('locally used declaration but not used in any other file', () => {
+    it('should remove export keyword if its not used in any other file', () => {
+      const { languageService, fileService } = setup();
+      fileService.set('/app/main.ts', `import { a } from './a';`);
+
+      fileService.set(
+        '/app/a.ts',
+        `export const a = 'a';
+export const b = 'b';
+console.log(b);`,
+      );
+
+      removeUnusedExport({
+        languageService,
+        fileService,
+        targetFile: '/app/a.ts',
+      });
+
+      assert.equal(
+        fileService.get('/app/a.ts').trim(),
+        `export const a = 'a';
+const b = 'b';
+console.log(b);`,
+      );
+    });
+  });
+
   describe('deleteUnusedFile', () => {
     it('should not remove file if some exports are used in other files', () => {
       const { languageService, fileService } = setup();
