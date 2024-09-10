@@ -356,19 +356,22 @@ const getTextChanges = (
 
     // we want to correctly remove 'default' when its a default export so we get the syntaxList node instead of the exportKeyword node
     // note: the first syntaxList node should contain the export keyword
-    const syntaxList = node
+    const syntaxListIndex = node
       .getChildren()
-      .find((n) => n.kind === ts.SyntaxKind.SyntaxList);
+      .findIndex((n) => n.kind === ts.SyntaxKind.SyntaxList);
 
-    if (!syntaxList) {
+    const syntaxList = node.getChildren()[syntaxListIndex];
+    const syntaxListNextSibling = node.getChildren()[syntaxListIndex + 1];
+
+    if (!syntaxList || !syntaxListNextSibling) {
       throw new Error('syntax list not found');
     }
 
     changes.push({
       newText: '',
       span: {
-        start: syntaxList.getFullStart(),
-        length: syntaxList.getFullWidth(),
+        start: syntaxList.getStart(),
+        length: syntaxListNextSibling.getStart() - syntaxList.getStart(),
       },
     });
 
