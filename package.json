@@ -16,23 +16,22 @@
   },
   "types": "./dist/main.d.ts",
   "scripts": {
-    "lint": "eslint . --ext .ts,.cjs,.js",
+    "lint": "eslint",
     "build": "rm -rf dist && node ./build.js",
     "type-check": "tsc -b",
     "prepublishOnly": "npm run build",
     "test": "TS_NODE_PROJECT=tsconfig.test.json glob -c 'node --loader ts-node/esm --test' 'lib/**/*.test.ts' 'test/**/*.test.ts'"
   },
   "devDependencies": {
+    "@eslint/js": "^9.10.0",
     "@types/node": "^20.6.3",
-    "@typescript-eslint/eslint-plugin": "^6.4.1",
-    "@typescript-eslint/parser": "^6.4.1",
     "esbuild": "^0.23.1",
-    "eslint": "^8.48.0",
-    "eslint-config-prettier": "^9.0.0",
-    "eslint-plugin-prettier": "^5.0.0",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-prettier": "^5.2.1",
     "glob": "^10.3.5",
-    "prettier": "^3.0.2",
-    "ts-node": "^10.9.1"
+    "prettier": "^3.3.3",
+    "ts-node": "^10.9.1",
+    "typescript-eslint": "^8.5.0"
   },
   "dependencies": {
     "cac": "^6.7.14",
