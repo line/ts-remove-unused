@@ -98,10 +98,10 @@ Options:
 
 The CLI will respect the `tsconfig.json` for loading source files.
 
-Here's an example of using the cli.
+Here's an example of using the cli. Make sure to skip your entrypoint file.
 
 ```
-npx ts-remove-unused --skip 'src\/index\.ts'
+npx ts-remove-unused --skip 'src\/main\.ts'
 ```
 
 ### Check
