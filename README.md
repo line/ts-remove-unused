@@ -30,7 +30,7 @@ However when this declaration is exported and is not referenced by any file in t
 export const a = 'a';
 ```
 
-This is when ts-remove-unused comes in handy. ts-remove-unused is a CLI tools made on top of TypeScript that reports/fixes unused exports.
+This is when ts-remove-unused comes in handy. ts-remove-unused is a CLI tool made on top of TypeScript that reports/fixes unused exports.
 
 Let's say you have the following file:
 
@@ -64,9 +64,9 @@ export const e = 'e';
 
 When `d` and `e` are not used in all other files across the project, ts-remove-unused will delete the file for you.
 
-Now you don't have to worry about removing your unused code!
+ts-remove-unused supports various types of exports including variable declarations (`export const`, `export let`), function declarations, class declarations, interface declarations, type alias declarations, default exports and more...
 
-ts-remove-unused supports various exports including variable declarations (`export const`, `export let`), function declarations, class declarations, interface declarations, type alias declarations, default exports...
+Now you don't have to worry about removing unused code by yourself!
 
 ## Install
 
