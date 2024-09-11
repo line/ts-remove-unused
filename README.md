@@ -1,6 +1,66 @@
 # ts-remove-unused
 
+<div align="center">
+  <img width="480" src="./media/screenshot.png" />
+</div>
+
+[![npm version](https://badge.fury.io/js/@line%2Fts-remove-unused.svg)](https://badge.fury.io/js/@line%2Fts-remove-unused)
+
 > Remove unused code from your TypeScript project
+
+## Introduction
+
+When you enable `compilerOptions.noUnusedLocals` for your TypeScript project, it's possible to detect declarations that are not referenced in your file.
+
+```typescript
+// TypeScript will throw error: 'a' is declared but its value is never read.
+const a = 'a';
+```
+
+However when this declaration is exported and is not referenced by any file in the project, it's difficult to recognize this.
+
+```typescript
+// no errors will be reported even if the declaration is not used across the entire project.
+export const a = 'a';
+```
+
+This is when ts-remove-unused comes in handy. ts-remove-unused is a CLI tools made on top of TypeScript that reports/fixes unused exports.
+
+Let's say you have the following file:
+
+```typescript
+export const a = 'a';
+
+export const b = 'b';
+
+export const c = 'c';
+
+console.log(b);
+```
+
+When `a` and `b` are not used in all other files across the project, ts-remove-unused will modify the file to be:
+
+```typescript
+const b = 'b';
+
+export const c = 'c';
+
+console.log(b);
+```
+
+If you have another file in your project:
+
+```typescript
+export const d = 'd';
+
+export const e = 'e';
+```
+
+When `d` and `e` are not used in all other files across the project, ts-remove-unused will delete the file for you.
+
+Now you don't have to worry about removing your unused code!
+
+ts-remove-unused supports various exports including variable declarations (`export const`, `export let`), function declarations, class declarations, interface declarations, type alias declarations, default exports...
 
 ## Install
 
