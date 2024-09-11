@@ -12,7 +12,7 @@
 
 - 🛠️ Auto-fix unused exports — removes the `export` keyword from the declaration or the whole declaration based on its usage
 - 🧹 Deletes TypeScript modules that have no referenced exports
-- 🕵️ `--check` mode - reports unused exports and deletable files without writing changes
+- 🕵️ `--check` mode — reports unused exports and deletable files without writing changes
 
 ## Introduction
 
