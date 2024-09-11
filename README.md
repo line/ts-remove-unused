@@ -16,7 +16,7 @@
 
 ## Introduction
 
-When you enable `compilerOptions.noUnusedLocals` for your TypeScript project, it's possible to detect declarations that are not referenced in your file.
+When TypeScript's `compilerOptions.noUnusedLocals` is enabled, it's possible to detect declarations that are not referenced in your file.
 
 ```typescript
 // TypeScript will throw error: 'a' is declared but its value is never read.
@@ -54,7 +54,7 @@ export const c = 'c';
 console.log(b);
 ```
 
-If you have another file in your project:
+Let's say you have another file in your project:
 
 ```typescript
 export const d = 'd';
@@ -106,8 +106,7 @@ npx ts-remove-unused --skip 'src\/index\.ts'
 
 ### Check
 
-Use `--check` to check for unused files and exports without making changes to project files. The command will exit with
-code: 1 if there are any unused files or exports discovered.
+Use `--check` to check for unused files and exports without making changes to project files. The command will exit with exit code 1 if there are any unused files or exports discovered.
 
 ```
 npx ts-remove-unused --check
@@ -137,7 +136,7 @@ When you add a comment `// ts-remove-unused-skip` to your export declaration, th
 export const hello = 'world';
 ```
 
-By default, .d.ts files are skipped. If you want to include .d.ts files, use the --include-d-ts option.
+By default, `.d.ts` files are skipped. If you want to include `.d.ts` files, use the `--include-d-ts` option.
 
 ## Author
 
