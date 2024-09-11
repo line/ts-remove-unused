@@ -139,6 +139,10 @@ export const hello = 'world';
 
 By default, .d.ts files are skipped. If you want to include .d.ts files, use the --include-d-ts option.
 
+## Author
+
+Kazushi Konosu (https://github.com/kazushisan)
+
 ## License
 
 ```
