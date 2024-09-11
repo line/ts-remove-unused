@@ -469,7 +469,6 @@ export const removeUnusedExport = ({
     editTracker.end(file);
 
     if (enableCodeFix) {
-      // eslint-disable-next-line no-constant-condition
       while (true) {
         fileService.set(file, content);
 

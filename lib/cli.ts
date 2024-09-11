@@ -25,8 +25,8 @@ cli
       skipArg && Array.isArray(skipArg)
         ? skipArg.map((s) => new RegExp(s))
         : typeof skipArg === 'string'
-        ? [new RegExp(skipArg)]
-        : [];
+          ? [new RegExp(skipArg)]
+          : [];
 
     if (!options['includeD-ts']) {
       skip.push(new RegExp('\\.d\\.ts'));
