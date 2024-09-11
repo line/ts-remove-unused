@@ -8,6 +8,12 @@
 [![npm version](https://badge.fury.io/js/@line%2Fts-remove-unused.svg)](https://badge.fury.io/js/@line%2Fts-remove-unused)
 [![CI](https://github.com/line/ts-remove-unused/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/line/ts-remove-unused/actions/workflows/ci.yml)
 
+## Features
+
+- 🛠️ Auto-fix unused exports — removes the `export` keyword from the declaration or the whole declaration based on its usage
+- 🧹 Deletes TypeScript modules that have no referenced exports
+- 🕵️ `--check` mode - reports unused exports and deletable files without writing changes
+
 ## Introduction
 
 When you enable `compilerOptions.noUnusedLocals` for your TypeScript project, it's possible to detect declarations that are not referenced in your file.
@@ -73,7 +79,7 @@ npm i -D @line/ts-remove-unused
 
 ```
 Usage:
-  $ ts-remove-unused 
+  $ ts-remove-unused
 
 Commands:
     There are no subcommands. Simply execute ts-remove-unused
@@ -82,12 +88,12 @@ For more info, run any command with the `--help` flag:
   $ ts-remove-unused --help
 
 Options:
-  --project <file>         Path to your tsconfig.json 
-  --skip <regexp_pattern>  Specify the regexp pattern to match files that should be skipped from transforming 
-  --include-d-ts           Include .d.ts files in target for transformation 
-  --check                  Check if there are any unused exports without removing them 
-  -h, --help               Display this message 
-  -v, --version            Display version number 
+  --project <file>         Path to your tsconfig.json
+  --skip <regexp_pattern>  Specify the regexp pattern to match files that should be skipped from transforming
+  --include-d-ts           Include .d.ts files in target for transformation
+  --check                  Check if there are any unused exports without removing them
+  -h, --help               Display this message
+  -v, --version            Display version number
 ```
 
 The CLI will respect the `tsconfig.json` for loading source files.
