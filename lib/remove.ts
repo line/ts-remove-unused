@@ -6,12 +6,18 @@ import { Logger } from './util/Logger.js';
 import { stdout } from 'node:process';
 import { CliEditTracker } from './util/CliEditTracker.js';
 
-const createNodeJsLogger = (): Logger => ({
-  write: stdout.write.bind(stdout),
-  clearLine: stdout.clearLine.bind(stdout),
-  cursorTo: stdout.cursorTo.bind(stdout),
-  isTTY: stdout.isTTY,
-});
+const createNodeJsLogger = (): Logger =>
+  'isTTY' in stdout && stdout.isTTY
+    ? {
+        write: stdout.write.bind(stdout),
+        clearLine: stdout.clearLine.bind(stdout),
+        cursorTo: stdout.cursorTo.bind(stdout),
+        isTTY: true,
+      }
+    : {
+        write: stdout.write.bind(stdout),
+        isTTY: false,
+      };
 
 export const remove = ({
   configPath,
