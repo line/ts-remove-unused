@@ -1,12 +1,12 @@
-# ts-remove-unused
-
+<h1 align="center">ts-remove-unused</h1>
 <div align="center">
   <img width="480" src="./media/screenshot.png" />
+  <p>Remove unused code from your TypeScript Project</p>
 </div>
+<hr />
 
 [![npm version](https://badge.fury.io/js/@line%2Fts-remove-unused.svg)](https://badge.fury.io/js/@line%2Fts-remove-unused)
-
-> Remove unused code from your TypeScript project
+[![CI](https://github.com/line/ts-remove-unused/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/line/ts-remove-unused/actions/workflows/ci.yml)
 
 ## Introduction
 
