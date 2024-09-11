@@ -1,7 +1,7 @@
 # ts-remove-unused
 
 <div align="center">
-  <img width="480" src="./media/cover.png" />
+  <img width="480" src="./media/screenshot.png" />
 </div>
 
 > Remove unused code from your TypeScript project
