@@ -261,11 +261,25 @@ const getUpdatedExportDeclaration = (
 
 const getTextChanges = (
   languageService: ts.LanguageService,
-  sourceFile: ts.SourceFile,
+  file: string,
   editTracker: EditTracker,
 ) => {
+  const sourceFile = languageService.getProgram()?.getSourceFile(file);
+
+  if (!sourceFile) {
+    throw new Error('source file not found');
+  }
+
   const changes: ts.TextChange[] = [];
+  // usually we want to remove all unused exports in one pass, but there are some cases where we need to do multiple passes
+  // for example, when we have multiple export specifiers in one export declaration, we want to remove them one by one because the text change range will conflict
+  let aborted = false;
+
   for (const node of getUnusedExports(languageService, sourceFile)) {
+    if (aborted === true) {
+      break;
+    }
+
     if (ts.isExportSpecifier(node)) {
       const specifierCount = Array.from(node.parent.elements).length;
 
@@ -287,6 +301,7 @@ const getTextChanges = (
         continue;
       }
 
+      aborted = true;
       changes.push({
         newText: getUpdatedExportDeclaration(node.parent.parent, node),
         span: {
@@ -382,7 +397,7 @@ const getTextChanges = (
     });
   }
 
-  return changes;
+  return { changes, done: !aborted };
 };
 
 const disabledEditTracker: EditTracker = {
@@ -432,17 +447,31 @@ export const removeUnusedExport = ({
       }
     }
 
-    const changes = getTextChanges(languageService, sourceFile, editTracker);
+    let content = fileService.get(file);
+
+    do {
+      const { changes, done } = getTextChanges(
+        languageService,
+        file,
+        editTracker,
+      );
+
+      content = applyTextChanges(content, changes);
+
+      fileService.set(file, content);
+
+      if (done) {
+        break;
+      }
+      // eslint-disable-next-line no-constant-condition
+    } while (true);
 
     editTracker.end(file);
-
-    const oldContent = fileService.get(file);
-    let newContent = applyTextChanges(oldContent, changes);
 
     if (enableCodeFix) {
       // eslint-disable-next-line no-constant-condition
       while (true) {
-        fileService.set(file, newContent);
+        fileService.set(file, content);
 
         const result = applyCodeFix({
           fixId: fixIdDelete,
@@ -450,22 +479,22 @@ export const removeUnusedExport = ({
           languageService,
         });
 
-        if (result === newContent) {
+        if (result === content) {
           break;
         }
 
-        newContent = result;
+        content = result;
       }
 
-      fileService.set(file, newContent);
+      fileService.set(file, content);
 
-      newContent = applyCodeFix({
+      content = applyCodeFix({
         fixId: fixIdDeleteImports,
         fileName: file,
         languageService,
       });
     }
 
-    fileService.set(file, newContent);
+    fileService.set(file, content);
   }
 };

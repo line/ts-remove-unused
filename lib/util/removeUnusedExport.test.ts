@@ -549,7 +549,11 @@ export { B };`,
 
     it('should remove export specifier for an identifier if its not used in some other file', () => {
       const { languageService, fileService } = setup();
-      fileService.set('/app/main.ts', `import { remain } from './c';`);
+      fileService.set(
+        '/app/main.ts',
+        `import { remain } from './c';
+import { d } from './d';`,
+      );
 
       fileService.set(
         '/app/a.ts',
@@ -568,10 +572,18 @@ const remain = 'remain';
 export { c, remain };`,
       );
 
+      fileService.set(
+        '/app/d.ts',
+        `const d = 'd';
+const unused = 'unused';
+const unused2 = 'unused2';
+export { d, unused, unused2 };`,
+      );
+
       removeUnusedExport({
         languageService,
         fileService,
-        targetFile: ['/app/a.ts', '/app/b.ts', '/app/c.ts'],
+        targetFile: ['/app/a.ts', '/app/b.ts', '/app/c.ts', '/app/d.ts'],
       });
 
       assert.equal(fileService.get('/app/a.ts').trim(), `const a = 'a';`);
@@ -581,6 +593,14 @@ export { c, remain };`,
         `const c = 'c';
 const remain = 'remain';
 export { remain };`,
+      );
+
+      assert.equal(
+        fileService.get('/app/d.ts').trim(),
+        `const d = 'd';
+const unused = 'unused';
+const unused2 = 'unused2';
+export { d };`,
       );
     });
 
