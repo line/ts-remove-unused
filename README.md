@@ -4,6 +4,8 @@
   <img width="480" src="./media/screenshot.png" />
 </div>
 
+[![npm version](https://badge.fury.io/js/@line%2Fts-remove-unused.svg)](https://badge.fury.io/js/@line%2Fts-remove-unused)
+
 > Remove unused code from your TypeScript project
 
 ## Introduction
