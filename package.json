@@ -16,7 +16,7 @@
   },
   "types": "./dist/main.d.ts",
   "scripts": {
-    "lint": "eslint .",
+    "lint": "eslint",
     "build": "rm -rf dist && node ./build.js",
     "type-check": "tsc -b",
     "prepublishOnly": "npm run build",
