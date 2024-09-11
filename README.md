@@ -70,9 +70,10 @@ Now you don't have to worry about removing unused code by yourself!
 ## Install
 
 ```bash
-npm i typescript ## TypeScript is a peer dependency
-npm i -D @line/ts-remove-unused
+npm install @line/ts-remove-unused
 ```
+
+TypeScript is a peer dependency so make sure that it's also installed.
 
 ## Usage
 
