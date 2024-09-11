@@ -1,16 +1,21 @@
-# ts-remove-unused
-
+<h1 align="center">ts-remove-unused</h1>
 <div align="center">
   <img width="480" src="./media/screenshot.png" />
+  <p>Remove unused code from your TypeScript Project</p>
 </div>
 
 [![npm version](https://badge.fury.io/js/@line%2Fts-remove-unused.svg)](https://badge.fury.io/js/@line%2Fts-remove-unused)
+[![CI](https://github.com/line/ts-remove-unused/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/line/ts-remove-unused/actions/workflows/ci.yml)
 
-> Remove unused code from your TypeScript project
+## Features
+
+- 🛠️ Auto-fix unused exports — removes the `export` keyword from the declaration or the whole declaration based on its usage
+- 🧹 Deletes TypeScript modules that have no referenced exports
+- 🕵️ `--check` mode — reports unused exports and deletable files without writing changes
 
 ## Introduction
 
-When you enable `compilerOptions.noUnusedLocals` for your TypeScript project, it's possible to detect declarations that are not referenced in your file.
+When TypeScript's `compilerOptions.noUnusedLocals` is enabled, it's possible to detect declarations that are not referenced in your file.
 
 ```typescript
 // TypeScript will throw error: 'a' is declared but its value is never read.
@@ -24,7 +29,7 @@ However when this declaration is exported and is not referenced by any file in t
 export const a = 'a';
 ```
 
-This is when ts-remove-unused comes in handy. ts-remove-unused is a CLI tools made on top of TypeScript that reports/fixes unused exports.
+This is when ts-remove-unused comes in handy. ts-remove-unused is a CLI tool made on top of TypeScript that reports/fixes unused exports.
 
 Let's say you have the following file:
 
@@ -48,7 +53,7 @@ export const c = 'c';
 console.log(b);
 ```
 
-If you have another file in your project:
+Let's say you have another file in your project:
 
 ```typescript
 export const d = 'd';
@@ -58,9 +63,9 @@ export const e = 'e';
 
 When `d` and `e` are not used in all other files across the project, ts-remove-unused will delete the file for you.
 
-Now you don't have to worry about removing your unused code!
+ts-remove-unused supports various types of exports including variable declarations (`export const`, `export let`), function declarations, class declarations, interface declarations, type alias declarations, default exports and more...
 
-ts-remove-unused supports various exports including variable declarations (`export const`, `export let`), function declarations, class declarations, interface declarations, type alias declarations, default exports...
+Now you don't have to worry about removing unused code by yourself!
 
 ## Install
 
@@ -73,7 +78,7 @@ npm i -D @line/ts-remove-unused
 
 ```
 Usage:
-  $ ts-remove-unused 
+  $ ts-remove-unused
 
 Commands:
     There are no subcommands. Simply execute ts-remove-unused
@@ -82,26 +87,25 @@ For more info, run any command with the `--help` flag:
   $ ts-remove-unused --help
 
 Options:
-  --project <file>         Path to your tsconfig.json 
-  --skip <regexp_pattern>  Specify the regexp pattern to match files that should be skipped from transforming 
-  --include-d-ts           Include .d.ts files in target for transformation 
-  --check                  Check if there are any unused exports without removing them 
-  -h, --help               Display this message 
-  -v, --version            Display version number 
+  --project <file>         Path to your tsconfig.json
+  --skip <regexp_pattern>  Specify the regexp pattern to match files that should be skipped from transforming
+  --include-d-ts           Include .d.ts files in target for transformation
+  --check                  Check if there are any unused exports without removing them
+  -h, --help               Display this message
+  -v, --version            Display version number
 ```
 
 The CLI will respect the `tsconfig.json` for loading source files.
 
-Here's an example of using the cli.
+Here's an example of using the cli. Make sure to skip your entrypoint file.
 
 ```
-npx ts-remove-unused --skip 'src\/index\.ts'
+npx ts-remove-unused --skip 'src\/main\.ts'
 ```
 
 ### Check
 
-Use `--check` to check for unused files and exports without making changes to project files. The command will exit with
-code: 1 if there are any unused files or exports discovered.
+Use `--check` to check for unused files and exports without making changes to project files. The command will exit with exit code 1 if there are any unused files or exports discovered.
 
 ```
 npx ts-remove-unused --check
@@ -131,7 +135,11 @@ When you add a comment `// ts-remove-unused-skip` to your export declaration, th
 export const hello = 'world';
 ```
 
-By default, .d.ts files are skipped. If you want to include .d.ts files, use the --include-d-ts option.
+By default, `.d.ts` files are skipped. If you want to include `.d.ts` files, use the `--include-d-ts` option.
+
+## Author
+
+Kazushi Konosu (https://github.com/kazushisan)
 
 ## License
 
