@@ -130,10 +130,17 @@ const findReferences = (node: SupportedNode, service: ts.LanguageService) => {
 const getUnusedExports = (
   languageService: ts.LanguageService,
   sourceFile: ts.SourceFile,
+  fileService: FileService,
 ) => {
   const { fileName } = sourceFile;
   const nodes: SupportedNode[] = [];
   let isUsed = false;
+
+  const program = languageService.getProgram();
+
+  if (!program) {
+    throw new Error('program not found');
+  }
 
   const visit = (node: ts.Node) => {
     if (isTarget(node)) {
@@ -145,6 +152,51 @@ const getUnusedExports = (
       const references = findReferences(node, languageService);
 
       if (!references) {
+        return;
+      }
+
+      // `export { foo } from './bar';`
+      if (
+        ts.isExportSpecifier(node) &&
+        node.parent.parent.moduleSpecifier &&
+        ts.isStringLiteral(node.parent.parent.moduleSpecifier)
+      ) {
+        const origin = ts.resolveModuleName(
+          node.parent.parent.moduleSpecifier.text,
+          fileName,
+          program.getCompilerOptions(),
+          {
+            fileExists(fileName) {
+              return fileService.exists(fileName);
+            },
+            readFile(fileName) {
+              return fileService.get(fileName);
+            },
+          },
+        );
+
+        const resolvedFileName = origin.resolvedModule?.resolvedFileName;
+
+        if (!resolvedFileName) {
+          // something unexpected happened, so don't try to remove the file
+          isUsed = true;
+          return;
+        }
+
+        const count = references
+          .filter(
+            (v) =>
+              v.definition.fileName !== fileName &&
+              v.definition.fileName !== resolvedFileName,
+          )
+          .flatMap((v) => v.references).length;
+
+        if (count > 0) {
+          isUsed = true;
+        } else {
+          nodes.push(node);
+        }
+
         return;
       }
 
@@ -205,6 +257,7 @@ const getTextChanges = (
   languageService: ts.LanguageService,
   file: string,
   editTracker: EditTracker,
+  fileService: FileService,
 ) => {
   const sourceFile = languageService.getProgram()?.getSourceFile(file);
 
@@ -217,7 +270,11 @@ const getTextChanges = (
   // for example, when we have multiple export specifiers in one export declaration, we want to remove them one by one because the text change range will conflict
   let aborted = false;
 
-  const { nodes, isUsed } = getUnusedExports(languageService, sourceFile);
+  const { nodes, isUsed } = getUnusedExports(
+    languageService,
+    sourceFile,
+    fileService,
+  );
   for (const node of nodes) {
     if (aborted === true) {
       break;
@@ -384,7 +441,12 @@ export const removeUnusedExport = ({
     let isUsed = false;
 
     do {
-      const result = getTextChanges(languageService, file, editTracker);
+      const result = getTextChanges(
+        languageService,
+        file,
+        editTracker,
+        fileService,
+      );
 
       isUsed = result.isUsed;
 
