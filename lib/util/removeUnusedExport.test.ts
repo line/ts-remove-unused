@@ -677,7 +677,7 @@ export { d };`,
       );
     });
 
-    it.skip('should remove specifier if some re-exported specifier is not used in any other file', () => {
+    it('should remove specifier if some re-exported specifier is not used in any other file', () => {
       const { languageService, fileService } = setup();
       fileService.set('/app/main.ts', `import { b1 } from './b_reexport'`);
       fileService.set('/app/b_reexport.ts', `export { b1, b2 } from './b';`);
@@ -692,13 +692,15 @@ export { d };`,
         targetFile: ['/app/b.ts', '/app/b_reexport.ts'],
       });
 
+      // todo: is it possible to specify typescript to use single quotes?
       assert.equal(
         fileService.get('/app/b_reexport.ts').trim(),
-        `export const { b1 } from './b';`,
+        `export { b1 } from "./b";`,
       );
+      // after the first round, the re-export is removed but the original export is expected to be kept.
       assert.equal(
         fileService.get('/app/b.ts').trim(),
-        `export const b1 = 'b1';`,
+        `export const b1 = 'b1'; export const b2 = 'b2';`,
       );
     });
   });
