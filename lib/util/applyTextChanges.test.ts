@@ -10,4 +10,13 @@ describe('applyTextChanges', () => {
 
     assert.equal(result, `export const a = 'a';\n`);
   });
+
+  it('should remove limit the number of consecutive line breaks that occur due to the edit to 2', () => {
+    const result = applyTextChanges(
+      `export const a = 'a';\n\nconst a2 = 'a2';\n\nexport const a3 = 'a3';\n`,
+      [{ span: { start: 23, length: 17 }, newText: '' }],
+    );
+
+    assert.equal(result, `export const a = 'a';\n\nexport const a3 = 'a3';\n`);
+  });
 });
