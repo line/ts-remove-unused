@@ -127,6 +127,127 @@ const findReferences = (node: SupportedNode, service: ts.LanguageService) => {
   throw new Error(`unexpected node type: ${node satisfies never}`);
 };
 
+const getReexportInFile = (file: ts.SourceFile) => {
+  const result: ts.ExportSpecifier[] = [];
+
+  // todo: consider pruning for performance
+  const visit = (node: ts.Node) => {
+    if (ts.isExportSpecifier(node)) {
+      if (
+        node.parent.parent.moduleSpecifier &&
+        ts.isStringLiteral(node.parent.parent.moduleSpecifier)
+      ) {
+        result.push(node);
+      }
+
+      return;
+    }
+
+    node.forEachChild(visit);
+  };
+
+  file.forEachChild(visit);
+
+  return result;
+};
+
+const getFileFromModuleSpecifierText = ({
+  specifier,
+  fileName,
+  program,
+  fileService,
+}: {
+  specifier: string;
+  fileName: string;
+  program: ts.Program;
+  fileService: FileService;
+}) =>
+  ts.resolveModuleName(specifier, fileName, program.getCompilerOptions(), {
+    fileExists(fileName) {
+      return fileService.exists(fileName);
+    },
+    readFile(fileName) {
+      return fileService.get(fileName);
+    },
+  }).resolvedModule?.resolvedFileName;
+
+const getAncestorFiles = (
+  node: ts.ExportSpecifier,
+  references: ts.ReferencedSymbol[],
+  fileService: FileService,
+  program: ts.Program,
+  fileName: string,
+) => {
+  const result = new Set<string>();
+  const referencesKeyValue = Object.fromEntries(
+    references.map((v) => [v.definition.fileName, v]),
+  );
+
+  if (
+    !node.parent.parent.moduleSpecifier ||
+    !ts.isStringLiteral(node.parent.parent.moduleSpecifier)
+  ) {
+    return null;
+  }
+
+  let specifier: string | null = node.parent.parent.moduleSpecifier.text;
+  let currentFile = fileName;
+
+  while (specifier) {
+    const origin = getFileFromModuleSpecifierText({
+      specifier,
+      fileName: currentFile,
+      program,
+      fileService,
+    });
+
+    if (!origin) {
+      return null;
+    }
+
+    result.add(origin);
+
+    const referencedSymbol = referencesKeyValue[origin];
+
+    if (!referencedSymbol) {
+      return null;
+    }
+
+    const sourceFile = program.getSourceFile(origin);
+
+    if (!sourceFile) {
+      return null;
+    }
+
+    const reexportSpecifiers = getReexportInFile(sourceFile);
+    const firstReferencedSymbol = referencedSymbol.references[0];
+    const reexportNode = firstReferencedSymbol
+      ? reexportSpecifiers.find((r) => {
+          const start = firstReferencedSymbol.textSpan.start;
+          const end = start + firstReferencedSymbol.textSpan.length;
+
+          return r.getStart() === start && r.getEnd() === end;
+        })
+      : undefined;
+
+    if (reexportNode) {
+      if (
+        !reexportNode.parent.parent.moduleSpecifier ||
+        !ts.isStringLiteral(reexportNode.parent.parent.moduleSpecifier)
+      ) {
+        // type guard: should not happen
+        throw new Error('unexpected reexportNode');
+      }
+
+      specifier = reexportNode.parent.parent.moduleSpecifier.text;
+      currentFile = origin;
+    } else {
+      specifier = null;
+    }
+  }
+  return result;
+};
+
 const getUnusedExports = (
   languageService: ts.LanguageService,
   sourceFile: ts.SourceFile,
@@ -155,30 +276,17 @@ const getUnusedExports = (
         return;
       }
 
-      // `export { foo } from './bar';`
-      if (
-        ts.isExportSpecifier(node) &&
-        node.parent.parent.moduleSpecifier &&
-        ts.isStringLiteral(node.parent.parent.moduleSpecifier)
-      ) {
-        const origin = ts.resolveModuleName(
-          node.parent.parent.moduleSpecifier.text,
+      // reexport syntax: `export { foo } from './bar';`
+      if (ts.isExportSpecifier(node) && node.parent.parent.moduleSpecifier) {
+        const ancestors = getAncestorFiles(
+          node,
+          references,
+          fileService,
+          program,
           fileName,
-          program.getCompilerOptions(),
-          {
-            fileExists(fileName) {
-              return fileService.exists(fileName);
-            },
-            readFile(fileName) {
-              return fileService.get(fileName);
-            },
-          },
         );
 
-        const resolvedFileName = origin.resolvedModule?.resolvedFileName;
-
-        if (!resolvedFileName) {
-          // something unexpected happened, so don't try to remove the file
+        if (!ancestors) {
           isUsed = true;
           return;
         }
@@ -187,7 +295,7 @@ const getUnusedExports = (
           .filter(
             (v) =>
               v.definition.fileName !== fileName &&
-              v.definition.fileName !== resolvedFileName,
+              !ancestors.has(v.definition.fileName),
           )
           .flatMap((v) => v.references).length;
 
