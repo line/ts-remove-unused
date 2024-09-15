@@ -35,7 +35,10 @@ describe('cli', () => {
       },
     });
 
-    assert.equal(!!output.find((line) => line.includes('a.ts')), true);
-    assert.equal(!!output.find((line) => line.includes('b.ts')), true);
+    assert.equal(!!output.find((line) => line.includes('project/a.ts')), true);
+    assert.equal(
+      output.filter((line) => line.includes('project/b.ts')).length,
+      1,
+    );
   });
 });
