@@ -125,7 +125,9 @@ export class CliEditTracker implements EditTracker {
       status: 'done',
     });
 
-    this.clearProgressOutput();
+    if (item.removedExports.length > 0) {
+      this.clearProgressOutput();
+    }
     for (const { position, code } of item.removedExports) {
       this.#logger.write(
         `${chalk.yellow('export')} ${file}:${chalk.gray(
