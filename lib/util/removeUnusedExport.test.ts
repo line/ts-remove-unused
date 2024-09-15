@@ -660,10 +660,22 @@ export { d };`,
 
     it('should remove re-export if its not used in some other file', () => {
       const { languageService, fileService } = setup();
-
-      fileService.set('/app/main.ts', `import { b1 } from './b_reexport'`);
       fileService.set('/app/a_reexport.ts', `export { a } from './a';`);
       fileService.set('/app/a.ts', `export const a = 'a';`);
+
+      removeUnusedExport({
+        languageService,
+        fileService,
+        targetFile: ['/app/a.ts', '/app/a_reexport.ts'],
+      });
+
+      assert.equal(fileService.get('/app/a_reexport.ts').trim(), '');
+      assert.equal(fileService.get('/app/a.ts').trim(), '');
+    });
+
+    it('should remove specifier if some re-exported specifier is not used in any other file', () => {
+      const { languageService, fileService } = setup();
+      fileService.set('/app/main.ts', `import { b1 } from './b_reexport'`);
       fileService.set('/app/b_reexport.ts', `export { b1, b2 } from './b';`);
       fileService.set(
         '/app/b.ts',
@@ -673,16 +685,9 @@ export { d };`,
       removeUnusedExport({
         languageService,
         fileService,
-        targetFile: [
-          '/app/a.ts',
-          '/app/a_reexport.ts',
-          '/app/b.ts',
-          '/app/b_reexport.ts',
-        ],
+        targetFile: ['/app/b.ts', '/app/b_reexport.ts'],
       });
 
-      assert.equal(fileService.get('/app/a_reexport.ts').trim(), '');
-      assert.equal(fileService.get('/app/a.ts').trim(), '');
       assert.equal(
         fileService.get('/app/b_reexport.ts').trim(),
         `export const { b1 } from './b';`,
