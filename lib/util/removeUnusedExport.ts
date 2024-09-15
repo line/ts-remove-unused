@@ -127,18 +127,15 @@ const findReferences = (node: SupportedNode, service: ts.LanguageService) => {
   throw new Error(`unexpected node type: ${node satisfies never}`);
 };
 
-const isUsedFile = (
+const getUnusedExports = (
   languageService: ts.LanguageService,
   sourceFile: ts.SourceFile,
 ) => {
   const { fileName } = sourceFile;
+  const nodes: SupportedNode[] = [];
   let isUsed = false;
 
   const visit = (node: ts.Node) => {
-    if (isUsed) {
-      return;
-    }
-
     if (isTarget(node)) {
       if (getLeadingComment(node).includes(IGNORE_COMMENT)) {
         isUsed = true;
@@ -157,6 +154,8 @@ const isUsedFile = (
 
       if (count > 0) {
         isUsed = true;
+      } else {
+        nodes.push(node);
       }
 
       return;
@@ -167,45 +166,7 @@ const isUsedFile = (
 
   sourceFile.forEachChild(visit);
 
-  return isUsed;
-};
-
-const getUnusedExports = (
-  languageService: ts.LanguageService,
-  sourceFile: ts.SourceFile,
-) => {
-  const { fileName } = sourceFile;
-  const result: SupportedNode[] = [];
-
-  const visit = (node: ts.Node) => {
-    if (isTarget(node)) {
-      if (getLeadingComment(node).includes(IGNORE_COMMENT)) {
-        return;
-      }
-
-      const references = findReferences(node, languageService);
-
-      if (!references) {
-        return;
-      }
-
-      const count = references
-        .filter((v) => v.definition.fileName !== fileName)
-        .flatMap((v) => v.references).length;
-
-      if (count === 0) {
-        result.push(node);
-      }
-
-      return;
-    }
-
-    node.forEachChild(visit);
-  };
-
-  sourceFile.forEachChild(visit);
-
-  return result;
+  return { nodes, isUsed };
 };
 
 const getUpdatedExportDeclaration = (
@@ -256,7 +217,8 @@ const getTextChanges = (
   // for example, when we have multiple export specifiers in one export declaration, we want to remove them one by one because the text change range will conflict
   let aborted = false;
 
-  for (const node of getUnusedExports(languageService, sourceFile)) {
+  const { nodes, isUsed } = getUnusedExports(languageService, sourceFile);
+  for (const node of nodes) {
     if (aborted === true) {
       break;
     }
@@ -378,7 +340,7 @@ const getTextChanges = (
     });
   }
 
-  return { changes, done: !aborted };
+  return { changes, done: !aborted, isUsed };
 };
 
 const disabledEditTracker: EditTracker = {
@@ -418,34 +380,30 @@ export const removeUnusedExport = ({
 
     editTracker.start(file, sourceFile.getFullText());
 
-    if (deleteUnusedFile) {
-      const isUsed = isUsedFile(languageService, sourceFile);
-
-      if (!isUsed) {
-        fileService.delete(file);
-        editTracker.delete(file);
-        continue;
-      }
-    }
-
     let content = fileService.get(file);
+    let isUsed = false;
 
     do {
-      const { changes, done } = getTextChanges(
-        languageService,
-        file,
-        editTracker,
-      );
+      const result = getTextChanges(languageService, file, editTracker);
 
-      content = applyTextChanges(content, changes);
+      isUsed = result.isUsed;
+
+      content = applyTextChanges(content, result.changes);
 
       fileService.set(file, content);
 
-      if (done) {
+      if (result.done) {
         break;
       }
       // eslint-disable-next-line no-constant-condition
     } while (true);
+
+    if (!isUsed && deleteUnusedFile) {
+      fileService.delete(file);
+      editTracker.delete(file);
+
+      continue;
+    }
 
     editTracker.end(file);
 
