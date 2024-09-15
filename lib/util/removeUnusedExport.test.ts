@@ -942,6 +942,21 @@ const b: B = {};`,
       assert.equal(fileService.exists('/app/a.ts'), false);
     });
 
+    it('should not remove file if there are some re-exports of all exports', () => {
+      const { languageService, fileService } = setup();
+      fileService.set('/app/a_reexport.ts', `export * from './a';`);
+      fileService.set('/app/a.ts', `export const a = 'a';`);
+
+      removeUnusedExport({
+        languageService,
+        fileService,
+        targetFile: ['/app/a.ts', '/app/a_reexport.ts'],
+        deleteUnusedFile: true,
+      });
+
+      assert.equal(fileService.exists('/app/a_reexport.ts'), true);
+    });
+
     it('should not remove file if some exports are marked with skip comment', () => {
       const { languageService, fileService } = setup();
       fileService.set(

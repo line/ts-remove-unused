@@ -264,6 +264,12 @@ const getUnusedExports = (
   }
 
   const visit = (node: ts.Node) => {
+    if (ts.isExportDeclaration(node) && !node.exportClause) {
+      // special case for `export * from './foo';`
+      isUsed = true;
+      return;
+    }
+
     if (isTarget(node)) {
       if (getLeadingComment(node).includes(IGNORE_COMMENT)) {
         isUsed = true;
