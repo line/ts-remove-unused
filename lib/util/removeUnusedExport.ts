@@ -424,9 +424,13 @@ const getTextChanges = (
         },
       });
 
+      const from = node.parent.parent.moduleSpecifier
+        ? ` from ${node.parent.parent.moduleSpecifier.getText()}`
+        : '';
+
       editTracker.removeExport(sourceFile.fileName, {
         position: node.getStart(),
-        code: `export { ${node.getText()} };`,
+        code: `export { ${node.getText()} }${from};`,
       });
 
       continue;
