@@ -20,9 +20,7 @@ describe('cli', () => {
         }
         output.push(text);
       },
-      clearLine: () => {},
-      cursorTo: () => {},
-      isTTY: false,
+      isTTY: false as const,
     };
 
     remove({
