@@ -1,18 +1,7 @@
 import ts from 'typescript';
 
-const limitTrailingLineBreak = (value: string) => {
-  const match = value.match(/\n+$/);
-
-  if (!match) {
-    return value;
-  }
-
-  if (match[0].length <= 2) {
-    return value;
-  }
-
-  return `${value.slice(0, value.length - match[0].length)}\n\n`;
-};
+const limitTrailingLineBreak = (value: string, count: number) =>
+  value.replace(new RegExp(`\n{${count},}$`), '\n'.repeat(count));
 
 const pushClean = (list: string[], value: string) => {
   const leadingLineBreakCount = value.match(/^\n+/)?.[0].length || 0;
@@ -25,9 +14,17 @@ const pushClean = (list: string[], value: string) => {
   const last = list.pop() || '';
 
   list.push(
-    limitTrailingLineBreak(`${last}${value.slice(0, leadingLineBreakCount)}`),
-    value.slice(leadingLineBreakCount),
+    limitTrailingLineBreak(
+      `${last}${value.slice(0, leadingLineBreakCount)}`,
+      2,
+    ),
   );
+
+  const sliced = value.slice(leadingLineBreakCount);
+
+  if (sliced) {
+    list.push(sliced);
+  }
 };
 
 export const applyTextChanges = (
@@ -52,7 +49,23 @@ export const applyTextChanges = (
     currentPos = change.span.start + change.span.length;
   }
 
-  pushClean(result, oldContent.slice(currentPos));
+  const remaining = oldContent.slice(currentPos);
+
+  if (remaining) {
+    pushClean(result, remaining);
+  }
+
+  const firstItem = result.shift();
+
+  if (typeof firstItem !== 'undefined') {
+    result.unshift(firstItem.replace(/^\n+/, ''));
+  }
+
+  const lastItem = result.pop();
+
+  if (typeof lastItem !== 'undefined') {
+    result.push(limitTrailingLineBreak(lastItem, 1));
+  }
 
   return result.join('');
 };
