@@ -694,33 +694,33 @@ export { d };`,
         `export { b1 } from "./b";`,
       );
     });
-  });
 
-  it('should remove nth re-export if its not used in any other file', () => {
-    const { languageService, fileService } = setup();
-    fileService.set(
-      '/app/a_reexport_1.ts',
-      `export { a } from './a_reexport_2';`,
-    );
-    fileService.set(
-      '/app/a_reexport_2.ts',
-      `export { a } from './a_reexport_3';`,
-    );
-    fileService.set('/app/a_reexport_3.ts', `export { a } from './a';`);
-    fileService.set('/app/a.ts', `export const a = 'a';`);
-
-    removeUnusedExport({
-      languageService,
-      fileService,
-      targetFile: [
-        '/app/a.ts',
+    it('should remove nth re-export if its not used in any other file', () => {
+      const { languageService, fileService } = setup();
+      fileService.set(
         '/app/a_reexport_1.ts',
+        `export { a } from './a_reexport_2';`,
+      );
+      fileService.set(
         '/app/a_reexport_2.ts',
-        '/app/a_reexport_3.ts',
-      ],
-    });
+        `export { a } from './a_reexport_3';`,
+      );
+      fileService.set('/app/a_reexport_3.ts', `export { a } from './a';`);
+      fileService.set('/app/a.ts', `export const a = 'a';`);
 
-    assert.equal(fileService.get('/app/a_reexport_1.ts').trim(), '');
+      removeUnusedExport({
+        languageService,
+        fileService,
+        targetFile: [
+          '/app/a.ts',
+          '/app/a_reexport_1.ts',
+          '/app/a_reexport_2.ts',
+          '/app/a_reexport_3.ts',
+        ],
+      });
+
+      assert.equal(fileService.get('/app/a_reexport_1.ts').trim(), '');
+    });
   });
 
   describe('locally used declaration but not used in any other file', () => {
