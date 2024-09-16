@@ -634,6 +634,95 @@ export { d };`,
     });
   });
 
+  describe('re-exports', () => {
+    it('should not remove re-export if its used in some other file', () => {
+      const { languageService, fileService } = setup();
+
+      fileService.set('/app/main.ts', `import { a } from './a_reexport';`);
+      fileService.set('/app/a_reexport.ts', `export { a } from './a';`);
+      fileService.set('/app/a.ts', `export const a = 'a';`);
+
+      removeUnusedExport({
+        languageService,
+        fileService,
+        targetFile: ['/app/a.ts', '/app/a_reexport.ts'],
+      });
+
+      assert.equal(
+        fileService.get('/app/a_reexport.ts').trim(),
+        `export { a } from './a';`,
+      );
+      assert.equal(
+        fileService.get('/app/a.ts').trim(),
+        `export const a = 'a';`,
+      );
+    });
+
+    it('should remove re-export if its not used in some other file', () => {
+      const { languageService, fileService } = setup();
+      fileService.set('/app/a_reexport.ts', `export { a } from './a';`);
+      fileService.set('/app/a.ts', `export const a = 'a';`);
+
+      removeUnusedExport({
+        languageService,
+        fileService,
+        targetFile: ['/app/a.ts', '/app/a_reexport.ts'],
+      });
+
+      // removal of /app/a.ts depends on the order of how the target files are passed, so the result of /app/a.ts is not guaranteed
+      assert.equal(fileService.get('/app/a_reexport.ts').trim(), '');
+    });
+
+    it('should remove specifier if some re-exported specifier is not used in any other file', () => {
+      const { languageService, fileService } = setup();
+      fileService.set('/app/main.ts', `import { b1 } from './b_reexport'`);
+      fileService.set('/app/b_reexport.ts', `export { b1, b2 } from './b';`);
+      fileService.set(
+        '/app/b.ts',
+        `export const b1 = 'b1'; export const b2 = 'b2';`,
+      );
+
+      removeUnusedExport({
+        languageService,
+        fileService,
+        targetFile: ['/app/b.ts', '/app/b_reexport.ts'],
+      });
+
+      // todo: is it possible to specify typescript to use single quotes?
+      assert.equal(
+        fileService.get('/app/b_reexport.ts').trim(),
+        `export { b1 } from "./b";`,
+      );
+    });
+
+    it('should remove nth re-export if its not used in any other file', () => {
+      const { languageService, fileService } = setup();
+      fileService.set(
+        '/app/a_reexport_1.ts',
+        `export { a } from './a_reexport_2';`,
+      );
+      fileService.set(
+        '/app/a_reexport_2.ts',
+        `export { a } from './a_reexport_3';`,
+      );
+      fileService.set('/app/a_reexport_3.ts', `export { a } from './a';`);
+      fileService.set('/app/a.ts', `export const a = 'a';`);
+
+      removeUnusedExport({
+        languageService,
+        fileService,
+        targetFile: [
+          '/app/a.ts',
+          '/app/a_reexport_1.ts',
+          '/app/a_reexport_2.ts',
+          '/app/a_reexport_3.ts',
+        ],
+      });
+
+      assert.equal(fileService.get('/app/a_reexport_1.ts').trim(), '');
+    });
+  });
+
   describe('locally used declaration but not used in any other file', () => {
     it('should remove export keyword of variable if its not used in any other file', () => {
       const { languageService, fileService } = setup();
@@ -851,6 +940,21 @@ const b: B = {};`,
       });
 
       assert.equal(fileService.exists('/app/a.ts'), false);
+    });
+
+    it('should not remove file if there are some re-exports of all exports', () => {
+      const { languageService, fileService } = setup();
+      fileService.set('/app/a_reexport.ts', `export * from './a';`);
+      fileService.set('/app/a.ts', `export const a = 'a';`);
+
+      removeUnusedExport({
+        languageService,
+        fileService,
+        targetFile: ['/app/a.ts', '/app/a_reexport.ts'],
+        deleteUnusedFile: true,
+      });
+
+      assert.equal(fileService.exists('/app/a_reexport.ts'), true);
     });
 
     it('should not remove file if some exports are marked with skip comment', () => {

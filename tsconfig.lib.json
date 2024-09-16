@@ -12,7 +12,8 @@
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true,
-    "outDir": "./node_modules/.tmp"
+    "outDir": "./node_modules/.tmp",
+    "noUncheckedIndexedAccess": true
   },
   "include": ["lib"],
   "exclude": ["lib/**/*.test.ts"]

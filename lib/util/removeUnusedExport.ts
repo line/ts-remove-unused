@@ -50,29 +50,8 @@ type SupportedNode =
   | ts.ExportSpecifier
   | ts.ClassDeclaration;
 
-const isTargetWithIgnore = (node: ts.Node): node is SupportedNode => {
-  if (
-    ts.isExportAssignment(node) ||
-    ts.isExportSpecifier(node) ||
-    ts.isVariableStatement(node) ||
-    ts.isFunctionDeclaration(node) ||
-    ts.isInterfaceDeclaration(node) ||
-    ts.isTypeAliasDeclaration(node) ||
-    ts.isClassDeclaration(node)
-  ) {
-    if (getLeadingComment(node).includes(IGNORE_COMMENT)) {
-      return true;
-    }
-  }
-  return false;
-};
-
 const isTarget = (node: ts.Node): node is SupportedNode => {
   if (ts.isExportAssignment(node) || ts.isExportSpecifier(node)) {
-    if (getLeadingComment(node).includes(IGNORE_COMMENT)) {
-      return false;
-    }
-
     return true;
   }
 
@@ -89,10 +68,6 @@ const isTarget = (node: ts.Node): node is SupportedNode => {
     );
 
     if (!hasExportKeyword) {
-      return false;
-    }
-
-    if (getLeadingComment(node).includes(IGNORE_COMMENT)) {
       return false;
     }
 
@@ -152,67 +127,16 @@ const findReferences = (node: SupportedNode, service: ts.LanguageService) => {
   throw new Error(`unexpected node type: ${node satisfies never}`);
 };
 
-const isUsedFile = (
-  languageService: ts.LanguageService,
-  sourceFile: ts.SourceFile,
-) => {
-  const { fileName } = sourceFile;
-  let isUsed = false;
+const getReexportInFile = (file: ts.SourceFile) => {
+  const result: ts.ExportSpecifier[] = [];
 
+  // todo: consider pruning for performance
   const visit = (node: ts.Node) => {
-    if (isUsed) {
-      return;
-    }
-
-    if (isTargetWithIgnore(node)) {
-      isUsed = true;
-      return;
-    } else if (isTarget(node)) {
-      const references = findReferences(node, languageService);
-
-      if (!references) {
-        return;
-      }
-
-      const count = references
-        .filter((v) => v.definition.fileName !== fileName)
-        .flatMap((v) => v.references).length;
-
-      if (count > 0) {
-        isUsed = true;
-      }
-
-      return;
-    }
-
-    node.forEachChild(visit);
-  };
-
-  sourceFile.forEachChild(visit);
-
-  return isUsed;
-};
-
-const getUnusedExports = (
-  languageService: ts.LanguageService,
-  sourceFile: ts.SourceFile,
-) => {
-  const { fileName } = sourceFile;
-  const result: SupportedNode[] = [];
-
-  const visit = (node: ts.Node) => {
-    if (isTarget(node)) {
-      const references = findReferences(node, languageService);
-
-      if (!references) {
-        return;
-      }
-
-      const count = references
-        .filter((v) => v.definition.fileName !== fileName)
-        .flatMap((v) => v.references).length;
-
-      if (count === 0) {
+    if (ts.isExportSpecifier(node)) {
+      if (
+        node.parent.parent.moduleSpecifier &&
+        ts.isStringLiteral(node.parent.parent.moduleSpecifier)
+      ) {
         result.push(node);
       }
 
@@ -222,9 +146,193 @@ const getUnusedExports = (
     node.forEachChild(visit);
   };
 
-  sourceFile.forEachChild(visit);
+  file.forEachChild(visit);
 
   return result;
+};
+
+const getFileFromModuleSpecifierText = ({
+  specifier,
+  fileName,
+  program,
+  fileService,
+}: {
+  specifier: string;
+  fileName: string;
+  program: ts.Program;
+  fileService: FileService;
+}) =>
+  ts.resolveModuleName(specifier, fileName, program.getCompilerOptions(), {
+    fileExists(fileName) {
+      return fileService.exists(fileName);
+    },
+    readFile(fileName) {
+      return fileService.get(fileName);
+    },
+  }).resolvedModule?.resolvedFileName;
+
+const getAncestorFiles = (
+  node: ts.ExportSpecifier,
+  references: ts.ReferencedSymbol[],
+  fileService: FileService,
+  program: ts.Program,
+  fileName: string,
+) => {
+  const result = new Set<string>();
+  const referencesKeyValue = Object.fromEntries(
+    references.map((v) => [v.definition.fileName, v]),
+  );
+
+  if (
+    !node.parent.parent.moduleSpecifier ||
+    !ts.isStringLiteral(node.parent.parent.moduleSpecifier)
+  ) {
+    return null;
+  }
+
+  let specifier: string | null = node.parent.parent.moduleSpecifier.text;
+  let currentFile = fileName;
+
+  while (specifier) {
+    const origin = getFileFromModuleSpecifierText({
+      specifier,
+      fileName: currentFile,
+      program,
+      fileService,
+    });
+
+    if (!origin) {
+      return null;
+    }
+
+    result.add(origin);
+
+    const referencedSymbol = referencesKeyValue[origin];
+
+    if (!referencedSymbol) {
+      return null;
+    }
+
+    const sourceFile = program.getSourceFile(origin);
+
+    if (!sourceFile) {
+      return null;
+    }
+
+    const reexportSpecifiers = getReexportInFile(sourceFile);
+    const firstReferencedSymbol = referencedSymbol.references[0];
+    const reexportNode = firstReferencedSymbol
+      ? reexportSpecifiers.find((r) => {
+          const start = firstReferencedSymbol.textSpan.start;
+          const end = start + firstReferencedSymbol.textSpan.length;
+
+          return r.getStart() === start && r.getEnd() === end;
+        })
+      : undefined;
+
+    if (reexportNode) {
+      if (
+        !reexportNode.parent.parent.moduleSpecifier ||
+        !ts.isStringLiteral(reexportNode.parent.parent.moduleSpecifier)
+      ) {
+        // type guard: should not happen
+        throw new Error('unexpected reexportNode');
+      }
+
+      specifier = reexportNode.parent.parent.moduleSpecifier.text;
+      currentFile = origin;
+    } else {
+      specifier = null;
+    }
+  }
+  return result;
+};
+
+const getUnusedExports = (
+  languageService: ts.LanguageService,
+  sourceFile: ts.SourceFile,
+  fileService: FileService,
+) => {
+  const { fileName } = sourceFile;
+  const nodes: SupportedNode[] = [];
+  let isUsed = false;
+
+  const program = languageService.getProgram();
+
+  if (!program) {
+    throw new Error('program not found');
+  }
+
+  const visit = (node: ts.Node) => {
+    if (ts.isExportDeclaration(node) && !node.exportClause) {
+      // special case for `export * from './foo';`
+      isUsed = true;
+      return;
+    }
+
+    if (isTarget(node)) {
+      if (getLeadingComment(node).includes(IGNORE_COMMENT)) {
+        isUsed = true;
+        return;
+      }
+
+      const references = findReferences(node, languageService);
+
+      if (!references) {
+        return;
+      }
+
+      // reexport syntax: `export { foo } from './bar';`
+      if (ts.isExportSpecifier(node) && node.parent.parent.moduleSpecifier) {
+        const ancestors = getAncestorFiles(
+          node,
+          references,
+          fileService,
+          program,
+          fileName,
+        );
+
+        if (!ancestors) {
+          isUsed = true;
+          return;
+        }
+
+        const count = references
+          .filter(
+            (v) =>
+              v.definition.fileName !== fileName &&
+              !ancestors.has(v.definition.fileName),
+          )
+          .flatMap((v) => v.references).length;
+
+        if (count > 0) {
+          isUsed = true;
+        } else {
+          nodes.push(node);
+        }
+
+        return;
+      }
+
+      const count = references
+        .filter((v) => v.definition.fileName !== fileName)
+        .flatMap((v) => v.references).length;
+
+      if (count > 0) {
+        isUsed = true;
+      } else {
+        nodes.push(node);
+      }
+
+      return;
+    }
+
+    node.forEachChild(visit);
+  };
+
+  sourceFile.forEachChild(visit);
+
+  return { nodes, isUsed };
 };
 
 const getUpdatedExportDeclaration = (
@@ -263,6 +371,7 @@ const getTextChanges = (
   languageService: ts.LanguageService,
   file: string,
   editTracker: EditTracker,
+  fileService: FileService,
 ) => {
   const sourceFile = languageService.getProgram()?.getSourceFile(file);
 
@@ -275,7 +384,12 @@ const getTextChanges = (
   // for example, when we have multiple export specifiers in one export declaration, we want to remove them one by one because the text change range will conflict
   let aborted = false;
 
-  for (const node of getUnusedExports(languageService, sourceFile)) {
+  const { nodes, isUsed } = getUnusedExports(
+    languageService,
+    sourceFile,
+    fileService,
+  );
+  for (const node of nodes) {
     if (aborted === true) {
       break;
     }
@@ -310,9 +424,13 @@ const getTextChanges = (
         },
       });
 
+      const from = node.parent.parent.moduleSpecifier
+        ? ` from ${node.parent.parent.moduleSpecifier.getText()}`
+        : '';
+
       editTracker.removeExport(sourceFile.fileName, {
         position: node.getStart(),
-        code: `export { ${node.getText()} };`,
+        code: `export { ${node.getText()} }${from};`,
       });
 
       continue;
@@ -397,7 +515,7 @@ const getTextChanges = (
     });
   }
 
-  return { changes, done: !aborted };
+  return { changes, done: !aborted, isUsed };
 };
 
 const disabledEditTracker: EditTracker = {
@@ -437,34 +555,35 @@ export const removeUnusedExport = ({
 
     editTracker.start(file, sourceFile.getFullText());
 
-    if (deleteUnusedFile) {
-      const isUsed = isUsedFile(languageService, sourceFile);
-
-      if (!isUsed) {
-        fileService.delete(file);
-        editTracker.delete(file);
-        continue;
-      }
-    }
-
     let content = fileService.get(file);
+    let isUsed = false;
 
     do {
-      const { changes, done } = getTextChanges(
+      const result = getTextChanges(
         languageService,
         file,
         editTracker,
+        fileService,
       );
 
-      content = applyTextChanges(content, changes);
+      isUsed = result.isUsed;
+
+      content = applyTextChanges(content, result.changes);
 
       fileService.set(file, content);
 
-      if (done) {
+      if (result.done) {
         break;
       }
       // eslint-disable-next-line no-constant-condition
     } while (true);
+
+    if (!isUsed && deleteUnusedFile) {
+      fileService.delete(file);
+      editTracker.delete(file);
+
+      continue;
+    }
 
     editTracker.end(file);
 

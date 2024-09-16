@@ -13,6 +13,7 @@
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true,
     "outDir": "./node_modules/.tmp",
+    "noUncheckedIndexedAccess": true
   },
   "include": ["**/*.test.ts"],
   "references": [{ "path": "./tsconfig.lib.json" }]

@@ -124,6 +124,17 @@ export class CliEditTracker implements EditTracker {
       ...item,
       status: 'done',
     });
+
+    if (item.removedExports.length > 0) {
+      this.clearProgressOutput();
+    }
+    for (const { position, code } of item.removedExports) {
+      this.#logger.write(
+        `${chalk.yellow('export')} ${file}:${chalk.gray(
+          getLinePosition(item.content, position).padEnd(7),
+        )} ${chalk.gray(`'${code}'`)}\n`,
+      );
+    }
   }
 
   delete(file: string): void {
@@ -144,20 +155,10 @@ export class CliEditTracker implements EditTracker {
   ): void {
     const item = this.#getProcessingFile(file);
 
-    if (item.removedExports.length === 0) {
-      this.clearProgressOutput();
-    }
-
     this.#status.set(file, {
       ...item,
       removedExports: [...item.removedExports, { position, code }],
     });
-
-    this.#logger.write(
-      `${chalk.yellow('export')} ${file}:${chalk.gray(
-        getLinePosition(item.content, position).padEnd(7),
-      )} ${chalk.gray(`'${code}'`)}\n`,
-    );
   }
 
   logResult() {
