@@ -1,7 +1,6 @@
 import ts from 'typescript';
 
-const limitTrailingLineBreak = (value: string, count: number) =>
-  value.replace(new RegExp(`\n{${count},}$`), '\n'.repeat(count));
+const regex = /\n{2,}$/;
 
 const pushClean = (list: string[], value: string) => {
   const leadingLineBreakCount = value.match(/^\n+/)?.[0].length || 0;
@@ -14,10 +13,7 @@ const pushClean = (list: string[], value: string) => {
   const last = list.pop() || '';
 
   list.push(
-    limitTrailingLineBreak(
-      `${last}${value.slice(0, leadingLineBreakCount)}`,
-      2,
-    ),
+    `${last}${value.slice(0, leadingLineBreakCount)}`.replace(regex, '\n\n'),
   );
 
   const sliced = value.slice(leadingLineBreakCount);
@@ -64,7 +60,7 @@ export const applyTextChanges = (
   const lastItem = result.pop();
 
   if (typeof lastItem !== 'undefined') {
-    result.push(limitTrailingLineBreak(lastItem, 1));
+    result.push(lastItem.replace(/\n{1,}$/, '\n'));
   }
 
   return result.join('');
