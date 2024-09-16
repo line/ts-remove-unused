@@ -3,23 +3,26 @@ import ts from 'typescript';
 const regex = /\n{2,}$/;
 
 const pushClean = (list: string[], value: string) => {
-  const leadingLineBreakCount = value.match(/^\n+/)?.[0].length || 0;
+  if (value === '') {
+    return;
+  }
 
-  if (leadingLineBreakCount === 0) {
+  const count = value.match(/^\n+/)?.[0].length || 0;
+
+  if (count === 0) {
     list.push(value);
+
     return;
   }
 
   const last = list.pop() || '';
 
-  list.push(
-    `${last}${value.slice(0, leadingLineBreakCount)}`.replace(regex, '\n\n'),
-  );
+  list.push(`${last}${value.slice(0, count)}`.replace(regex, '\n\n'));
 
-  const sliced = value.slice(leadingLineBreakCount);
+  const rest = value.slice(count);
 
-  if (sliced) {
-    list.push(sliced);
+  if (rest) {
+    list.push(rest);
   }
 };
 
@@ -37,19 +40,12 @@ export const applyTextChanges = (
 
   for (const change of sortedChanges) {
     pushClean(result, oldContent.slice(currentPos, change.span.start));
-
-    if (change.newText) {
-      pushClean(result, change.newText);
-    }
+    pushClean(result, change.newText);
 
     currentPos = change.span.start + change.span.length;
   }
 
-  const remaining = oldContent.slice(currentPos);
-
-  if (remaining) {
-    pushClean(result, remaining);
-  }
+  pushClean(result, oldContent.slice(currentPos));
 
   return result
     .join('')
