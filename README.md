@@ -100,7 +100,7 @@ The CLI will respect the `tsconfig.json` for loading source files.
 
 Here's an example of using the cli. Make sure to skip your entrypoint file.
 
-```
+```bash
 npx ts-remove-unused --skip 'src\/main\.ts'
 ```
 
@@ -108,7 +108,7 @@ npx ts-remove-unused --skip 'src\/main\.ts'
 
 Use `--check` to check for unused files and exports without making changes to project files. The command will exit with exit code 1 if there are any unused files or exports discovered.
 
-```
+```bash
 npx ts-remove-unused --check
 ```
 
@@ -122,18 +122,24 @@ import { remove } from '@line/ts-remove-unused';
 remove({
   configPath: '/path/to/project/tsconfig.json',
   projectRoot: '/path/to/project',
-  skip: [/main.ts/],
+  skip: [/main\.ts/],
   mode: 'write',
 });
 ```
 
-### Skip removing unused exports
+### Skip
 
-When you add a comment `// ts-remove-unused-skip` to your export declaration, the CLI will skip it from being removed
+When you add a comment `// ts-remove-unused-skip` to your export declaration, it will be skipped from being removed
 
 ```ts
 // ts-remove-unused-skip
 export const hello = 'world';
+```
+
+The `--skip` option is also available to skip files that match a given regex pattern. Note that you can pass multiple patterns.
+
+```bash
+npx ts-remove-unused --skip 'src/main\.ts' --skip '/pages/'
 ```
 
 By default, `.d.ts` files are skipped. If you want to include `.d.ts` files, use the `--include-d-ts` option.
