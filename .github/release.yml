@@ -1,11 +1,27 @@
 changelog:
   categories:
-    - title: 🏕 Features
+    - title: 🚀 Features
+      labels:
+        - feature
+    - title: 🐛 Bug Fixes
+      labels:
+        - bug
+    - title: 🧹 Chores
+      labels:
+        - chore
+    - title: 📖 Docs
+      labels:
+        - docs
+    - title: 📦 Dependencies
+      labels:
+        - dependencies
+    - title: Other Changes
       labels:
         - '*'
       exclude:
         labels:
+          - feature
+          - bug
+          - chore
+          - docs
           - dependencies
-    - title: 👒 Dependencies
-      labels:
-        - dependencies
