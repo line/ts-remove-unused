@@ -51,17 +51,8 @@ export const applyTextChanges = (
     pushClean(result, remaining);
   }
 
-  const firstItem = result.shift();
-
-  if (typeof firstItem !== 'undefined') {
-    result.unshift(firstItem.replace(/^\n+/, ''));
-  }
-
-  const lastItem = result.pop();
-
-  if (typeof lastItem !== 'undefined') {
-    result.push(lastItem.replace(/\n{1,}$/, '\n'));
-  }
-
-  return result.join('');
+  return result
+    .join('')
+    .replace(/^\n+/, '')
+    .replace(/\n{1,}$/, '\n');
 };
