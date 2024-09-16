@@ -46,7 +46,7 @@ describe('removeUnusedExport', () => {
       });
 
       const result = fileService.get('/app/a.ts');
-      assert.equal(result.trim(), `export const a = 'a';`);
+      assert.equal(result, `export const a = 'a';`);
     });
 
     it('should remove export for variable if its not used in some other file', () => {
@@ -61,7 +61,7 @@ describe('removeUnusedExport', () => {
 
       const result = fileService.get('/app/b.ts');
 
-      assert.equal(result.trim(), `const b = 'b';`);
+      assert.equal(result, `const b = 'b';`);
     });
 
     it('should not remove export for variable if it has a comment to ignore', () => {
@@ -81,7 +81,7 @@ describe('removeUnusedExport', () => {
       const result = fileService.get('/app/a.ts');
 
       assert.equal(
-        result.trim(),
+        result,
         `// ts-remove-unused-skip
   export const b = 'b';`,
       );
@@ -108,16 +108,13 @@ import c from './c';`,
         targetFile: ['/app/a.ts', '/app/b.ts', '/app/c.ts'],
       });
 
+      assert.equal(fileService.get('/app/a.ts'), `export function a() {}`);
       assert.equal(
-        fileService.get('/app/a.ts').trim(),
-        `export function a() {}`,
-      );
-      assert.equal(
-        fileService.get('/app/b.ts').trim(),
+        fileService.get('/app/b.ts'),
         `export default function b() {}`,
       );
       assert.equal(
-        fileService.get('/app/c.ts').trim(),
+        fileService.get('/app/c.ts'),
         `export default function() {}`,
       );
     });
@@ -134,9 +131,9 @@ import c from './c';`,
         targetFile: ['/app/a.ts', '/app/b.ts', '/app/c.ts'],
       });
 
-      assert.equal(fileService.get('/app/a.ts').trim(), `function a() {}`);
-      assert.equal(fileService.get('/app/b.ts').trim(), `function b() {}`);
-      assert.equal(fileService.get('/app/c.ts').trim(), '');
+      assert.equal(fileService.get('/app/a.ts'), `function a() {}`);
+      assert.equal(fileService.get('/app/b.ts'), `function b() {}`);
+      assert.equal(fileService.get('/app/c.ts'), '');
     });
 
     it('should not remove export if it has a comment to ignore', () => {
@@ -156,7 +153,7 @@ import c from './c';`,
       const result = fileService.get('/app/a.ts');
 
       assert.equal(
-        result.trim(),
+        result,
         `// ts-remove-unused-skip
   export function b() {}`,
       );
@@ -183,15 +180,9 @@ import C from './c';`,
         targetFile: ['/app/a.ts', '/app/b.ts', '/app/c.ts'],
       });
 
-      assert.equal(fileService.get('/app/a.ts').trim(), `export class A {}`);
-      assert.equal(
-        fileService.get('/app/b.ts').trim(),
-        `export default class B {}`,
-      );
-      assert.equal(
-        fileService.get('/app/c.ts').trim(),
-        `export default class {}`,
-      );
+      assert.equal(fileService.get('/app/a.ts'), `export class A {}`);
+      assert.equal(fileService.get('/app/b.ts'), `export default class B {}`);
+      assert.equal(fileService.get('/app/c.ts'), `export default class {}`);
     });
 
     it('should remove export for function if its not used in some other file', () => {
@@ -206,9 +197,9 @@ import C from './c';`,
         targetFile: ['/app/a.ts', '/app/b.ts', '/app/c.ts'],
       });
 
-      assert.equal(fileService.get('/app/a.ts').trim(), `class A {}`);
-      assert.equal(fileService.get('/app/b.ts').trim(), `class B {}`);
-      assert.equal(fileService.get('/app/c.ts').trim(), '');
+      assert.equal(fileService.get('/app/a.ts'), `class A {}`);
+      assert.equal(fileService.get('/app/b.ts'), `class B {}`);
+      assert.equal(fileService.get('/app/c.ts'), '');
     });
 
     it('should not remove export if it has a comment to ignore', () => {
@@ -228,7 +219,7 @@ import C from './c';`,
       const result = fileService.get('/app/a.ts');
 
       assert.equal(
-        result.trim(),
+        result,
         `// ts-remove-unused-skip
   export class A {}`,
       );
@@ -253,11 +244,11 @@ import B from './b';`,
       });
 
       assert.equal(
-        fileService.get('/app/a.ts').trim(),
+        fileService.get('/app/a.ts'),
         `export interface A { a: 'a' }`,
       );
       assert.equal(
-        fileService.get('/app/b.ts').trim(),
+        fileService.get('/app/b.ts'),
         `export default interface B { b: 'b' }`,
       );
     });
@@ -273,14 +264,8 @@ import B from './b';`,
         targetFile: ['/app/a.ts', '/app/b.ts'],
       });
 
-      assert.equal(
-        fileService.get('/app/a.ts').trim(),
-        `interface A { a: 'a' }`,
-      );
-      assert.equal(
-        fileService.get('/app/b.ts').trim(),
-        `interface B { b: 'b' }`,
-      );
+      assert.equal(fileService.get('/app/a.ts'), `interface A { a: 'a' }`);
+      assert.equal(fileService.get('/app/b.ts'), `interface B { b: 'b' }`);
     });
 
     it('should not remove export if it has a comment to ignore', () => {
@@ -300,7 +285,7 @@ import B from './b';`,
       const result = fileService.get('/app/a.ts');
 
       assert.equal(
-        result.trim(),
+        result,
         `// ts-remove-unused-skip
   export interface A { a: 'a' }`,
       );
@@ -320,7 +305,7 @@ import B from './b';`,
       });
 
       const result = fileService.get('/app/a.ts');
-      assert.equal(result.trim(), `export type A = 'a';`);
+      assert.equal(result, `export type A = 'a';`);
     });
 
     it('should remove export for type if its not used in some other file', () => {
@@ -335,7 +320,7 @@ import B from './b';`,
 
       const result = fileService.get('/app/b.ts');
 
-      assert.equal(result.trim(), `type B = 'b';`);
+      assert.equal(result, `type B = 'b';`);
     });
 
     it('should not remove export for type if it has a comment to ignore', () => {
@@ -355,7 +340,7 @@ import B from './b';`,
       const result = fileService.get('/app/a.ts');
 
       assert.equal(
-        result.trim(),
+        result,
         `// ts-remove-unused-skip
   export type B = 'b';`,
       );
@@ -390,12 +375,12 @@ export default B;`,
       });
 
       assert.equal(
-        fileService.get('/app/a.ts').trim(),
+        fileService.get('/app/a.ts'),
         `const a = 'a';
   export default a;`,
       );
       assert.equal(
-        fileService.get('/app/b.ts').trim(),
+        fileService.get('/app/b.ts'),
         `type B = 'b';
 export default B;`,
       );
@@ -421,8 +406,8 @@ export default B;`,
         targetFile: ['/app/a.ts', '/app/b.ts'],
       });
 
-      assert.equal(fileService.get('/app/a.ts').trim(), `const a = 'a';`);
-      assert.equal(fileService.get('/app/b.ts').trim(), `type B = 'b';`);
+      assert.equal(fileService.get('/app/a.ts'), `const a = 'a';`);
+      assert.equal(fileService.get('/app/b.ts'), `type B = 'b';`);
     });
 
     it('should not remove default export for an identifier if it has a comment to ignore', () => {
@@ -443,7 +428,7 @@ export default B;`,
 
       const result = fileService.get('/app/a.ts');
       assert.equal(
-        result.trim(),
+        result,
         `const a = 'a';
   // ts-remove-unused-skip
   export default a;`,
@@ -466,7 +451,7 @@ export default B;`,
       });
 
       const result = fileService.get('/app/a.ts');
-      assert.equal(result.trim(), `export default 'a';`);
+      assert.equal(result, `export default 'a';`);
     });
 
     it('should remove default export for a literal if its not used in some other file', () => {
@@ -481,7 +466,7 @@ export default B;`,
       });
 
       const result = fileService.get('/app/a.ts');
-      assert.equal(result.trim(), '');
+      assert.equal(result, '');
     });
 
     it('should not remove default export for a literal if it has a comment to ignore', () => {
@@ -501,7 +486,7 @@ export default B;`,
 
       const result = fileService.get('/app/a.ts');
       assert.equal(
-        result.trim(),
+        result,
         `// ts-remove-unused-skip
   export default 'a';`,
       );
@@ -536,12 +521,12 @@ export { B };`,
       });
 
       assert.equal(
-        fileService.get('/app/a.ts').trim(),
+        fileService.get('/app/a.ts'),
         `const a = 'a';
   export { a };`,
       );
       assert.equal(
-        fileService.get('/app/b.ts').trim(),
+        fileService.get('/app/b.ts'),
         `type B = 'b';
 export { B };`,
       );
@@ -586,17 +571,17 @@ export { d, unused, unused2 };`,
         targetFile: ['/app/a.ts', '/app/b.ts', '/app/c.ts', '/app/d.ts'],
       });
 
-      assert.equal(fileService.get('/app/a.ts').trim(), `const a = 'a';`);
-      assert.equal(fileService.get('/app/b.ts').trim(), `type B = 'b';`);
+      assert.equal(fileService.get('/app/a.ts'), `const a = 'a';`);
+      assert.equal(fileService.get('/app/b.ts'), `type B = 'b';`);
       assert.equal(
-        fileService.get('/app/c.ts').trim(),
+        fileService.get('/app/c.ts'),
         `const c = 'c';
 const remain = 'remain';
 export { remain };`,
       );
 
       assert.equal(
-        fileService.get('/app/d.ts').trim(),
+        fileService.get('/app/d.ts'),
         `const d = 'd';
 const unused = 'unused';
 const unused2 = 'unused2';
@@ -624,7 +609,7 @@ export { d };`,
 
       const result = fileService.get('/app/a.ts');
       assert.equal(
-        result.trim(),
+        result,
         `const a = 'a';
   export { 
     // ts-remove-unused-skip
@@ -649,13 +634,10 @@ export { d };`,
       });
 
       assert.equal(
-        fileService.get('/app/a_reexport.ts').trim(),
+        fileService.get('/app/a_reexport.ts'),
         `export { a } from './a';`,
       );
-      assert.equal(
-        fileService.get('/app/a.ts').trim(),
-        `export const a = 'a';`,
-      );
+      assert.equal(fileService.get('/app/a.ts'), `export const a = 'a';`);
     });
 
     it('should remove re-export if its not used in some other file', () => {
@@ -670,7 +652,7 @@ export { d };`,
       });
 
       // removal of /app/a.ts depends on the order of how the target files are passed, so the result of /app/a.ts is not guaranteed
-      assert.equal(fileService.get('/app/a_reexport.ts').trim(), '');
+      assert.equal(fileService.get('/app/a_reexport.ts'), '');
     });
 
     it('should remove specifier if some re-exported specifier is not used in any other file', () => {
@@ -690,7 +672,7 @@ export { d };`,
 
       // todo: is it possible to specify typescript to use single quotes?
       assert.equal(
-        fileService.get('/app/b_reexport.ts').trim(),
+        fileService.get('/app/b_reexport.ts'),
         `export { b1 } from "./b";`,
       );
     });
@@ -719,7 +701,7 @@ export { d };`,
         ],
       });
 
-      assert.equal(fileService.get('/app/a_reexport_1.ts').trim(), '');
+      assert.equal(fileService.get('/app/a_reexport_1.ts'), '');
     });
   });
 
@@ -742,7 +724,7 @@ console.log(b);`,
       });
 
       assert.equal(
-        fileService.get('/app/a.ts').trim(),
+        fileService.get('/app/a.ts'),
         `export const a = 'a';
 const b = 'b';
 console.log(b);`,
@@ -767,7 +749,7 @@ console.log(B);`,
       });
 
       assert.equal(
-        fileService.get('/app/a.ts').trim(),
+        fileService.get('/app/a.ts'),
         `export const a = 'a';
 class B {}
 console.log(B);`,
@@ -792,7 +774,7 @@ const b: B = {};`,
       });
 
       assert.equal(
-        fileService.get('/app/a.ts').trim(),
+        fileService.get('/app/a.ts'),
         `export const a = 'a';
 interface B {}
 const b: B = {};`,
@@ -818,7 +800,7 @@ const b: B = 'b';`,
     });
 
     assert.equal(
-      fileService.get('/app/a.ts').trim(),
+      fileService.get('/app/a.ts'),
       `export const a = 'a';
 type B = 'b';
 const b: B = 'b';`,
@@ -843,7 +825,7 @@ const b: B = {};`,
     });
 
     assert.equal(
-      fileService.get('/app/a.ts').trim(),
+      fileService.get('/app/a.ts'),
       `export const a = 'a';
 interface B {}
 const b: B = {};`,
@@ -1045,7 +1027,7 @@ export const remain = 'remain';`,
     });
 
     assert.equal(
-      fileService.get('/app/a.ts').trim(),
+      fileService.get('/app/a.ts'),
       `export const remain = 'remain';`,
     );
   });

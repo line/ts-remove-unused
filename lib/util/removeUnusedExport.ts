@@ -364,7 +364,7 @@ const getUpdatedExportDeclaration = (
 
   const printer = ts.createPrinter();
 
-  return result ? printer.printFile(result) : '';
+  return result ? printer.printFile(result).trim() : '';
 };
 
 const getTextChanges = (

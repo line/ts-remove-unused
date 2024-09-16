@@ -53,7 +53,7 @@ const b = 'b';`,
       fileName: '/app/a.ts',
     });
 
-    assert.equal(result.trim(), `export const a = 'a';`);
+    assert.equal(result, `export const a = 'a';\n`);
   });
 
   it('should clean up unused imports', () => {
@@ -72,6 +72,6 @@ export const a = 'a';`,
       fileName: '/app/a.ts',
     });
 
-    assert.equal(result.trim(), `export const a = 'a';`);
+    assert.equal(result, `export const a = 'a';`);
   });
 });
