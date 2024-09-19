@@ -1,6 +1,7 @@
 import chalk from 'chalk';
 import { EditTracker } from './EditTracker.js';
 import { Logger } from './Logger.js';
+import { relative } from 'node:path';
 
 class EditTrackerError extends Error {}
 
@@ -47,10 +48,12 @@ export class CliEditTracker implements EditTracker {
   #progressText = '';
   #lastUpdate = performance.now();
   #spinnerIndex = 0;
+  #projectRoot: string;
 
-  constructor(logger: Logger, mode: 'check' | 'write') {
+  constructor(logger: Logger, mode: 'check' | 'write', projectRoot: string) {
     this.#logger = logger;
     this.#mode = mode;
+    this.#projectRoot = projectRoot;
   }
 
   #getProcessingFile(file: string) {
@@ -130,7 +133,7 @@ export class CliEditTracker implements EditTracker {
     }
     for (const { position, code } of item.removedExports) {
       this.#logger.write(
-        `${chalk.yellow('export')} ${file}:${chalk.gray(
+        `${chalk.yellow('export')} ${this.relativePath(file)}:${chalk.gray(
           getLinePosition(item.content, position).padEnd(7),
         )} ${chalk.gray(`'${code}'`)}\n`,
       );
@@ -146,7 +149,9 @@ export class CliEditTracker implements EditTracker {
     });
 
     this.clearProgressOutput();
-    this.#logger.write(`${chalk.yellow('file')}   ${file}\n`);
+    this.#logger.write(
+      `${chalk.yellow('file')}   ${this.relativePath(file)}\n`,
+    );
   }
 
   removeExport(
@@ -201,5 +206,9 @@ export class CliEditTracker implements EditTracker {
     return !Array.from(this.#status.values()).some(
       (v) => v.status === 'delete' || v.removedExports.length > 0,
     );
+  }
+
+  relativePath(file: string) {
+    return relative(this.#projectRoot, file).replaceAll('\\', '/');
   }
 }
