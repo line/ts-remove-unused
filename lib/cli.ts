@@ -4,6 +4,7 @@ import { cac } from 'cac';
 import { remove } from './remove.js';
 import { createRequire } from 'node:module';
 import { resolve } from 'node:path';
+import { cwd } from 'node:process';
 const cli = cac('ts-remove-unused');
 
 cli
@@ -36,7 +37,7 @@ cli
       configPath: resolve(options.project || './tsconfig.json'),
       skip,
       mode: options.check ? 'check' : 'write',
-      projectRoot: process.cwd(),
+      projectRoot: cwd(),
     });
   });
 

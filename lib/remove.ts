@@ -3,8 +3,9 @@ import { MemoryFileService } from './util/MemoryFileService.js';
 import { removeUnusedExport } from './util/removeUnusedExport.js';
 import chalk from 'chalk';
 import { Logger } from './util/Logger.js';
-import { stdout } from 'node:process';
+import { cwd, stdout } from 'node:process';
 import { CliEditTracker } from './util/CliEditTracker.js';
+import { relative } from 'node:path';
 
 const createNodeJsLogger = (): Logger =>
   'isTTY' in stdout && stdout.isTTY
@@ -34,9 +35,11 @@ export const remove = ({
   system?: ts.System;
   logger?: Logger;
 }) => {
-  const editTracker = new CliEditTracker(logger, mode);
+  const editTracker = new CliEditTracker(logger, mode, projectRoot);
   const { config, error } = ts.readConfigFile(configPath, system.readFile);
 
+  const relativeToCwd = (fileName: string) =>
+    relative(cwd(), fileName).replaceAll('\\', '/');
   const { options, fileNames } = ts.parseJsonConfigFileContent(
     config,
     system,
@@ -45,7 +48,7 @@ export const remove = ({
 
   if (!error) {
     logger.write(
-      `${chalk.blue('tsconfig')} ${chalk.gray('using')} ${configPath}\n\n`,
+      `${chalk.blue('tsconfig')} ${chalk.gray('using')} ${relativeToCwd(configPath)}\n\n`,
     );
   }
 

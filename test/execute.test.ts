@@ -5,6 +5,7 @@ import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import { stdout } from 'node:process';
 import ts from 'typescript';
+import stripAnsi from 'strip-ansi';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -12,13 +13,13 @@ const LOG = !!process.env.LOG;
 
 describe('cli', () => {
   it('should execute', () => {
-    const output: string[] = [];
+    let output = '';
     const logger = {
       write: (text: string) => {
         if (LOG) {
           stdout.write(text);
         }
-        output.push(text);
+        output += text;
       },
       isTTY: false as const,
     };
@@ -35,10 +36,23 @@ describe('cli', () => {
       },
     });
 
-    assert.equal(!!output.find((line) => line.includes('project/a.ts')), true);
     assert.equal(
-      output.filter((line) => line.includes('project/b.ts')).length,
-      1,
+      stripAnsi(output),
+      `tsconfig using test/fixtures/project/tsconfig.json
+
+Found 4 file(s), skipping 1 file(s)...
+
+export a.ts:1:0     'b'
+export a.ts:3:0     'export default defaultExportConst;'
+file   b.ts
+export d.ts:9:2     'export { unusedLong };'
+export d.ts:8:3     'export { unusedLongLong };'
+export d.ts:8:3     'export { unusedLongLongLong };'
+export d.ts:8:3     'export { unusedLongLongLongLong };'
+export d.ts:9:2     'export default function ()'
+
+✖ delete 1 file(s), remove 7 export(s)
+`,
     );
   });
 });
