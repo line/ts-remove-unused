@@ -96,13 +96,15 @@ Options:
   -v, --version            Display version number
 ```
 
-The CLI will respect the `tsconfig.json` for loading source files.
+ts-remove-unused's behavior heavily depends on your `tsconfig.json`. TypeScript's compiler internally holds the list of project files by parsing relevant rules such as `include` and `exclude`. ts-remove-unused scans through this list and searches for references to determine if an export/file is "unused". You may need to maintain/update your `tsconfig` (or you can create another one for `--project`) so that the set of covered files are right.
 
-Here's an example of using the cli. Make sure to skip your entrypoint file.
+Here's an example of using the CLI. Your entry point file must be skipped or else every file will be removed.
 
 ```bash
-npx @line/ts-remove-unused --skip 'src\/main\.ts'
+npx @line/ts-remove-unused --skip 'src/main\.ts'
 ```
+
+⚠️ THIS COMMAND WILL DELETE CODE FROM YOUR PROJECT. Using it in a git controlled environment is highly recommended. If you're just playing around use `--check`.
 
 ### Check
 
@@ -143,6 +145,12 @@ npx @line/ts-remove-unused --skip 'src/main\.ts' --skip '/pages/'
 ```
 
 By default, `.d.ts` files are skipped. If you want to include `.d.ts` files, use the `--include-d-ts` option.
+
+## How does ts-remove-unused handle test files?
+
+If you have a separate tsconfig for tests using [Project References](https://www.typescriptlang.org/docs/handbook/project-references.html), that would be great! ts-remove-unused will remove exports/files that exist for the sake of testing.
+
+If you pass a `tsconfig.json` to the CLI that includes both the implementation and the test files, ts-remove-unused will remove your test files since they are not referenced by your entry point file (which is specified in `--skip`). You can avoid tests being deleted by passing a pattern that matches your test files to `--skip` in the meantime, but the recommended way is to use project references to ensure your TypeScript config is more robust and strict (not just for using this tool).
 
 ## Author
 
