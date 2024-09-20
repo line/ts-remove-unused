@@ -1,9 +1,13 @@
 name: CI
 
-on: [push]
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: ['*']
 
 jobs:
-  build:
+  check:
     runs-on: ubuntu-latest
 
     steps:
