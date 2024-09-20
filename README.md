@@ -146,6 +146,12 @@ npx @line/ts-remove-unused --skip 'src/main\.ts' --skip '/pages/'
 
 By default, `.d.ts` files are skipped. If you want to include `.d.ts` files, use the `--include-d-ts` option.
 
+## How does ts-remove-unused handle test files?
+
+If you have a separate tsconfig for tests using [Project References](https://www.typescriptlang.org/docs/handbook/project-references.html), that would be great! ts-remove-unused will remove exports/files that exist for the sake of testing.
+
+If you pass a `tsconfig.json` to the CLI that includes both the implementation and the test files, ts-remove-unused will remove your test files since they are not referenced by your entry point file (which is specified in `--skip`). You can avoid tests being deleted by passing a pattern that matches your test files to `--skip` in the meantime, but the recommended way is to use project references to ensure your TypeScript config is more robust and strict (not just for using this tool).
+
 ## Author
 
 Kazushi Konosu (https://github.com/kazushisan)
