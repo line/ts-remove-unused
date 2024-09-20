@@ -104,6 +104,8 @@ Here's an example of using the cli. Make sure to skip your entrypoint file.
 npx @line/ts-remove-unused --skip 'src/main\.ts'
 ```
 
+⚠️ THIS COMMAND WILL DELETE CODE FROM YOUR PROJECT. Using it in a git controlled environment is highly recommended. If you're just playing around use `--check`
+
 ### Check
 
 Use `--check` to check for unused files and exports without making changes to project files. The command will exit with exit code 1 if there are any unused files or exports discovered.
