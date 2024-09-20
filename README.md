@@ -96,15 +96,15 @@ Options:
   -v, --version            Display version number
 ```
 
-The CLI will respect the `tsconfig.json` for loading source files.
+ts-remove-unused's behavior heavily depends on your `tsconfig.json`. TypeScript's compiler internally holds the list of project files by parsing relevant rules such as `include` and `exclude`. ts-remove-unused scans through this list and searches for references to determine if an export/file is "unused". You may need to maintain/update your `tsconfig` so that the list of files is the right set.
 
-Here's an example of using the cli. Make sure to skip your entrypoint file.
+Here's an example of using the CLI. Your entry point file must be skipped or else every file will be removed.
 
 ```bash
 npx @line/ts-remove-unused --skip 'src/main\.ts'
 ```
 
-⚠️ THIS COMMAND WILL DELETE CODE FROM YOUR PROJECT. Using it in a git controlled environment is highly recommended. If you're just playing around use `--check`
+⚠️ THIS COMMAND WILL DELETE CODE FROM YOUR PROJECT. Using it in a git controlled environment is highly recommended. If you're just playing around use `--check`.
 
 ### Check
 
