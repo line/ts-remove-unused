@@ -3,7 +3,7 @@ import { MemoryFileService } from './util/MemoryFileService.js';
 import { removeUnusedExport } from './util/removeUnusedExport.js';
 import chalk from 'chalk';
 import { Logger } from './util/Logger.js';
-import { stdout } from 'node:process';
+import { cwd, stdout } from 'node:process';
 import { CliEditTracker } from './util/CliEditTracker.js';
 import { relative } from 'node:path';
 
@@ -39,7 +39,7 @@ export const remove = ({
   const { config, error } = ts.readConfigFile(configPath, system.readFile);
 
   const relativeToCwd = (fileName: string) =>
-    relative(process.cwd(), fileName).replaceAll('\\', '/');
+    relative(cwd(), fileName).replaceAll('\\', '/');
   const { options, fileNames } = ts.parseJsonConfigFileContent(
     config,
     system,
