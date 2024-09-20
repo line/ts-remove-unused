@@ -96,7 +96,7 @@ Options:
   -v, --version            Display version number
 ```
 
-ts-remove-unused's behavior heavily depends on your `tsconfig.json`. TypeScript's compiler internally holds the list of project files by parsing relevant rules such as `include` and `exclude`. ts-remove-unused scans through this list and searches for references to determine if an export/file is "unused". You may need to maintain/update your `tsconfig` (or you can create another one for `--project`) so that the list of files is the right set.
+ts-remove-unused's behavior heavily depends on your `tsconfig.json`. TypeScript's compiler internally holds the list of project files by parsing relevant rules such as `include` and `exclude`. ts-remove-unused scans through this list and searches for references to determine if an export/file is "unused". You may need to maintain/update your `tsconfig` (or you can create another one for `--project`) so that the set of covered files are right.
 
 Here's an example of using the CLI. Your entry point file must be skipped or else every file will be removed.
 
