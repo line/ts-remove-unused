@@ -118,7 +118,8 @@ Here's an example of using the CLI. Your entry point file must be skipped or els
 npx @line/ts-remove-unused --skip 'src/main\.ts'
 ```
 
-⚠️ THIS COMMAND WILL DELETE CODE FROM YOUR PROJECT. Using it in a git controlled environment is highly recommended. If you're just playing around use `--check`.
+> [!WARNING]
+> THIS COMMAND WILL DELETE CODE FROM YOUR PROJECT. Using it in a git controlled environment is highly recommended. If you're just playing around use `--check`.
 
 ### Check
 
