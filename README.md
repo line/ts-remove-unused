@@ -29,39 +29,53 @@ However when this declaration is exported and is not referenced by any file in t
 export const a = 'a';
 ```
 
-This is when ts-remove-unused comes in handy. ts-remove-unused is a CLI tool made on top of TypeScript that reports/fixes unused exports.
+This is when ts-remove-unused comes in handy. ts-remove-unused is a CLI tool made on top of TypeScript that reports/fixes unused exports. Here are some examples of how ts-remove-unused auto-fixes unused code.
 
-Let's say you have the following file:
+<!-- prettier-ignore-start -->
 
-```typescript
-export const a = 'a';
+When `a2` is not used within the project:
 
-export const b = 'b';
-
-export const c = 'c';
-
-console.log(b);
+```diff
+--- src/a.ts
++++ src/a.ts
+@@ -1,3 +1 @@
+ export const a = 'a';
+-
+-export const a2 = 'a2';
 ```
 
-When `a` and `b` are not used in all other files across the project, ts-remove-unused will modify the file to be:
+When `b` is not used within the project but `f()` is used within the project:
 
-```typescript
-const b = 'b';
-
-export const c = 'c';
-
-console.log(b);
+```diff
+--- src/b.ts
++++ src/b.ts
+@@ -1,5 +1,5 @@
+-export const b = 'b';
++const b = 'b';
+ 
+ export function f() {
+     return b;
+ }
 ```
 
-Let's say you have another file in your project:
+When `f()` is not used within the project and deleting it will result in `import` being unnecessary:
 
-```typescript
-export const d = 'd';
-
-export const e = 'e';
+```diff
+--- src/c.ts
++++ src/c.ts
+@@ -1,7 +1 @@
+-import { cwd } from "node:process";
+-
+ export const c = 'c';
+-
+-export function f() {
+-    return cwd();
+-}
 ```
 
-When `d` and `e` are not used in all other files across the project, ts-remove-unused will delete the file for you.
+<!-- prettier-ignore-end -->
+
+In addition to the behavior shown in the examples above, ts-remove-unused will delete files that have no used exports.
 
 ts-remove-unused supports various types of exports including variable declarations (`export const`, `export let`), function declarations, class declarations, interface declarations, type alias declarations, default exports and more...
 
@@ -104,7 +118,8 @@ Here's an example of using the CLI. Your entry point file must be skipped or els
 npx @line/ts-remove-unused --skip 'src/main\.ts'
 ```
 
-⚠️ THIS COMMAND WILL DELETE CODE FROM YOUR PROJECT. Using it in a git controlled environment is highly recommended. If you're just playing around use `--check`.
+> [!WARNING]
+> THIS COMMAND WILL DELETE CODE FROM YOUR PROJECT. Using it in a git controlled environment is highly recommended. If you're just playing around use `--check`.
 
 ### Check
 
