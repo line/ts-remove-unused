@@ -16,5 +16,5 @@
     "noUncheckedIndexedAccess": true
   },
   "include": ["lib"],
-  "exclude": ["lib/**/*.test.ts"]
+  "exclude": ["lib/**/*.test.ts", "test"]
 }
