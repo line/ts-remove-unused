@@ -1,36 +1,7 @@
 import { describe, it } from 'node:test';
-import { MemoryFileService } from './MemoryFileService.js';
-import ts from 'typescript';
 import assert from 'node:assert/strict';
 import { removeUnusedExport } from './removeUnusedExport.js';
-
-const setup = () => {
-  const fileService = new MemoryFileService();
-
-  const languageService = ts.createLanguageService({
-    getCompilationSettings() {
-      return {};
-    },
-    getScriptFileNames() {
-      return fileService.getFileNames();
-    },
-    getScriptVersion(fileName) {
-      return fileService.getVersion(fileName);
-    },
-    getScriptSnapshot(fileName) {
-      return ts.ScriptSnapshot.fromString(fileService.get(fileName));
-    },
-    getCurrentDirectory: () => '.',
-
-    getDefaultLibFileName(options) {
-      return ts.getDefaultLibFileName(options);
-    },
-    fileExists: (name) => fileService.exists(name),
-    readFile: (name) => fileService.get(name),
-  });
-
-  return { languageService, fileService };
-};
+import { setup } from '../../test/helpers/setup.js';
 
 describe('removeUnusedExport', () => {
   describe('variable statement', () => {
