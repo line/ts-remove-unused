@@ -7,6 +7,8 @@ import {
   fixIdDeleteImports,
 } from './applyCodeFix.js';
 import { EditTracker } from './EditTracker.js';
+import { getFileFromModuleSpecifierText } from './getFileFromModuleSpecifierText.js';
+import { collectDynamicImports } from './collectDynamicImports.js';
 
 const findFirstNodeOfKind = (root: ts.Node, kind: ts.SyntaxKind) => {
   let result: ts.Node | undefined;
@@ -150,26 +152,6 @@ const getReexportInFile = (file: ts.SourceFile) => {
 
   return result;
 };
-
-const getFileFromModuleSpecifierText = ({
-  specifier,
-  fileName,
-  program,
-  fileService,
-}: {
-  specifier: string;
-  fileName: string;
-  program: ts.Program;
-  fileService: FileService;
-}) =>
-  ts.resolveModuleName(specifier, fileName, program.getCompilerOptions(), {
-    fileExists(fileName) {
-      return fileService.exists(fileName);
-    },
-    readFile(fileName) {
-      return fileService.get(fileName);
-    },
-  }).resolvedModule?.resolvedFileName;
 
 const getAncestorFiles = (
   node: ts.ExportSpecifier,
@@ -546,6 +528,9 @@ export const removeUnusedExport = ({
     throw new Error('program not found');
   }
 
+  // because ts.LanguageService.findReferences doesn't work with dynamic imports, we need to collect them manually
+  const dynamicImports = collectDynamicImports({ program, fileService });
+
   for (const file of Array.isArray(targetFile) ? targetFile : [targetFile]) {
     const sourceFile = program.getSourceFile(file);
 
@@ -554,6 +539,13 @@ export const removeUnusedExport = ({
     }
 
     editTracker.start(file, sourceFile.getFullText());
+
+    const dynamicImport = dynamicImports.vertexes.get(file);
+
+    if (dynamicImport && dynamicImport.from.size > 0) {
+      editTracker.end(file);
+      continue;
+    }
 
     let content = fileService.get(file);
     let isUsed = false;
@@ -581,6 +573,7 @@ export const removeUnusedExport = ({
     if (!isUsed && deleteUnusedFile) {
       fileService.delete(file);
       editTracker.delete(file);
+      dynamicImports.deleteVertex(file);
 
       continue;
     }

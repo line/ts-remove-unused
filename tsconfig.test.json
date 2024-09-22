@@ -15,6 +15,7 @@
     "outDir": "./node_modules/.tmp",
     "noUncheckedIndexedAccess": true
   },
-  "include": ["**/*.test.ts"],
+  "include": ["**/*.test.ts", "test"],
+  "exclude": ["test/fixtures"],
   "references": [{ "path": "./tsconfig.lib.json" }]
 }
