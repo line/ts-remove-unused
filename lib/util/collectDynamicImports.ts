@@ -1,6 +1,7 @@
 import ts from 'typescript';
 import { getFileFromModuleSpecifierText } from './getFileFromModuleSpecifierText.js';
 import { FileService } from './FileService.js';
+import { Graph } from './Graph.js';
 
 export const collectDynamicImports = ({
   program,
@@ -9,7 +10,7 @@ export const collectDynamicImports = ({
   program: ts.Program;
   fileService: FileService;
 }) => {
-  const result = new Set<string>();
+  const graph = new Graph();
   const files = fileService.getFileNames();
   for (const file of files) {
     const sourceFile = program.getSourceFile(file);
@@ -33,7 +34,7 @@ export const collectDynamicImports = ({
         });
 
         if (file) {
-          result.add(file);
+          graph.addEdge(sourceFile.fileName, file);
         }
 
         return;
@@ -45,5 +46,5 @@ export const collectDynamicImports = ({
     sourceFile.forEachChild(visit);
   }
 
-  return result;
+  return graph;
 };
