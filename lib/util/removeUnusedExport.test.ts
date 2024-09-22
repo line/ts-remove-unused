@@ -803,6 +803,28 @@ const b: B = {};`,
     );
   });
 
+  describe('dynamic import', () => {
+    it('should not remove export if its used in dynamic import', () => {
+      const { languageService, fileService } = setup();
+      fileService.set(
+        '/app/main.ts',
+        `import('./a.js');
+import('./b.js');`,
+      );
+      fileService.set('/app/a.ts', `export const a = 'a';`);
+      fileService.set('/app/b.ts', `export default 'b';`);
+
+      removeUnusedExport({
+        languageService,
+        fileService,
+        targetFile: ['/app/a.ts', '/app/b.ts'],
+      });
+
+      assert.equal(fileService.get('/app/a.ts'), `export const a = 'a';`);
+      assert.equal(fileService.get('/app/b.ts'), `export default 'b';`);
+    });
+  });
+
   describe('deleteUnusedFile', () => {
     it('should not remove file if some exports are used in other files', () => {
       const { languageService, fileService } = setup();
