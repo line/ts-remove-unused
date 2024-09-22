@@ -7,6 +7,7 @@ import {
   fixIdDeleteImports,
 } from './applyCodeFix.js';
 import { EditTracker } from './EditTracker.js';
+import { getFileFromModuleSpecifierText } from './getFileFromModuleSpecifierText.js';
 
 const findFirstNodeOfKind = (root: ts.Node, kind: ts.SyntaxKind) => {
   let result: ts.Node | undefined;
@@ -150,26 +151,6 @@ const getReexportInFile = (file: ts.SourceFile) => {
 
   return result;
 };
-
-const getFileFromModuleSpecifierText = ({
-  specifier,
-  fileName,
-  program,
-  fileService,
-}: {
-  specifier: string;
-  fileName: string;
-  program: ts.Program;
-  fileService: FileService;
-}) =>
-  ts.resolveModuleName(specifier, fileName, program.getCompilerOptions(), {
-    fileExists(fileName) {
-      return fileService.exists(fileName);
-    },
-    readFile(fileName) {
-      return fileService.get(fileName);
-    },
-  }).resolvedModule?.resolvedFileName;
 
 const getAncestorFiles = (
   node: ts.ExportSpecifier,
