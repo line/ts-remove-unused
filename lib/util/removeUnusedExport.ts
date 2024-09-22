@@ -528,6 +528,7 @@ export const removeUnusedExport = ({
     throw new Error('program not found');
   }
 
+  // because ts.LanguageService.findReferences doesn't work with dynamic imports, we need to collect them manually
   const dynamicImports = collectDynamicImports({ program, fileService });
 
   for (const file of Array.isArray(targetFile) ? targetFile : [targetFile]) {
