@@ -29,7 +29,9 @@ However when this declaration is exported and is not referenced by any file in t
 export const a = 'a';
 ```
 
-This is when ts-remove-unused comes in handy. ts-remove-unused is a CLI tool made on top of TypeScript that reports/fixes unused exports. Here are some examples of how ts-remove-unused auto-fixes unused code.
+This is when ts-remove-unused comes in handy. ts-remove-unused is a CLI tool built on top of TypeScript that finds unused exports and auto-fixes unused code.
+
+Here are some examples of how ts-remove-unused auto-fixes unused code.
 
 <!-- prettier-ignore-start -->
 
@@ -58,7 +60,7 @@ When `b` is not used within the project but `f()` is used within the project:
  }
 ```
 
-When `f()` is not used within the project and deleting it will result in `import` being unnecessary:
+When `f()` is not used within the project and when deleting it will result in `import` being unnecessary:
 
 ```diff
 --- src/c.ts
@@ -71,6 +73,23 @@ When `f()` is not used within the project and deleting it will result in `import
 -export function f() {
 -    return cwd();
 -}
+```
+
+When `f()` and `exported` are not used within the project and when deleting `f()` will result in `exported` and `local` being unnecessary:
+
+```diff
+--- src/d.ts
++++ src/d.ts
+@@ -1,8 +1 @@
+-export const exported = "exported";
+-const local = "local";
+-
+ export const d = "d";
+-
+-export function f() {
+-  return { exported, local };
+-}
+
 ```
 
 <!-- prettier-ignore-end -->
@@ -110,7 +129,7 @@ Options:
   -v, --version            Display version number
 ```
 
-ts-remove-unused's behavior heavily depends on your `tsconfig.json`. TypeScript's compiler internally holds the list of project files by parsing relevant rules such as `include` and `exclude`. ts-remove-unused scans through this list and searches for references to determine if an export/file is "unused". You may need to maintain/update your `tsconfig` (or you can create another one for `--project`) so that the set of covered files are right.
+ts-remove-unused's behavior heavily depends on your `tsconfig.json`. TypeScript's compiler internally holds the list of project files by parsing relevant rules such as `include` and `exclude`. ts-remove-unused scans through this list and searches for references to determine if an export/file is "unused". You may need to maintain/update your `tsconfig` (or you can create another file for `--project`) so that the set of covered files are right.
 
 Here's an example of using the CLI. Your entry point file must be skipped or else every file will be removed.
 
@@ -126,7 +145,7 @@ npx @line/ts-remove-unused --skip 'src/main\.ts'
 Use `--check` to check for unused files and exports without making changes to project files. The command will exit with exit code 1 if there are any unused files or exports discovered.
 
 ```bash
-npx @line/ts-remove-unused --check
+npx @line/ts-remove-unused --skip 'src/main\.ts' --check
 ```
 
 ### Use the JavaScript API
