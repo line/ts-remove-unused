@@ -58,7 +58,7 @@ When `b` is not used within the project but `f()` is used within the project:
  }
 ```
 
-When `f()` is not used within the project and deleting it will result in `import` being unnecessary:
+When `f()` is not used within the project and when deleting it will result in `import` being unnecessary:
 
 ```diff
 --- src/c.ts
@@ -71,6 +71,23 @@ When `f()` is not used within the project and deleting it will result in `import
 -export function f() {
 -    return cwd();
 -}
+```
+
+When `f()` and `exported` are not used within the project and when deleting `f()` will result in `exported` and `local` being unnecessary:
+
+```diff
+--- src/d.ts
++++ src/d.ts
+@@ -1,8 +1 @@
+-export const exported = "exported";
+-const local = "local";
+-
+ export const d = "d";
+-
+-export function f() {
+-  return { exported, local };
+-}
+
 ```
 
 <!-- prettier-ignore-end -->
