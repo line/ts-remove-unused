@@ -349,6 +349,44 @@ const getUpdatedExportDeclaration = (
   return result ? printer.printFile(result).trim() : '';
 };
 
+const stripExportKeyword = (syntaxList: ts.Node) => {
+  const file = ts.createSourceFile(
+    'tmp.ts',
+    `${syntaxList.getText()} function f() {}`,
+    syntaxList.getSourceFile().languageVersion,
+  );
+
+  const transformer: ts.TransformerFactory<ts.SourceFile> =
+    (context: ts.TransformationContext) => (rootNode: ts.SourceFile) => {
+      const visitor = (node: ts.Node): ts.Node | undefined => {
+        if (ts.isFunctionDeclaration(node)) {
+          return ts.factory.createFunctionDeclaration(
+            node.modifiers?.filter(
+              (v) =>
+                v.kind !== ts.SyntaxKind.ExportKeyword &&
+                v.kind !== ts.SyntaxKind.DefaultKeyword,
+            ),
+            node.asteriskToken,
+            node.name,
+            node.typeParameters,
+            node.parameters,
+            node.type,
+            node.body,
+          );
+        }
+        return ts.visitEachChild(node, visitor, context);
+      };
+
+      return ts.visitEachChild(rootNode, visitor, context);
+    };
+
+  const result = ts.transform(file, [transformer]).transformed[0];
+  const printer = ts.createPrinter();
+  const code = result ? printer.printFile(result).trim() : '';
+  const pos = code.indexOf('function');
+  return code.slice(0, pos);
+};
+
 const getTextChanges = (
   languageService: ts.LanguageService,
   file: string,
@@ -483,7 +521,9 @@ const getTextChanges = (
     }
 
     changes.push({
-      newText: '',
+      newText: ts.isFunctionDeclaration(node)
+        ? stripExportKeyword(syntaxList)
+        : '',
       span: {
         start: syntaxList.getStart(),
         length: syntaxListNextSibling.getStart() - syntaxList.getStart(),

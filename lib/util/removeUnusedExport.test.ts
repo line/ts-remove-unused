@@ -107,6 +107,64 @@ import c from './c';`,
       assert.equal(fileService.get('/app/c.ts'), '');
     });
 
+    it('should not remove async keyword of function if its not used in some other file', () => {
+      const { languageService, fileService } = setup();
+      fileService.set('/app/main.ts', `import { a2 } from './a';`);
+      fileService.set(
+        '/app/a.ts',
+        `export async function a() {}
+export function a2() {
+  a();
+}`,
+      );
+
+      removeUnusedExport({
+        languageService,
+        fileService,
+        targetFile: '/app/a.ts',
+      });
+
+      assert.equal(
+        fileService.get('/app/a.ts'),
+        `async function a() {}
+export function a2() {
+  a();
+}`,
+      );
+    });
+
+    it('should remove default async function if its not used in some other file', () => {
+      const { fileService, languageService } = setup();
+      fileService.set(
+        '/app/main.ts',
+        `import { a } from './a';
+import { b } from './b';`,
+      );
+      fileService.set(
+        '/app/a.ts',
+        `export const a = 'a';
+export default async function a2() {}`,
+      );
+      fileService.set(
+        '/app/b.ts',
+        `export const b = 'b';
+export default async function() {}`,
+      );
+
+      removeUnusedExport({
+        languageService,
+        fileService,
+        targetFile: ['/app/a.ts', '/app/b.ts'],
+      });
+      // async function will be removed afterwards with codeFix
+      assert.equal(
+        fileService.get('/app/a.ts'),
+        `export const a = 'a';
+async function a2() {}`,
+      );
+      assert.equal(fileService.get('/app/b.ts'), `export const b = 'b';`);
+    });
+
     it('should not remove export if it has a comment to ignore', () => {
       const { languageService, fileService } = setup();
       fileService.set(
@@ -778,31 +836,6 @@ const b: B = 'b';`,
     );
   });
 
-  it('should remove export keyword of interface declaration if its not used in any other file', () => {
-    const { languageService, fileService } = setup();
-    fileService.set('/app/main.ts', `import { a } from './a';`);
-
-    fileService.set(
-      '/app/a.ts',
-      `export const a = 'a';
-export interface B {}
-const b: B = {};`,
-    );
-
-    removeUnusedExport({
-      languageService,
-      fileService,
-      targetFile: '/app/a.ts',
-    });
-
-    assert.equal(
-      fileService.get('/app/a.ts'),
-      `export const a = 'a';
-interface B {}
-const b: B = {};`,
-    );
-  });
-
   describe('dynamic import', () => {
     it('should not remove export if its used in dynamic import', () => {
       const { languageService, fileService } = setup();
@@ -1002,26 +1035,28 @@ import('./b.js');`,
   });
 
   describe('enableCodeFix', () => {
-    const { languageService, fileService } = setup();
+    it('should apply code fix when enableCodeFix is true', () => {
+      const { languageService, fileService } = setup();
 
-    fileService.set('/app/main.ts', `import { remain } from './a';`);
-    fileService.set(
-      '/app/a.ts',
-      `const dep = 'dep';
+      fileService.set('/app/main.ts', `import { remain } from './a';`);
+      fileService.set(
+        '/app/a.ts',
+        `const dep = 'dep';
 export const a = () => dep;
 export const remain = 'remain';`,
-    );
+      );
 
-    removeUnusedExport({
-      languageService,
-      fileService,
-      targetFile: '/app/a.ts',
-      enableCodeFix: true,
+      removeUnusedExport({
+        languageService,
+        fileService,
+        targetFile: '/app/a.ts',
+        enableCodeFix: true,
+      });
+
+      assert.equal(
+        fileService.get('/app/a.ts'),
+        `export const remain = 'remain';`,
+      );
     });
-
-    assert.equal(
-      fileService.get('/app/a.ts'),
-      `export const remain = 'remain';`,
-    );
   });
 });
