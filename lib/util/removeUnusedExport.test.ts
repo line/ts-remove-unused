@@ -133,6 +133,38 @@ export function a2() {
       );
     });
 
+    it('should remove default async function if its not used in some other file', () => {
+      const { fileService, languageService } = setup();
+      fileService.set(
+        '/app/main.ts',
+        `import { a } from './a';
+import { b } from './b';`,
+      );
+      fileService.set(
+        '/app/a.ts',
+        `export const a = 'a';
+export default async function a2() {}`,
+      );
+      fileService.set(
+        '/app/b.ts',
+        `export const b = 'b';
+export default async function() {}`,
+      );
+
+      removeUnusedExport({
+        languageService,
+        fileService,
+        targetFile: ['/app/a.ts', '/app/b.ts'],
+      });
+      // async function will be removed afterwards with codeFix
+      assert.equal(
+        fileService.get('/app/a.ts'),
+        `export const a = 'a';
+async function a2() {}`,
+      );
+      assert.equal(fileService.get('/app/b.ts'), `export const b = 'b';`);
+    });
+
     it('should not remove export if it has a comment to ignore', () => {
       const { languageService, fileService } = setup();
       fileService.set(
