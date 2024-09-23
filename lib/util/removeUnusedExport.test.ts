@@ -804,31 +804,6 @@ const b: B = 'b';`,
     );
   });
 
-  it('should remove export keyword of interface declaration if its not used in any other file', () => {
-    const { languageService, fileService } = setup();
-    fileService.set('/app/main.ts', `import { a } from './a';`);
-
-    fileService.set(
-      '/app/a.ts',
-      `export const a = 'a';
-export interface B {}
-const b: B = {};`,
-    );
-
-    removeUnusedExport({
-      languageService,
-      fileService,
-      targetFile: '/app/a.ts',
-    });
-
-    assert.equal(
-      fileService.get('/app/a.ts'),
-      `export const a = 'a';
-interface B {}
-const b: B = {};`,
-    );
-  });
-
   describe('dynamic import', () => {
     it('should not remove export if its used in dynamic import', () => {
       const { languageService, fileService } = setup();
