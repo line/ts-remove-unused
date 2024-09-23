@@ -107,6 +107,32 @@ import c from './c';`,
       assert.equal(fileService.get('/app/c.ts'), '');
     });
 
+    it('should not remove async keyword of function if its not used in some other file', () => {
+      const { languageService, fileService } = setup();
+      fileService.set('/app/main.ts', `import { a2 } from './a';`);
+      fileService.set(
+        '/app/a.ts',
+        `export async function a() {}
+export function a2() {
+  a();
+}`,
+      );
+
+      removeUnusedExport({
+        languageService,
+        fileService,
+        targetFile: '/app/a.ts',
+      });
+
+      assert.equal(
+        fileService.get('/app/a.ts'),
+        `async function a() {}
+export function a2() {
+  a();
+}`,
+      );
+    });
+
     it('should not remove export if it has a comment to ignore', () => {
       const { languageService, fileService } = setup();
       fileService.set(
