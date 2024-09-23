@@ -669,6 +669,29 @@ export { d };`,
       assert.equal(fileService.get('/app/a.ts'), `export const a = 'a';`);
     });
 
+    it('should not remove re-export if its used with `import * as` in some other file', () => {
+      const { languageService, fileService } = setup();
+
+      fileService.set(
+        '/app/main.ts',
+        `import * as a_namespace from './a_reexport';
+a_namespace.a;`,
+      );
+      fileService.set('/app/a_reexport.ts', `export * from './a';`);
+      fileService.set('/app/a.ts', `export const a = 'a';`);
+
+      removeUnusedExport({
+        languageService,
+        fileService,
+        targetFile: ['/app/a.ts', '/app/a_reexport.ts'],
+      });
+      assert.equal(
+        fileService.get('/app/a_reexport.ts'),
+        `export * from './a';`,
+      );
+      assert.equal(fileService.get('/app/a.ts'), `export const a = 'a';`);
+    });
+
     it('should remove re-export if its not used in some other file', () => {
       const { languageService, fileService } = setup();
       fileService.set('/app/a_reexport.ts', `export { a } from './a';`);
