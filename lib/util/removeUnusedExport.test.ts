@@ -734,6 +734,83 @@ export { d };`,
     });
   });
 
+  describe('whole re-export', () => {
+    it('should remove declaration that not used in some other file via a whole-reexport', () => {
+      const { languageService, fileService } = setup();
+      fileService.set('/app/a_reexport.ts', `export * from './a';`);
+      fileService.set('/app/a.ts', `export const a = 'a';`);
+      removeUnusedExport({
+        languageService,
+        fileService,
+        targetFile: ['/app/a.ts', '/app/a_reexport.ts'],
+      });
+      // todo: removing whole re-export is not supported yet
+      // assert.equal(fileService.get('/app/a_reexport.ts'), '');
+      assert.equal(fileService.get('/app/a.ts'), `const a = 'a';`);
+    });
+
+    it('should not remove declaration that is used with `import * as name` in some other file via a whole-reexport', () => {
+      const { languageService, fileService } = setup();
+
+      fileService.set(
+        '/app/main.ts',
+        `import * as a_namespace from './a_reexport';
+a_namespace.a;`,
+      );
+      fileService.set('/app/a_reexport.ts', `export * from './a';`);
+      fileService.set('/app/a.ts', `export const a = 'a';`);
+
+      removeUnusedExport({
+        languageService,
+        fileService,
+        targetFile: ['/app/a.ts', '/app/a_reexport.ts'],
+      });
+      assert.equal(
+        fileService.get('/app/a_reexport.ts'),
+        `export * from './a';`,
+      );
+      assert.equal(fileService.get('/app/a.ts'), `export const a = 'a';`);
+    });
+
+    it('should not remove declaration that is used named imported in some other file via a whole-reexport', () => {
+      const { languageService, fileService } = setup();
+
+      fileService.set('/app/main.ts', `import { a } from './a_reexport';`);
+      fileService.set('/app/a_reexport.ts', `export * from './a';`);
+      fileService.set('/app/a.ts', `export const a = 'a';`);
+
+      removeUnusedExport({
+        languageService,
+        fileService,
+        targetFile: ['/app/a.ts', '/app/a_reexport.ts'],
+      });
+      assert.equal(
+        fileService.get('/app/a_reexport.ts'),
+        `export * from './a';`,
+      );
+      assert.equal(fileService.get('/app/a.ts'), `export const a = 'a';`);
+    });
+
+    it('should not remove declaration that is used in default import in some other file via a whole-reexport', () => {
+      const { languageService, fileService } = setup();
+
+      fileService.set('/app/main.ts', `import a from './a_reexport';`);
+      fileService.set('/app/a_reexport.ts', `export * from './a';`);
+      fileService.set('/app/a.ts', `export default 'a';`);
+
+      removeUnusedExport({
+        languageService,
+        fileService,
+        targetFile: ['/app/a.ts', '/app/a_reexport.ts'],
+      });
+      assert.equal(
+        fileService.get('/app/a_reexport.ts'),
+        `export * from './a';`,
+      );
+      assert.equal(fileService.get('/app/a.ts'), `export default 'a';`);
+    });
+  });
+
   describe('locally used declaration but not used in any other file', () => {
     it('should remove export keyword of variable if its not used in any other file', () => {
       const { languageService, fileService } = setup();

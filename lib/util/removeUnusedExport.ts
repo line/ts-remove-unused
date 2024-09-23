@@ -280,12 +280,10 @@ const getUnusedExports = (
         }
 
         const count = references
+          .flatMap((v) => v.references)
           .filter(
-            (v) =>
-              v.definition.fileName !== fileName &&
-              !ancestors.has(v.definition.fileName),
-          )
-          .flatMap((v) => v.references).length;
+            (v) => v.fileName !== fileName && !ancestors.has(v.fileName),
+          ).length;
 
         if (count > 0) {
           isUsed = true;
@@ -297,8 +295,8 @@ const getUnusedExports = (
       }
 
       const count = references
-        .filter((v) => v.definition.fileName !== fileName)
-        .flatMap((v) => v.references).length;
+        .flatMap((v) => v.references)
+        .filter((v) => v.fileName !== fileName).length;
 
       if (count > 0) {
         isUsed = true;
