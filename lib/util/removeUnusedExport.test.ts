@@ -1003,26 +1003,28 @@ import('./b.js');`,
   });
 
   describe('enableCodeFix', () => {
-    const { languageService, fileService } = setup();
+    it('should apply code fix when enableCodeFix is true', () => {
+      const { languageService, fileService } = setup();
 
-    fileService.set('/app/main.ts', `import { remain } from './a';`);
-    fileService.set(
-      '/app/a.ts',
-      `const dep = 'dep';
+      fileService.set('/app/main.ts', `import { remain } from './a';`);
+      fileService.set(
+        '/app/a.ts',
+        `const dep = 'dep';
 export const a = () => dep;
 export const remain = 'remain';`,
-    );
+      );
 
-    removeUnusedExport({
-      languageService,
-      fileService,
-      targetFile: '/app/a.ts',
-      enableCodeFix: true,
+      removeUnusedExport({
+        languageService,
+        fileService,
+        targetFile: '/app/a.ts',
+        enableCodeFix: true,
+      });
+
+      assert.equal(
+        fileService.get('/app/a.ts'),
+        `export const remain = 'remain';`,
+      );
     });
-
-    assert.equal(
-      fileService.get('/app/a.ts'),
-      `export const remain = 'remain';`,
-    );
   });
 });
