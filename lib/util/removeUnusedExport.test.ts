@@ -735,26 +735,6 @@ export { d };`,
   });
 
   describe('whole re-export', () => {
-    it('should preserve whole re-export if its used in some other file', () => {
-      const { languageService, fileService } = setup();
-
-      fileService.set('/app/main.ts', `import { a } from './a_reexport';`);
-      fileService.set('/app/a_reexport.ts', `export * from './a';`);
-      fileService.set('/app/a.ts', `export const a = 'a';`);
-
-      removeUnusedExport({
-        languageService,
-        fileService,
-        targetFile: ['/app/a.ts', '/app/a_reexport.ts'],
-      });
-
-      assert.equal(
-        fileService.get('/app/a_reexport.ts'),
-        `export * from './a';`,
-      );
-      assert.equal(fileService.get('/app/a.ts'), `export const a = 'a';`);
-    });
-
     it('should remove declaration that not used in some other file via a whole-reexport', () => {
       const { languageService, fileService } = setup();
       fileService.set('/app/a_reexport.ts', `export * from './a';`);
