@@ -40,7 +40,6 @@ describe('applyTextChanges', () => {
       ],
     );
 
-    console.log({ result });
     assert.equal(result.startsWith('export const'), true);
   });
 });
