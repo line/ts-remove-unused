@@ -20,7 +20,7 @@
     "build": "rm -rf dist && node ./build.js",
     "type-check": "tsc -b",
     "prepublishOnly": "npm run build",
-    "test": "TS_NODE_PROJECT=tsconfig.test.json node --import ./register.js ./test.js"
+    "test": "tsx ./test.js"
   },
   "devDependencies": {
     "@eslint/js": "^9.10.0",
@@ -30,7 +30,7 @@
     "eslint-plugin-prettier": "^5.2.1",
     "prettier": "^3.3.3",
     "strip-ansi": "^7.1.0",
-    "ts-node": "^10.9.1",
+    "tsx": "^4.19.1",
     "typescript-eslint": "^8.5.0"
   },
   "dependencies": {
