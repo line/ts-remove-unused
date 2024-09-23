@@ -1,9 +1,12 @@
+/* global process */
 import { run } from 'node:test';
-import { stdout } from 'node:process';
 import { spec } from 'node:test/reporters';
 
 run({
   globPatterns: ['lib/**/*.test.ts', 'test/**/*.test.ts'],
 })
+  .on('test:fail', () => {
+    process.exitCode = 1;
+  })
   .compose(spec)
-  .pipe(stdout);
+  .pipe(process.stdout);
