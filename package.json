@@ -20,7 +20,7 @@
     "build": "rm -rf dist && node ./build.js",
     "type-check": "tsc -b",
     "prepublishOnly": "npm run build",
-    "test": "TS_NODE_PROJECT=tsconfig.test.json glob -c 'node --loader ts-node/esm --test' 'lib/**/*.test.ts' 'test/**/*.test.ts'"
+    "test": "TS_NODE_PROJECT=tsconfig.test.json node --import ./register.js ./test.js"
   },
   "devDependencies": {
     "@eslint/js": "^9.10.0",
