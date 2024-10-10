@@ -53,22 +53,24 @@ export const collectImports = ({
   program: ts.Program;
   entrypoints: string[];
 }) => {
-  const graph = new Graph();
+  const graph = new Graph<{ depth: number }>();
   const files = new Set(fileService.getFileNames());
 
-  const stack = [];
+  const stack: { depth: number; file: string }[] = [];
   const visited = new Set<string>();
 
   for (const entrypoint of entrypoints) {
-    stack.push(entrypoint);
+    stack.push({ file: entrypoint, depth: 0 });
   }
 
   while (stack.length > 0) {
-    const file = stack.pop();
+    const item = stack.pop();
 
-    if (!file) {
+    if (!item) {
       break;
     }
+
+    const { file, depth } = item;
 
     if (visited.has(file)) {
       continue;
@@ -82,6 +84,12 @@ export const collectImports = ({
       continue;
     }
 
+    const vertex = graph.vertexes.get(file);
+
+    if (vertex) {
+      vertex.data = { depth };
+    }
+
     const visit = (node: ts.Node) => {
       const match = getMatchingNode(node);
 
@@ -92,16 +100,16 @@ export const collectImports = ({
       }
 
       if (match.specifier) {
-        const file = getFileFromModuleSpecifierText({
+        const dest = getFileFromModuleSpecifierText({
           specifier: match.specifier,
           program,
           fileName: sourceFile.fileName,
           fileService,
         });
 
-        if (file && files.has(file)) {
-          graph.addEdge(sourceFile.fileName, file);
-          stack.push(file);
+        if (dest && files.has(dest)) {
+          graph.addEdge(sourceFile.fileName, dest);
+          stack.push({ file: dest, depth: depth + 1 });
         }
 
         return;
@@ -109,6 +117,20 @@ export const collectImports = ({
     };
 
     sourceFile.forEachChild(visit);
+  }
+
+  for (const entrypoint of entrypoints) {
+    const vertex = graph.vertexes.get(entrypoint);
+
+    if (!vertex) {
+      continue;
+    }
+
+    if (vertex.data) {
+      continue;
+    }
+
+    vertex.data = { depth: 0 };
   }
 
   return graph;

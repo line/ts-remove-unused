@@ -1,5 +1,8 @@
-export class Graph {
-  vertexes = new Map<string, { to: Set<string>; from: Set<string> }>();
+export class Graph<T = undefined> {
+  vertexes = new Map<
+    string,
+    { to: Set<string>; from: Set<string>; data: T | undefined }
+  >();
 
   private addVertex(vertex: string) {
     const selected = this.vertexes.get(vertex);
@@ -7,7 +10,11 @@ export class Graph {
       return selected;
     }
 
-    const created = { to: new Set<string>(), from: new Set<string>() };
+    const created = {
+      to: new Set<string>(),
+      from: new Set<string>(),
+      data: undefined,
+    };
 
     this.vertexes.set(vertex, created);
 
