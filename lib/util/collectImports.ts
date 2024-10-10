@@ -21,8 +21,11 @@ export const collectImports = ({
 
     const visit = (node: ts.Node) => {
       if (
-        ts.isImportDeclaration(node) &&
-        ts.isStringLiteral(node.moduleSpecifier)
+        (ts.isImportDeclaration(node) &&
+          ts.isStringLiteral(node.moduleSpecifier)) ||
+        (ts.isExportDeclaration(node) &&
+          node.moduleSpecifier &&
+          ts.isStringLiteral(node.moduleSpecifier))
       ) {
         const file = getFileFromModuleSpecifierText({
           specifier: node.moduleSpecifier.text,
@@ -43,5 +46,6 @@ export const collectImports = ({
 
     sourceFile.forEachChild(visit);
   }
+
   return graph;
 };
