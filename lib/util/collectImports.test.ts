@@ -32,6 +32,7 @@ export const a = () => ({ b, c });`,
     const graph = collectImports({
       fileService,
       program,
+      entrypoints: ['/app/main.ts'],
     });
 
     assert.equal(graph.vertexes.size, 4);
@@ -73,6 +74,7 @@ export const a = () => b;`,
     const graph = collectImports({
       fileService,
       program,
+      entrypoints: ['/app/main.ts'],
     });
 
     assert.equal(graph.vertexes.size, 4);
@@ -113,6 +115,7 @@ export const a = () => b;`,
     const graph = collectImports({
       fileService,
       program,
+      entrypoints: ['/app/main.ts'],
     });
 
     assert.equal(graph.vertexes.size, 4);
@@ -148,6 +151,7 @@ export const a = () => b;`,
     const graph = collectImports({
       fileService,
       program,
+      entrypoints: ['/app/main.ts'],
     });
 
     assert.equal(graph.vertexes.size, 3);
@@ -167,5 +171,50 @@ export const a = () => b;`,
     assert.equal(graph.vertexes.get('/app/b.ts')?.to.size, 0);
     assert.equal(graph.vertexes.get('/app/b.ts')?.from.size, 1);
     assert.equal(graph.vertexes.get('/app/b.ts')?.from.has('/app/a.ts'), true);
+  });
+
+  it('should not include files that are unreachable from the entry point', () => {
+    const { languageService, fileService } = setup();
+    fileService.set('/app/main.ts', `import { a } from './a.js';`);
+    fileService.set(
+      '/app/a.ts',
+      `import { b } from './b.js';
+export const a = () => b;`,
+    );
+    fileService.set('/app/b.ts', `export const b = 'b';`);
+    fileService.set(
+      '/app/c.ts',
+      `import { d } from './d.js';
+export const c = () => d;`,
+    );
+    fileService.set('/app/d.ts', `export const d = 'd';`);
+
+    const program = getProgram(languageService);
+
+    const graph = collectImports({
+      fileService,
+      program,
+      entrypoints: ['/app/main.ts'],
+    });
+
+    assert.equal(graph.vertexes.size, 3);
+    assert.equal(graph.vertexes.has('/app/main.ts'), true);
+    assert.equal(graph.vertexes.has('/app/a.ts'), true);
+    assert.equal(graph.vertexes.has('/app/b.ts'), true);
+    assert.equal(graph.vertexes.get('/app/main.ts')?.to.size, 1);
+    assert.equal(graph.vertexes.get('/app/main.ts')?.to.has('/app/a.ts'), true);
+    assert.equal(graph.vertexes.get('/app/main.ts')?.from.size, 0);
+    assert.equal(graph.vertexes.get('/app/a.ts')?.to.size, 1);
+    assert.equal(graph.vertexes.get('/app/a.ts')?.to.has('/app/b.ts'), true);
+    assert.equal(graph.vertexes.get('/app/a.ts')?.from.size, 1);
+    assert.equal(
+      graph.vertexes.get('/app/a.ts')?.from.has('/app/main.ts'),
+      true,
+    );
+    assert.equal(graph.vertexes.get('/app/b.ts')?.to.size, 0);
+    assert.equal(graph.vertexes.get('/app/b.ts')?.from.size, 1);
+    assert.equal(graph.vertexes.get('/app/b.ts')?.from.has('/app/a.ts'), true);
+    assert.equal(graph.vertexes.has('/app/c.ts'), false);
+    assert.equal(graph.vertexes.has('/app/d.ts'), false);
   });
 });

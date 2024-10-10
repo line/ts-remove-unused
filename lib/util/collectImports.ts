@@ -47,15 +47,37 @@ const getMatchingNode = (node: ts.Node) => {
 export const collectImports = ({
   fileService,
   program,
+  entrypoints,
 }: {
   fileService: FileService;
   program: ts.Program;
+  entrypoints: string[];
 }) => {
   const graph = new Graph();
-  const files = fileService.getFileNames();
+  const files = new Set(fileService.getFileNames());
 
-  for (const file of files) {
+  const stack = [];
+  const visited = new Set<string>();
+
+  for (const entrypoint of entrypoints) {
+    stack.push(entrypoint);
+  }
+
+  while (stack.length > 0) {
+    const file = stack.pop();
+
+    if (!file) {
+      break;
+    }
+
+    if (visited.has(file)) {
+      continue;
+    }
+
+    visited.add(file);
+
     const sourceFile = program.getSourceFile(file);
+
     if (!sourceFile) {
       continue;
     }
@@ -77,8 +99,9 @@ export const collectImports = ({
           fileService,
         });
 
-        if (file) {
+        if (file && files.has(file)) {
           graph.addEdge(sourceFile.fileName, file);
+          stack.push(file);
         }
 
         return;
