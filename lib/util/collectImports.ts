@@ -3,6 +3,47 @@ import { Graph } from './Graph.js';
 import { FileService } from './FileService.js';
 import { getFileFromModuleSpecifierText } from './getFileFromModuleSpecifierText.js';
 
+const getMatchingNode = (node: ts.Node) => {
+  if (ts.isImportDeclaration(node)) {
+    if (ts.isStringLiteral(node.moduleSpecifier)) {
+      return {
+        specifier: node.moduleSpecifier.text,
+      };
+    }
+    return {
+      specifier: null,
+    };
+  }
+
+  if (ts.isExportDeclaration(node)) {
+    if (node.moduleSpecifier && ts.isStringLiteral(node.moduleSpecifier)) {
+      return {
+        specifier: node.moduleSpecifier.text,
+      };
+    }
+    return {
+      specifier: null,
+    };
+  }
+
+  if (
+    ts.isCallExpression(node) &&
+    node.expression.kind === ts.SyntaxKind.ImportKeyword
+  ) {
+    if (node.arguments[0] && ts.isStringLiteral(node.arguments[0])) {
+      return {
+        specifier: node.arguments[0].text,
+      };
+    }
+
+    return {
+      specifier: null,
+    };
+  }
+
+  return null;
+};
+
 export const collectImports = ({
   fileService,
   program,
@@ -20,15 +61,17 @@ export const collectImports = ({
     }
 
     const visit = (node: ts.Node) => {
-      if (
-        (ts.isImportDeclaration(node) &&
-          ts.isStringLiteral(node.moduleSpecifier)) ||
-        (ts.isExportDeclaration(node) &&
-          node.moduleSpecifier &&
-          ts.isStringLiteral(node.moduleSpecifier))
-      ) {
+      const match = getMatchingNode(node);
+
+      if (!match) {
+        node.forEachChild(visit);
+
+        return;
+      }
+
+      if (match.specifier) {
         const file = getFileFromModuleSpecifierText({
-          specifier: node.moduleSpecifier.text,
+          specifier: match.specifier,
           program,
           fileName: sourceFile.fileName,
           fileService,
@@ -40,8 +83,6 @@ export const collectImports = ({
 
         return;
       }
-
-      node.forEachChild(visit);
     };
 
     sourceFile.forEachChild(visit);
