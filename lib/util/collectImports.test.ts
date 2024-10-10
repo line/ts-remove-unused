@@ -97,4 +97,44 @@ export const a = () => b;`,
     assert.equal(graph.vertexes.get('/app/b2.ts')?.to.size, 0);
     assert.equal(graph.vertexes.get('/app/b2.ts')?.from.size, 1);
   });
+
+  it('should return a graph of imports when whole re-exports are used', () => {
+    const { languageService, fileService } = setup();
+    fileService.set('/app/main.ts', `import { a } from './a.js';`);
+    fileService.set(
+      '/app/a.ts',
+      `import { b } from './b.js';
+export const a = () => b;`,
+    );
+    fileService.set('/app/b.ts', `export * from './b2.js';`);
+    fileService.set('/app/b2.ts', `export const b = 'b';`);
+
+    const program = getProgram(languageService);
+    const graph = collectImports({
+      fileService,
+      program,
+    });
+
+    assert.equal(graph.vertexes.size, 4);
+    assert.equal(graph.vertexes.has('/app/main.ts'), true);
+    assert.equal(graph.vertexes.has('/app/a.ts'), true);
+    assert.equal(graph.vertexes.has('/app/b.ts'), true);
+    assert.equal(graph.vertexes.has('/app/b2.ts'), true);
+    assert.equal(graph.vertexes.get('/app/main.ts')?.to.size, 1);
+    assert.equal(graph.vertexes.get('/app/main.ts')?.to.has('/app/a.ts'), true);
+    assert.equal(graph.vertexes.get('/app/main.ts')?.from.size, 0);
+    assert.equal(graph.vertexes.get('/app/a.ts')?.to.size, 1);
+    assert.equal(graph.vertexes.get('/app/a.ts')?.to.has('/app/b.ts'), true);
+    assert.equal(graph.vertexes.get('/app/a.ts')?.from.size, 1);
+    assert.equal(
+      graph.vertexes.get('/app/a.ts')?.from.has('/app/main.ts'),
+      true,
+    );
+    assert.equal(graph.vertexes.get('/app/b.ts')?.to.size, 1);
+    assert.equal(graph.vertexes.get('/app/b.ts')?.to.has('/app/b2.ts'), true);
+    assert.equal(graph.vertexes.get('/app/b.ts')?.from.size, 1);
+    assert.equal(graph.vertexes.get('/app/b.ts')?.from.has('/app/a.ts'), true);
+    assert.equal(graph.vertexes.get('/app/b2.ts')?.to.size, 0);
+    assert.equal(graph.vertexes.get('/app/b2.ts')?.from.size, 1);
+  });
 });
