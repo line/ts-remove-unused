@@ -203,6 +203,17 @@ export const a = () => b;`,
     assert.equal(graph.vertexes.get('/app/main.ts')?.data.hasReexport, false);
     assert.equal(graph.vertexes.get('/app/a.ts')?.data.hasReexport, false);
     assert.equal(graph.vertexes.get('/app/b.ts')?.data.hasReexport, false);
+    assert.equal(graph.vertexes.get('/app/main.ts')?.data.fromDynamic.size, 0);
+    assert.equal(graph.vertexes.get('/app/a.ts')?.data.fromDynamic.size, 1);
+    assert.equal(
+      graph.vertexes.get('/app/a.ts')?.data.fromDynamic.has('/app/main.ts'),
+      true,
+    );
+    assert.equal(graph.vertexes.get('/app/b.ts')?.data.fromDynamic.size, 1);
+    assert.equal(
+      graph.vertexes.get('/app/b.ts')?.data.fromDynamic.has('/app/a.ts'),
+      true,
+    );
   });
 
   it('should not include files that are unreachable from the entry point', () => {

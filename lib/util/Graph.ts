@@ -1,9 +1,9 @@
 export class Graph<T = undefined> {
   vertexes = new Map<string, { to: Set<string>; from: Set<string>; data: T }>();
-  #initialData: T;
+  #setupVertex: () => T;
 
-  constructor(...args: T extends undefined ? never[] : [T]) {
-    this.#initialData = args[0];
+  constructor(...args: T extends undefined ? never[] : [() => T]) {
+    this.#setupVertex = args[0] || (() => undefined);
   }
 
   private addVertex(vertex: string) {
@@ -15,7 +15,7 @@ export class Graph<T = undefined> {
     const created = {
       to: new Set<string>(),
       from: new Set<string>(),
-      data: { ...this.#initialData },
+      data: this.#setupVertex(),
     };
 
     this.vertexes.set(vertex, created);

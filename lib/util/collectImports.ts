@@ -59,7 +59,11 @@ export const collectImports = ({
   program: ts.Program;
   entrypoints: string[];
 }) => {
-  const graph = new Graph({ depth: 0, hasReexport: false });
+  const graph = new Graph(() => ({
+    depth: 0,
+    hasReexport: false,
+    fromDynamic: new Set<string>(),
+  }));
   const files = new Set(fileService.getFileNames());
 
   const stack: { depth: number; file: string }[] = [];
@@ -115,6 +119,9 @@ export const collectImports = ({
 
         if (dest && files.has(dest)) {
           graph.addEdge(sourceFile.fileName, dest);
+          if (match.type === 'dynamicImport') {
+            graph.vertexes.get(dest)?.data.fromDynamic.add(file);
+          }
           stack.push({ file: dest, depth: depth + 1 });
         }
 
@@ -127,7 +134,8 @@ export const collectImports = ({
     const vertex = graph.vertexes.get(file);
 
     if (vertex) {
-      vertex.data = { hasReexport, depth };
+      vertex.data.hasReexport = hasReexport;
+      vertex.data.depth = depth;
     }
   }
 
