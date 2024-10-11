@@ -53,7 +53,7 @@ export const collectImports = ({
   program: ts.Program;
   entrypoints: string[];
 }) => {
-  const graph = new Graph<{ depth: number }>();
+  const graph = new Graph({ depth: 0 });
   const files = new Set(fileService.getFileNames());
 
   const stack: { depth: number; file: string }[] = [];
@@ -117,20 +117,6 @@ export const collectImports = ({
     };
 
     sourceFile.forEachChild(visit);
-  }
-
-  for (const entrypoint of entrypoints) {
-    const vertex = graph.vertexes.get(entrypoint);
-
-    if (!vertex) {
-      continue;
-    }
-
-    if (vertex.data) {
-      continue;
-    }
-
-    vertex.data = { depth: 0 };
   }
 
   return graph;
