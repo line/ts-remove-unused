@@ -61,6 +61,10 @@ export const a = () => ({ b, c });`,
     assert.equal(graph.vertexes.get('/app/a.ts')?.data.depth, 1);
     assert.equal(graph.vertexes.get('/app/b.ts')?.data.depth, 2);
     assert.equal(graph.vertexes.get('/app/c.ts')?.data.depth, 2);
+    assert.equal(graph.vertexes.get('/app/main.ts')?.data.hasReexport, false);
+    assert.equal(graph.vertexes.get('/app/a.ts')?.data.hasReexport, false);
+    assert.equal(graph.vertexes.get('/app/b.ts')?.data.hasReexport, false);
+    assert.equal(graph.vertexes.get('/app/c.ts')?.data.hasReexport, false);
   });
 
   it('should return a graph of imports when re-exports are used', () => {
@@ -107,6 +111,10 @@ export const a = () => b;`,
     assert.equal(graph.vertexes.get('/app/a.ts')?.data.depth, 1);
     assert.equal(graph.vertexes.get('/app/b.ts')?.data.depth, 2);
     assert.equal(graph.vertexes.get('/app/b2.ts')?.data.depth, 3);
+    assert.equal(graph.vertexes.get('/app/main.ts')?.data.hasReexport, false);
+    assert.equal(graph.vertexes.get('/app/a.ts')?.data.hasReexport, false);
+    assert.equal(graph.vertexes.get('/app/b.ts')?.data.hasReexport, true);
+    assert.equal(graph.vertexes.get('/app/b2.ts')?.data.hasReexport, false);
   });
 
   it('should return a graph of imports when whole re-exports are used', () => {
@@ -153,6 +161,10 @@ export const a = () => b;`,
     assert.equal(graph.vertexes.get('/app/a.ts')?.data.depth, 1);
     assert.equal(graph.vertexes.get('/app/b.ts')?.data.depth, 2);
     assert.equal(graph.vertexes.get('/app/b2.ts')?.data.depth, 3);
+    assert.equal(graph.vertexes.get('/app/main.ts')?.data.hasReexport, false);
+    assert.equal(graph.vertexes.get('/app/a.ts')?.data.hasReexport, false);
+    assert.equal(graph.vertexes.get('/app/b.ts')?.data.hasReexport, true);
+    assert.equal(graph.vertexes.get('/app/b2.ts')?.data.hasReexport, false);
   });
 
   it('should return a graph of imports when dynamic imports are used', () => {
@@ -188,6 +200,9 @@ export const a = () => b;`,
     assert.equal(graph.vertexes.get('/app/main.ts')?.data.depth, 0);
     assert.equal(graph.vertexes.get('/app/a.ts')?.data.depth, 1);
     assert.equal(graph.vertexes.get('/app/b.ts')?.data.depth, 2);
+    assert.equal(graph.vertexes.get('/app/main.ts')?.data.hasReexport, false);
+    assert.equal(graph.vertexes.get('/app/a.ts')?.data.hasReexport, false);
+    assert.equal(graph.vertexes.get('/app/b.ts')?.data.hasReexport, false);
   });
 
   it('should not include files that are unreachable from the entry point', () => {
@@ -236,6 +251,9 @@ export const c = () => d;`,
     assert.equal(graph.vertexes.get('/app/main.ts')?.data.depth, 0);
     assert.equal(graph.vertexes.get('/app/a.ts')?.data.depth, 1);
     assert.equal(graph.vertexes.get('/app/b.ts')?.data.depth, 2);
+    assert.equal(graph.vertexes.get('/app/main.ts')?.data.hasReexport, false);
+    assert.equal(graph.vertexes.get('/app/a.ts')?.data.hasReexport, false);
+    assert.equal(graph.vertexes.get('/app/b.ts')?.data.hasReexport, false);
   });
 
   it('should correctly collect circular dependencies', () => {
@@ -299,6 +317,10 @@ export const c = () => a2;`,
     assert.equal(graph.vertexes.get('/app/a.ts')?.data.depth, 1);
     assert.equal(graph.vertexes.get('/app/b.ts')?.data.depth, 2);
     assert.equal(graph.vertexes.get('/app/c.ts')?.data.depth, 3);
+    assert.equal(graph.vertexes.get('/app/main.ts')?.data.hasReexport, false);
+    assert.equal(graph.vertexes.get('/app/a.ts')?.data.hasReexport, false);
+    assert.equal(graph.vertexes.get('/app/b.ts')?.data.hasReexport, false);
+    assert.equal(graph.vertexes.get('/app/c.ts')?.data.hasReexport, false);
   });
 
   it('should work when there are multiple entrypoints', () => {
@@ -372,5 +394,9 @@ export const b = () => c;`,
     assert.equal(graph.vertexes.get('/app/a.ts')?.data.depth, 1);
     assert.equal(graph.vertexes.get('/app/b.ts')?.data.depth, 1);
     assert.equal(graph.vertexes.get('/app/c.ts')?.data.depth, 2);
+    assert.equal(graph.vertexes.get('/app/main.ts')?.data.hasReexport, false);
+    assert.equal(graph.vertexes.get('/app/main2.ts')?.data.hasReexport, false);
+    assert.equal(graph.vertexes.get('/app/a.ts')?.data.hasReexport, false);
+    assert.equal(graph.vertexes.get('/app/b.ts')?.data.hasReexport, false);
   });
 });
