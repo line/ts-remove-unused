@@ -10,6 +10,7 @@ import { EditTracker } from './EditTracker.js';
 import { getFileFromModuleSpecifierText } from './getFileFromModuleSpecifierText.js';
 import { collectDynamicImports } from './collectDynamicImports.js';
 import { DependencyGraph } from './DependencyGraph.js';
+import { Graph } from './Graph.js';
 
 const findFirstNodeOfKind = (root: ts.Node, kind: ts.SyntaxKind) => {
   let result: ts.Node | undefined;
@@ -584,6 +585,106 @@ export const getFilesNecessary = ({
   return result;
 };
 
+const updateContent = ({
+  file,
+  fileService,
+  editTracker,
+  dynamicImports,
+  languageService,
+  deleteUnusedFile,
+  enableCodeFix,
+}: {
+  file: string;
+  fileService: FileService;
+  editTracker: EditTracker;
+  dynamicImports: Graph;
+  languageService: ts.LanguageService;
+  deleteUnusedFile: boolean;
+  enableCodeFix: boolean;
+}) => {
+  const program = languageService.getProgram();
+
+  if (!program) {
+    throw new Error('program not found');
+  }
+
+  const sourceFile = program.getSourceFile(file);
+
+  if (!sourceFile) {
+    return;
+  }
+
+  editTracker.start(file, sourceFile.getFullText());
+
+  const dynamicImport = dynamicImports.vertexes.get(file);
+
+  if (dynamicImport && dynamicImport.from.size > 0) {
+    editTracker.end(file);
+    return;
+  }
+
+  let content = fileService.get(file);
+  let isUsed = false;
+
+  do {
+    const result = getTextChanges(
+      languageService,
+      file,
+      editTracker,
+      fileService,
+    );
+
+    isUsed = result.isUsed;
+
+    content = applyTextChanges(content, result.changes);
+
+    fileService.set(file, content);
+
+    if (result.done) {
+      break;
+    }
+    // eslint-disable-next-line no-constant-condition
+  } while (true);
+
+  if (!isUsed && deleteUnusedFile) {
+    fileService.delete(file);
+    editTracker.delete(file);
+    dynamicImports.deleteVertex(file);
+
+    return;
+  }
+
+  editTracker.end(file);
+
+  if (enableCodeFix) {
+    while (true) {
+      fileService.set(file, content);
+
+      const result = applyCodeFix({
+        fixId: fixIdDelete,
+        fileName: file,
+        languageService,
+      });
+
+      if (result === content) {
+        break;
+      }
+
+      content = result;
+    }
+
+    fileService.set(file, content);
+
+    content = applyCodeFix({
+      fixId: fixIdDeleteImports,
+      fileName: file,
+      languageService,
+    });
+  }
+
+  fileService.set(file, content);
+};
+
 export const removeUnusedExport = ({
   fileService,
   targetFile,
@@ -609,80 +710,14 @@ export const removeUnusedExport = ({
   const dynamicImports = collectDynamicImports({ program, fileService });
 
   for (const file of Array.isArray(targetFile) ? targetFile : [targetFile]) {
-    const sourceFile = program.getSourceFile(file);
-
-    if (!sourceFile) {
-      continue;
-    }
-
-    editTracker.start(file, sourceFile.getFullText());
-
-    const dynamicImport = dynamicImports.vertexes.get(file);
-
-    if (dynamicImport && dynamicImport.from.size > 0) {
-      editTracker.end(file);
-      continue;
-    }
-
-    let content = fileService.get(file);
-    let isUsed = false;
-
-    do {
-      const result = getTextChanges(
-        languageService,
-        file,
-        editTracker,
-        fileService,
-      );
-
-      isUsed = result.isUsed;
-
-      content = applyTextChanges(content, result.changes);
-
-      fileService.set(file, content);
-
-      if (result.done) {
-        break;
-      }
-      // eslint-disable-next-line no-constant-condition
-    } while (true);
-
-    if (!isUsed && deleteUnusedFile) {
-      fileService.delete(file);
-      editTracker.delete(file);
-      dynamicImports.deleteVertex(file);
-
-      continue;
-    }
-
-    editTracker.end(file);
-
-    if (enableCodeFix) {
-      while (true) {
-        fileService.set(file, content);
-
-        const result = applyCodeFix({
-          fixId: fixIdDelete,
-          fileName: file,
-          languageService,
-        });
-
-        if (result === content) {
-          break;
-        }
-
-        content = result;
-      }
-
-      fileService.set(file, content);
-
-      content = applyCodeFix({
-        fixId: fixIdDeleteImports,
-        fileName: file,
-        languageService,
-      });
-    }
-
-    fileService.set(file, content);
+    updateContent({
+      file,
+      fileService,
+      editTracker,
+      dynamicImports,
+      languageService,
+      deleteUnusedFile,
+      enableCodeFix,
+    });
   }
 };
