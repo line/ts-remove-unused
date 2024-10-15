@@ -1,7 +1,7 @@
 import ts from 'typescript';
-import { Graph } from './Graph.js';
 import { FileService } from './FileService.js';
 import { getFileFromModuleSpecifierText } from './getFileFromModuleSpecifierText.js';
+import { DependencyGraph } from './DependencyGraph.js';
 
 const getMatchingNode = (node: ts.Node) => {
   if (ts.isImportDeclaration(node)) {
@@ -59,11 +59,7 @@ export const collectImports = ({
   program: ts.Program;
   entrypoints: string[];
 }) => {
-  const graph = new Graph(() => ({
-    depth: 0,
-    hasReexport: false,
-    fromDynamic: new Set<string>(),
-  }));
+  const graph = new DependencyGraph();
   const files = new Set(fileService.getFileNames());
 
   const stack: { depth: number; file: string }[] = [];

@@ -9,6 +9,7 @@ import {
 import { EditTracker } from './EditTracker.js';
 import { getFileFromModuleSpecifierText } from './getFileFromModuleSpecifierText.js';
 import { collectDynamicImports } from './collectDynamicImports.js';
+import { DependencyGraph } from './DependencyGraph.js';
 
 const findFirstNodeOfKind = (root: ts.Node, kind: ts.SyntaxKind) => {
   let result: ts.Node | undefined;
@@ -543,6 +544,44 @@ const disabledEditTracker: EditTracker = {
   end: () => {},
   delete: () => {},
   removeExport: () => {},
+};
+
+// fixme: use later
+export const getFilesNecessary = ({
+  targetFile,
+  dependencyGraph,
+}: {
+  targetFile: string;
+  dependencyGraph: DependencyGraph;
+}) => {
+  const result = new Set<string>();
+  const stack = [targetFile];
+
+  while (stack.length > 0) {
+    const file = stack.pop();
+
+    if (!file) {
+      break;
+    }
+
+    result.add(file);
+
+    const vertex = dependencyGraph.vertexes.get(file);
+
+    if (!vertex) {
+      continue;
+    }
+
+    for (const from of vertex.from) {
+      result.add(from);
+
+      if (vertex.data.fromDynamic.has(from)) {
+        stack.push(from);
+      }
+    }
+  }
+
+  return result;
 };
 
 export const removeUnusedExport = ({
