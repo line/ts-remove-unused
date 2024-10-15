@@ -686,20 +686,24 @@ const updateContent = ({
 };
 
 export const removeUnusedExport = ({
+  entrypoints,
   fileService,
-  targetFile,
   languageService,
   deleteUnusedFile = false,
   enableCodeFix = false,
   editTracker = disabledEditTracker,
 }: {
+  entrypoints: string[];
   fileService: FileService;
-  targetFile: string | string[];
   languageService: ts.LanguageService;
   enableCodeFix?: boolean;
   deleteUnusedFile?: boolean;
   editTracker?: EditTracker;
 }) => {
+  const targetFiles = fileService
+    .getFileNames()
+    .filter((file) => !entrypoints.includes(file));
+
   const program = languageService.getProgram();
 
   if (!program) {
@@ -709,7 +713,7 @@ export const removeUnusedExport = ({
   // because ts.LanguageService.findReferences doesn't work with dynamic imports, we need to collect them manually
   const dynamicImports = collectDynamicImports({ program, fileService });
 
-  for (const file of Array.isArray(targetFile) ? targetFile : [targetFile]) {
+  for (const file of targetFiles) {
     updateContent({
       file,
       fileService,

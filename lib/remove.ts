@@ -86,6 +86,10 @@ export const remove = ({
     (fileName) => !skip.some((regex) => regex.test(fileName)),
   );
 
+  const entrypoints = fileNames.filter((fileName) =>
+    skip.some((regex) => regex.test(fileName)),
+  );
+
   editTracker.setTotal(targets.length);
 
   logger.write(
@@ -98,7 +102,7 @@ export const remove = ({
 
   removeUnusedExport({
     fileService,
-    targetFile: targets,
+    entrypoints,
     languageService,
     deleteUnusedFile: true,
     enableCodeFix: true,

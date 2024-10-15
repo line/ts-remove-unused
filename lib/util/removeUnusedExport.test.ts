@@ -13,7 +13,7 @@ describe('removeUnusedExport', () => {
       removeUnusedExport({
         languageService,
         fileService,
-        targetFile: '/app/a.ts',
+        entrypoints: ['/app/main.ts'],
       });
 
       const result = fileService.get('/app/a.ts');
@@ -27,7 +27,7 @@ describe('removeUnusedExport', () => {
       removeUnusedExport({
         languageService,
         fileService,
-        targetFile: '/app/b.ts',
+        entrypoints: ['/app/main.ts'],
       });
 
       const result = fileService.get('/app/b.ts');
@@ -46,7 +46,7 @@ describe('removeUnusedExport', () => {
       removeUnusedExport({
         languageService,
         fileService,
-        targetFile: '/app/a.ts',
+        entrypoints: ['/app/main.ts'],
       });
 
       const result = fileService.get('/app/a.ts');
@@ -76,7 +76,7 @@ import c from './c';`,
       removeUnusedExport({
         languageService,
         fileService,
-        targetFile: ['/app/a.ts', '/app/b.ts', '/app/c.ts'],
+        entrypoints: ['/app/main.ts'],
       });
 
       assert.equal(fileService.get('/app/a.ts'), `export function a() {}`);
@@ -99,7 +99,7 @@ import c from './c';`,
       removeUnusedExport({
         languageService,
         fileService,
-        targetFile: ['/app/a.ts', '/app/b.ts', '/app/c.ts'],
+        entrypoints: ['/app/main.ts'],
       });
 
       assert.equal(fileService.get('/app/a.ts'), `function a() {}`);
@@ -121,7 +121,7 @@ export function a2() {
       removeUnusedExport({
         languageService,
         fileService,
-        targetFile: '/app/a.ts',
+        entrypoints: ['/app/main.ts'],
       });
 
       assert.equal(
@@ -154,7 +154,7 @@ export default async function() {}`,
       removeUnusedExport({
         languageService,
         fileService,
-        targetFile: ['/app/a.ts', '/app/b.ts'],
+        entrypoints: ['/app/main.ts'],
       });
       // async function will be removed afterwards with codeFix
       assert.equal(
@@ -176,7 +176,7 @@ async function a2() {}`,
       removeUnusedExport({
         languageService,
         fileService,
-        targetFile: '/app/a.ts',
+        entrypoints: ['/app/main.ts'],
       });
 
       const result = fileService.get('/app/a.ts');
@@ -206,7 +206,7 @@ import C from './c';`,
       removeUnusedExport({
         languageService,
         fileService,
-        targetFile: ['/app/a.ts', '/app/b.ts', '/app/c.ts'],
+        entrypoints: ['/app/main.ts'],
       });
 
       assert.equal(fileService.get('/app/a.ts'), `export class A {}`);
@@ -223,7 +223,7 @@ import C from './c';`,
       removeUnusedExport({
         languageService,
         fileService,
-        targetFile: ['/app/a.ts', '/app/b.ts', '/app/c.ts'],
+        entrypoints: ['/app/main.ts'],
       });
 
       assert.equal(fileService.get('/app/a.ts'), `class A {}`);
@@ -242,7 +242,7 @@ import C from './c';`,
       removeUnusedExport({
         languageService,
         fileService,
-        targetFile: '/app/a.ts',
+        entrypoints: ['/app/main.ts'],
       });
 
       const result = fileService.get('/app/a.ts');
@@ -269,7 +269,7 @@ import B from './b';`,
       removeUnusedExport({
         languageService,
         fileService,
-        targetFile: ['/app/a.ts', '/app/b.ts'],
+        entrypoints: ['/app/main.ts'],
       });
 
       assert.equal(
@@ -290,7 +290,7 @@ import B from './b';`,
       removeUnusedExport({
         languageService,
         fileService,
-        targetFile: ['/app/a.ts', '/app/b.ts'],
+        entrypoints: ['/app/main.ts'],
       });
 
       assert.equal(fileService.get('/app/a.ts'), `interface A { a: 'a' }`);
@@ -308,7 +308,7 @@ import B from './b';`,
       removeUnusedExport({
         languageService,
         fileService,
-        targetFile: '/app/a.ts',
+        entrypoints: ['/app/main.ts'],
       });
 
       const result = fileService.get('/app/a.ts');
@@ -330,7 +330,7 @@ import B from './b';`,
       removeUnusedExport({
         languageService,
         fileService,
-        targetFile: '/app/a.ts',
+        entrypoints: ['/app/main.ts'],
       });
 
       const result = fileService.get('/app/a.ts');
@@ -344,7 +344,7 @@ import B from './b';`,
       removeUnusedExport({
         languageService,
         fileService,
-        targetFile: '/app/b.ts',
+        entrypoints: ['/app/main.ts'],
       });
 
       const result = fileService.get('/app/b.ts');
@@ -363,7 +363,7 @@ import B from './b';`,
       removeUnusedExport({
         languageService,
         fileService,
-        targetFile: '/app/a.ts',
+        entrypoints: ['/app/main.ts'],
       });
 
       const result = fileService.get('/app/a.ts');
@@ -400,7 +400,7 @@ export default B;`,
       removeUnusedExport({
         languageService,
         fileService,
-        targetFile: ['/app/a.ts', '/app/b.ts'],
+        entrypoints: ['/app/main.ts'],
       });
 
       assert.equal(
@@ -432,7 +432,7 @@ export default B;`,
       removeUnusedExport({
         languageService,
         fileService,
-        targetFile: ['/app/a.ts', '/app/b.ts'],
+        entrypoints: ['/app/main.ts'],
       });
 
       assert.equal(fileService.get('/app/a.ts'), `const a = 'a';`);
@@ -452,7 +452,7 @@ export default B;`,
       removeUnusedExport({
         languageService,
         fileService,
-        targetFile: '/app/a.ts',
+        entrypoints: ['/app/main.ts'],
       });
 
       const result = fileService.get('/app/a.ts');
@@ -476,7 +476,7 @@ export default B;`,
       removeUnusedExport({
         languageService,
         fileService,
-        targetFile: '/app/a.ts',
+        entrypoints: ['/app/main.ts'],
       });
 
       const result = fileService.get('/app/a.ts');
@@ -491,7 +491,7 @@ export default B;`,
       removeUnusedExport({
         languageService,
         fileService,
-        targetFile: '/app/a.ts',
+        entrypoints: ['/app/main.ts'],
       });
 
       const result = fileService.get('/app/a.ts');
@@ -510,7 +510,7 @@ export default B;`,
       removeUnusedExport({
         languageService,
         fileService,
-        targetFile: '/app/a.ts',
+        entrypoints: ['/app/main.ts'],
       });
 
       const result = fileService.get('/app/a.ts');
@@ -546,7 +546,7 @@ export { B };`,
       removeUnusedExport({
         languageService,
         fileService,
-        targetFile: ['/app/a.ts', '/app/b.ts'],
+        entrypoints: ['/app/main.ts'],
       });
 
       assert.equal(
@@ -597,7 +597,7 @@ export { d, unused, unused2 };`,
       removeUnusedExport({
         languageService,
         fileService,
-        targetFile: ['/app/a.ts', '/app/b.ts', '/app/c.ts', '/app/d.ts'],
+        entrypoints: ['/app/main.ts'],
       });
 
       assert.equal(fileService.get('/app/a.ts'), `const a = 'a';`);
@@ -633,7 +633,7 @@ export { d };`,
       removeUnusedExport({
         languageService,
         fileService,
-        targetFile: '/app/a.ts',
+        entrypoints: ['/app/main.ts'],
       });
 
       const result = fileService.get('/app/a.ts');
@@ -659,7 +659,7 @@ export { d };`,
       removeUnusedExport({
         languageService,
         fileService,
-        targetFile: ['/app/a.ts', '/app/a_reexport.ts'],
+        entrypoints: ['/app/main.ts'],
       });
 
       assert.equal(
@@ -677,7 +677,7 @@ export { d };`,
       removeUnusedExport({
         languageService,
         fileService,
-        targetFile: ['/app/a.ts', '/app/a_reexport.ts'],
+        entrypoints: ['/app/main.ts'],
       });
 
       // removal of /app/a.ts depends on the order of how the target files are passed, so the result of /app/a.ts is not guaranteed
@@ -696,7 +696,7 @@ export { d };`,
       removeUnusedExport({
         languageService,
         fileService,
-        targetFile: ['/app/b.ts', '/app/b_reexport.ts'],
+        entrypoints: ['/app/main.ts'],
       });
 
       // todo: is it possible to specify typescript to use single quotes?
@@ -722,12 +722,7 @@ export { d };`,
       removeUnusedExport({
         languageService,
         fileService,
-        targetFile: [
-          '/app/a.ts',
-          '/app/a_reexport_1.ts',
-          '/app/a_reexport_2.ts',
-          '/app/a_reexport_3.ts',
-        ],
+        entrypoints: ['/app/main.ts'],
       });
 
       assert.equal(fileService.get('/app/a_reexport_1.ts'), '');
@@ -742,7 +737,7 @@ export { d };`,
       removeUnusedExport({
         languageService,
         fileService,
-        targetFile: ['/app/a.ts', '/app/a_reexport.ts'],
+        entrypoints: ['/app/main.ts'],
       });
       // todo: removing whole re-export is not supported yet
       // assert.equal(fileService.get('/app/a_reexport.ts'), '');
@@ -763,7 +758,7 @@ a_namespace.a;`,
       removeUnusedExport({
         languageService,
         fileService,
-        targetFile: ['/app/a.ts', '/app/a_reexport.ts'],
+        entrypoints: ['/app/main.ts'],
       });
       assert.equal(
         fileService.get('/app/a_reexport.ts'),
@@ -782,7 +777,7 @@ a_namespace.a;`,
       removeUnusedExport({
         languageService,
         fileService,
-        targetFile: ['/app/a.ts', '/app/a_reexport.ts'],
+        entrypoints: ['/app/main.ts'],
       });
       assert.equal(
         fileService.get('/app/a_reexport.ts'),
@@ -801,7 +796,7 @@ a_namespace.a;`,
       removeUnusedExport({
         languageService,
         fileService,
-        targetFile: ['/app/a.ts', '/app/a_reexport.ts'],
+        entrypoints: ['/app/main.ts'],
       });
       assert.equal(
         fileService.get('/app/a_reexport.ts'),
@@ -826,7 +821,7 @@ console.log(b);`,
       removeUnusedExport({
         languageService,
         fileService,
-        targetFile: '/app/a.ts',
+        entrypoints: ['/app/main.ts'],
       });
 
       assert.equal(
@@ -851,7 +846,7 @@ console.log(B);`,
       removeUnusedExport({
         languageService,
         fileService,
-        targetFile: '/app/a.ts',
+        entrypoints: ['/app/main.ts'],
       });
 
       assert.equal(
@@ -876,7 +871,7 @@ const b: B = {};`,
       removeUnusedExport({
         languageService,
         fileService,
-        targetFile: '/app/a.ts',
+        entrypoints: ['/app/main.ts'],
       });
 
       assert.equal(
@@ -902,7 +897,7 @@ const b: B = 'b';`,
     removeUnusedExport({
       languageService,
       fileService,
-      targetFile: '/app/a.ts',
+      entrypoints: ['/app/main.ts'],
     });
 
     assert.equal(
@@ -927,7 +922,7 @@ import('./b.js');`,
       removeUnusedExport({
         languageService,
         fileService,
-        targetFile: ['/app/a.ts', '/app/b.ts'],
+        entrypoints: ['/app/main.ts'],
       });
 
       assert.equal(fileService.get('/app/a.ts'), `export const a = 'a';`);
@@ -990,13 +985,7 @@ import('./b.js');`,
       removeUnusedExport({
         languageService,
         fileService,
-        targetFile: [
-          '/app/a.ts',
-          '/app/b.ts',
-          '/app/c.ts',
-          '/app/d.ts',
-          '/app/e.ts',
-        ],
+        entrypoints: ['/app/main.ts'],
         deleteUnusedFile: true,
       });
 
@@ -1020,7 +1009,7 @@ import('./b.js');`,
       removeUnusedExport({
         languageService,
         fileService,
-        targetFile: '/app/a.ts',
+        entrypoints: ['/app/main.ts'],
         deleteUnusedFile: true,
       });
 
@@ -1035,7 +1024,7 @@ import('./b.js');`,
       removeUnusedExport({
         languageService,
         fileService,
-        targetFile: ['/app/a.ts', '/app/a_reexport.ts'],
+        entrypoints: ['/app/main.ts'],
         deleteUnusedFile: true,
       });
 
@@ -1093,13 +1082,7 @@ import('./b.js');`,
       removeUnusedExport({
         languageService,
         fileService,
-        targetFile: [
-          '/app/a.ts',
-          '/app/b.ts',
-          '/app/c.ts',
-          '/app/d.ts',
-          '/app/e.ts',
-        ],
+        entrypoints: ['/app/main.ts'],
         deleteUnusedFile: true,
       });
 
@@ -1126,7 +1109,7 @@ export const remain = 'remain';`,
       removeUnusedExport({
         languageService,
         fileService,
-        targetFile: '/app/a.ts',
+        entrypoints: ['/app/main.ts'],
         enableCodeFix: true,
       });
 
