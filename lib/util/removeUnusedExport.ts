@@ -542,7 +542,7 @@ const disabledEditTracker: EditTracker = {
   removeExport: () => {},
 };
 
-const getFilesNecessary = ({
+const getNecessaryFiles = ({
   targetFile,
   dependencyGraph,
 }: {
@@ -774,7 +774,7 @@ export const removeUnusedExport = ({
       continue;
     }
 
-    const necessaryFiles = getFilesNecessary({
+    const necessaryFiles = getNecessaryFiles({
       targetFile: file,
       dependencyGraph,
     });
