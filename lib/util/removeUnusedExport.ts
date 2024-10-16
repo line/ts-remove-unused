@@ -597,7 +597,7 @@ const getNecessaryFiles = ({
   return result;
 };
 
-const updateContent = ({
+const processFile = ({
   file,
   files,
   deleteUnusedFile,
@@ -832,12 +832,12 @@ export const removeUnusedExport = ({
       {} as { [fileName: string]: string },
     );
 
-    const result = updateContent({
+    const result = processFile({
       file,
       files,
       deleteUnusedFile,
       enableCodeFix,
-      options: options,
+      options,
       projectRoot,
     });
 
