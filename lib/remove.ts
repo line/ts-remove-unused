@@ -107,6 +107,8 @@ export const remove = ({
     deleteUnusedFile: true,
     enableCodeFix: true,
     editTracker,
+    compilerOptions: options,
+    projectRoot,
   });
 
   editTracker.clearProgressOutput();

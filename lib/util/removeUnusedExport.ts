@@ -8,9 +8,9 @@ import {
 } from './applyCodeFix.js';
 import { EditTracker } from './EditTracker.js';
 import { getFileFromModuleSpecifierText } from './getFileFromModuleSpecifierText.js';
-import { collectDynamicImports } from './collectDynamicImports.js';
 import { DependencyGraph } from './DependencyGraph.js';
-import { Graph } from './Graph.js';
+import { collectImports } from './collectImports.js';
+import { MemoryFileService } from './MemoryFileService.js';
 
 const findFirstNodeOfKind = (root: ts.Node, kind: ts.SyntaxKind) => {
   let result: ts.Node | undefined;
@@ -171,7 +171,7 @@ const getAncestorFiles = (
     !node.parent.parent.moduleSpecifier ||
     !ts.isStringLiteral(node.parent.parent.moduleSpecifier)
   ) {
-    return null;
+    return result;
   }
 
   let specifier: string | null = node.parent.parent.moduleSpecifier.text;
@@ -186,7 +186,7 @@ const getAncestorFiles = (
     });
 
     if (!origin) {
-      return null;
+      break;
     }
 
     result.add(origin);
@@ -194,13 +194,13 @@ const getAncestorFiles = (
     const referencedSymbol = referencesKeyValue[origin];
 
     if (!referencedSymbol) {
-      return null;
+      break;
     }
 
     const sourceFile = program.getSourceFile(origin);
 
     if (!sourceFile) {
-      return null;
+      break;
     }
 
     const reexportSpecifiers = getReexportInFile(sourceFile);
@@ -275,11 +275,6 @@ const getUnusedExports = (
           program,
           fileName,
         );
-
-        if (!ancestors) {
-          isUsed = true;
-          return;
-        }
 
         const count = references
           .flatMap((v) => v.references)
@@ -547,8 +542,7 @@ const disabledEditTracker: EditTracker = {
   removeExport: () => {},
 };
 
-// fixme: use later
-export const getFilesNecessary = ({
+const getFilesNecessary = ({
   targetFile,
   dependencyGraph,
 }: {
@@ -576,6 +570,14 @@ export const getFilesNecessary = ({
     for (const from of vertex.from) {
       result.add(from);
 
+      const fromVertex = dependencyGraph.vertexes.get(from);
+
+      if (fromVertex && fromVertex.data.hasReexport) {
+        stack.push(from);
+
+        continue;
+      }
+
       if (vertex.data.fromDynamic.has(from)) {
         stack.push(from);
       }
@@ -587,21 +589,54 @@ export const getFilesNecessary = ({
 
 const updateContent = ({
   file,
-  fileService,
+  files,
   editTracker,
-  dynamicImports,
-  languageService,
   deleteUnusedFile,
   enableCodeFix,
+  options,
+  projectRoot,
 }: {
   file: string;
-  fileService: FileService;
+  files: {
+    [fileName: string]: string;
+  };
   editTracker: EditTracker;
-  dynamicImports: Graph;
-  languageService: ts.LanguageService;
   deleteUnusedFile: boolean;
   enableCodeFix: boolean;
+  options: ts.CompilerOptions;
+  projectRoot: string;
 }) => {
+  const fileService = new MemoryFileService();
+
+  for (const [fileName, content] of Object.entries(files)) {
+    fileService.set(fileName, content);
+  }
+
+  const languageService = ts.createLanguageService({
+    getCompilationSettings() {
+      return options;
+    },
+    getScriptFileNames() {
+      return fileService.getFileNames();
+    },
+    getScriptVersion(fileName) {
+      return fileService.getVersion(fileName);
+    },
+    getScriptSnapshot(fileName) {
+      return ts.ScriptSnapshot.fromString(fileService.get(fileName));
+    },
+    getCurrentDirectory: () => projectRoot,
+    getDefaultLibFileName(options) {
+      return ts.getDefaultLibFileName(options);
+    },
+    fileExists(name) {
+      return fileService.exists(name);
+    },
+    readFile(name) {
+      return fileService.get(name);
+    },
+  });
+
   const program = languageService.getProgram();
 
   if (!program) {
@@ -611,16 +646,7 @@ const updateContent = ({
   const sourceFile = program.getSourceFile(file);
 
   if (!sourceFile) {
-    return;
-  }
-
-  editTracker.start(file, sourceFile.getFullText());
-
-  const dynamicImport = dynamicImports.vertexes.get(file);
-
-  if (dynamicImport && dynamicImport.from.size > 0) {
-    editTracker.end(file);
-    return;
+    throw new Error('source file not found');
   }
 
   let content = fileService.get(file);
@@ -647,14 +673,12 @@ const updateContent = ({
   } while (true);
 
   if (!isUsed && deleteUnusedFile) {
-    fileService.delete(file);
-    editTracker.delete(file);
-    dynamicImports.deleteVertex(file);
+    const result = {
+      operation: 'delete' as const,
+    };
 
-    return;
+    return result;
   }
-
-  editTracker.end(file);
 
   if (enableCodeFix) {
     while (true) {
@@ -683,6 +707,13 @@ const updateContent = ({
   }
 
   fileService.set(file, content);
+
+  const result = {
+    operation: 'edit' as const,
+    content: fileService.get(file),
+  };
+
+  return result;
 };
 
 export const removeUnusedExport = ({
@@ -692,6 +723,8 @@ export const removeUnusedExport = ({
   deleteUnusedFile = false,
   enableCodeFix = false,
   editTracker = disabledEditTracker,
+  compilerOptions = {},
+  projectRoot = '.',
 }: {
   entrypoints: string[];
   fileService: FileService;
@@ -699,29 +732,82 @@ export const removeUnusedExport = ({
   enableCodeFix?: boolean;
   deleteUnusedFile?: boolean;
   editTracker?: EditTracker;
+  compilerOptions?: ts.CompilerOptions;
+  projectRoot?: string;
 }) => {
-  const targetFiles = fileService
-    .getFileNames()
-    .filter((file) => !entrypoints.includes(file));
-
   const program = languageService.getProgram();
 
   if (!program) {
     throw new Error('program not found');
   }
 
-  // because ts.LanguageService.findReferences doesn't work with dynamic imports, we need to collect them manually
-  const dynamicImports = collectDynamicImports({ program, fileService });
+  const dependencyGraph = collectImports({
+    fileService,
+    program,
+    entrypoints,
+  });
 
-  for (const file of targetFiles) {
-    updateContent({
+  // todo: push to stack after updating content
+  const stack = fileService
+    .getFileNames()
+    .filter((item) => !entrypoints.includes(item));
+
+  while (stack.length > 0) {
+    const file = stack.pop();
+
+    if (!file) {
+      break;
+    }
+
+    const sourceFile = program.getSourceFile(file);
+
+    if (!sourceFile) {
+      continue;
+    }
+
+    editTracker.start(file, sourceFile?.getFullText() || '');
+
+    const vertex = dependencyGraph.vertexes.get(file);
+
+    if (vertex && vertex.data.fromDynamic.size > 0) {
+      editTracker.end(file);
+      continue;
+    }
+
+    const necessaryFiles = getFilesNecessary({
+      targetFile: file,
+      dependencyGraph,
+    });
+
+    const files = Array.from(necessaryFiles).reduce(
+      (acc, cur) => ({
+        ...acc,
+        [cur]: fileService.get(cur),
+      }),
+      {} as { [fileName: string]: string },
+    );
+
+    const result = updateContent({
       file,
-      fileService,
+      files,
       editTracker,
-      dynamicImports,
-      languageService,
       deleteUnusedFile,
       enableCodeFix,
+      options: compilerOptions,
+      projectRoot,
     });
+
+    switch (result.operation) {
+      case 'delete': {
+        editTracker.delete(file);
+        fileService.delete(file);
+        break;
+      }
+      case 'edit': {
+        editTracker.end(file);
+        fileService.set(file, result.content);
+        break;
+      }
+    }
   }
 };

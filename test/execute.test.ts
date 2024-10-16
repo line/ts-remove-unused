@@ -36,23 +36,52 @@ describe('cli', () => {
       },
     });
 
+    const stripedOutput = stripAnsi(output);
+
     assert.equal(
-      stripAnsi(output),
-      `tsconfig using test/fixtures/project/tsconfig.json
+      stripedOutput.startsWith(`tsconfig using test/fixtures/project/tsconfig.json
 
 Found 4 file(s), skipping 1 file(s)...
+`),
+      true,
+    );
 
-export a.ts:1:0     'b'
-export a.ts:3:0     'export default defaultExportConst;'
-file   b.ts
-export d.ts:9:2     'export { unusedLong };'
-export d.ts:8:3     'export { unusedLongLong };'
-export d.ts:8:3     'export { unusedLongLongLong };'
-export d.ts:8:3     'export { unusedLongLongLongLong };'
-export d.ts:9:2     'export default function ()'
+    assert.equal(
+      stripedOutput.endsWith(`✖ delete 1 file(s), remove 7 export(s)\n`),
+      true,
+    );
 
-✖ delete 1 file(s), remove 7 export(s)
-`,
+    const lines = stripedOutput.split('\n');
+
+    assert.equal(lines.includes(`export a.ts:1:0     'b'`), true);
+    assert.equal(
+      lines.includes(
+        `export a.ts:3:0     'export default defaultExportConst;'`,
+      ),
+      true,
+    );
+    assert.equal(lines.includes(`file   b.ts`), true);
+    assert.equal(
+      lines.includes(`export d.ts:9:2     'export { unusedLong };'`),
+      true,
+    );
+    assert.equal(
+      lines.includes(`export d.ts:8:3     'export { unusedLongLong };'`),
+      true,
+    );
+    assert.equal(
+      lines.includes(`export d.ts:8:3     'export { unusedLongLongLong };'`),
+      true,
+    );
+    assert.equal(
+      lines.includes(
+        `export d.ts:8:3     'export { unusedLongLongLongLong };'`,
+      ),
+      true,
+    );
+    assert.equal(
+      lines.includes(`export d.ts:9:2     'export default function ()'`),
+      true,
     );
   });
 });
