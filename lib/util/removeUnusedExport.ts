@@ -382,10 +382,15 @@ const stripExportKeyword = (syntaxList: ts.Node) => {
   return code.slice(0, pos);
 };
 
+type RemovedExport = {
+  fileName: string;
+  position: number;
+  code: string;
+};
+
 const getTextChanges = (
   languageService: ts.LanguageService,
   file: string,
-  editTracker: EditTracker,
   fileService: FileService,
 ) => {
   const sourceFile = languageService.getProgram()?.getSourceFile(file);
@@ -394,6 +399,7 @@ const getTextChanges = (
     throw new Error('source file not found');
   }
 
+  const removedExports: RemovedExport[] = [];
   const changes: ts.TextChange[] = [];
   // usually we want to remove all unused exports in one pass, but there are some cases where we need to do multiple passes
   // for example, when we have multiple export specifiers in one export declaration, we want to remove them one by one because the text change range will conflict
@@ -421,8 +427,8 @@ const getTextChanges = (
             length: node.parent.parent.getFullWidth(),
           },
         });
-
-        editTracker.removeExport(sourceFile.fileName, {
+        removedExports.push({
+          fileName: sourceFile.fileName,
           position: node.parent.parent.getStart(),
           code: node.parent.parent.getText(),
         });
@@ -443,7 +449,8 @@ const getTextChanges = (
         ? ` from ${node.parent.parent.moduleSpecifier.getText()}`
         : '';
 
-      editTracker.removeExport(sourceFile.fileName, {
+      removedExports.push({
+        fileName: sourceFile.fileName,
         position: node.getStart(),
         code: `export { ${node.getText()} }${from};`,
       });
@@ -460,7 +467,8 @@ const getTextChanges = (
         },
       });
 
-      editTracker.removeExport(sourceFile.fileName, {
+      removedExports.push({
+        fileName: sourceFile.fileName,
         position: node.getStart(),
         code: node.getText(),
       });
@@ -493,7 +501,8 @@ const getTextChanges = (
               : node.getText().indexOf('{') - 1,
           );
 
-        editTracker.removeExport(sourceFile.fileName, {
+        removedExports.push({
+          fileName: sourceFile.fileName,
           position: node.getStart(),
           code,
         });
@@ -525,14 +534,15 @@ const getTextChanges = (
       },
     });
 
-    editTracker.removeExport(sourceFile.fileName, {
+    removedExports.push({
+      fileName: sourceFile.fileName,
       position: node.getStart(),
       code:
         findFirstNodeOfKind(node, ts.SyntaxKind.Identifier)?.getText() || '',
     });
   }
 
-  return { changes, done: !aborted, isUsed };
+  return { changes, done: !aborted, isUsed, removedExports };
 };
 
 const disabledEditTracker: EditTracker = {
@@ -590,7 +600,6 @@ const getNecessaryFiles = ({
 const updateContent = ({
   file,
   files,
-  editTracker,
   deleteUnusedFile,
   enableCodeFix,
   options,
@@ -600,12 +609,12 @@ const updateContent = ({
   files: {
     [fileName: string]: string;
   };
-  editTracker: EditTracker;
   deleteUnusedFile: boolean;
   enableCodeFix: boolean;
   options: ts.CompilerOptions;
   projectRoot: string;
 }) => {
+  const removedExports: RemovedExport[] = [];
   const fileService = new MemoryFileService();
 
   for (const [fileName, content] of Object.entries(files)) {
@@ -655,12 +664,8 @@ const updateContent = ({
   let isUsed = false;
 
   do {
-    const result = getTextChanges(
-      languageService,
-      file,
-      editTracker,
-      fileService,
-    );
+    const result = getTextChanges(languageService, file, fileService);
+    removedExports.push(...result.removedExports);
 
     isUsed = result.isUsed;
 
@@ -713,6 +718,7 @@ const updateContent = ({
   const result = {
     operation: 'edit' as const,
     content: fileService.get(file),
+    removedExports,
   };
 
   return result;
@@ -829,7 +835,6 @@ export const removeUnusedExport = ({
     const result = updateContent({
       file,
       files,
-      editTracker,
       deleteUnusedFile,
       enableCodeFix,
       options: options,
@@ -843,6 +848,12 @@ export const removeUnusedExport = ({
         break;
       }
       case 'edit': {
+        for (const item of result.removedExports) {
+          editTracker.removeExport(item.fileName, {
+            code: item.code,
+            position: item.position,
+          });
+        }
         editTracker.end(file);
         fileService.set(file, result.content);
         break;
