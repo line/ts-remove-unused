@@ -1,17 +1,16 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import { removeUnusedExport } from './removeUnusedExport.js';
-import { setup } from '../../test/helpers/setup.js';
+import { MemoryFileService } from './MemoryFileService.js';
 
 describe('removeUnusedExport', () => {
   describe('variable statement', () => {
     it('should not remove export for variable if its used in some other file', () => {
-      const { languageService, fileService } = setup();
+      const fileService = new MemoryFileService();
       fileService.set('/app/main.ts', `import { a } from './a';`);
       fileService.set('/app/a.ts', `export const a = 'a';`);
 
       removeUnusedExport({
-        languageService,
         fileService,
         entrypoints: ['/app/main.ts'],
       });
@@ -21,11 +20,10 @@ describe('removeUnusedExport', () => {
     });
 
     it('should remove export for variable if its not used in some other file', () => {
-      const { languageService, fileService } = setup();
+      const fileService = new MemoryFileService();
       fileService.set('/app/b.ts', `export const b = 'b';`);
 
       removeUnusedExport({
-        languageService,
         fileService,
         entrypoints: ['/app/main.ts'],
       });
@@ -36,7 +34,7 @@ describe('removeUnusedExport', () => {
     });
 
     it('should not remove export for variable if it has a comment to ignore', () => {
-      const { languageService, fileService } = setup();
+      const fileService = new MemoryFileService();
       fileService.set(
         '/app/a.ts',
         `// ts-remove-unused-skip
@@ -44,7 +42,6 @@ describe('removeUnusedExport', () => {
       );
 
       removeUnusedExport({
-        languageService,
         fileService,
         entrypoints: ['/app/main.ts'],
       });
@@ -61,7 +58,7 @@ describe('removeUnusedExport', () => {
 
   describe('function declaration', () => {
     it('should not remove export for function if its used in some other file', () => {
-      const { languageService, fileService } = setup();
+      const fileService = new MemoryFileService();
 
       fileService.set(
         '/app/main.ts',
@@ -74,7 +71,6 @@ import c from './c';`,
       fileService.set('/app/c.ts', `export default function() {}`);
 
       removeUnusedExport({
-        languageService,
         fileService,
         entrypoints: ['/app/main.ts'],
       });
@@ -91,13 +87,12 @@ import c from './c';`,
     });
 
     it('should remove export for function if its not used in some other file', () => {
-      const { languageService, fileService } = setup();
+      const fileService = new MemoryFileService();
       fileService.set('/app/a.ts', `export function a() {}`);
       fileService.set('/app/b.ts', `export default function b() {}`);
       fileService.set('/app/c.ts', `export default function() {}`);
 
       removeUnusedExport({
-        languageService,
         fileService,
         entrypoints: ['/app/main.ts'],
       });
@@ -108,7 +103,7 @@ import c from './c';`,
     });
 
     it('should not remove async keyword of function if its not used in some other file', () => {
-      const { languageService, fileService } = setup();
+      const fileService = new MemoryFileService();
       fileService.set('/app/main.ts', `import { a2 } from './a';`);
       fileService.set(
         '/app/a.ts',
@@ -119,7 +114,6 @@ export function a2() {
       );
 
       removeUnusedExport({
-        languageService,
         fileService,
         entrypoints: ['/app/main.ts'],
       });
@@ -134,7 +128,7 @@ export function a2() {
     });
 
     it('should remove default async function if its not used in some other file', () => {
-      const { fileService, languageService } = setup();
+      const fileService = new MemoryFileService();
       fileService.set(
         '/app/main.ts',
         `import { a } from './a';
@@ -152,7 +146,6 @@ export default async function() {}`,
       );
 
       removeUnusedExport({
-        languageService,
         fileService,
         entrypoints: ['/app/main.ts'],
       });
@@ -166,7 +159,7 @@ async function a2() {}`,
     });
 
     it('should not remove export if it has a comment to ignore', () => {
-      const { languageService, fileService } = setup();
+      const fileService = new MemoryFileService();
       fileService.set(
         '/app/a.ts',
         `// ts-remove-unused-skip
@@ -174,7 +167,6 @@ async function a2() {}`,
       );
 
       removeUnusedExport({
-        languageService,
         fileService,
         entrypoints: ['/app/main.ts'],
       });
@@ -191,7 +183,7 @@ async function a2() {}`,
 
   describe('class declaration', () => {
     it('should not remove export for function if its used in some other file', () => {
-      const { languageService, fileService } = setup();
+      const fileService = new MemoryFileService();
 
       fileService.set(
         '/app/main.ts',
@@ -204,7 +196,6 @@ import C from './c';`,
       fileService.set('/app/c.ts', `export default class {}`);
 
       removeUnusedExport({
-        languageService,
         fileService,
         entrypoints: ['/app/main.ts'],
       });
@@ -215,13 +206,12 @@ import C from './c';`,
     });
 
     it('should remove export for function if its not used in some other file', () => {
-      const { languageService, fileService } = setup();
+      const fileService = new MemoryFileService();
       fileService.set('/app/a.ts', `export class A {}`);
       fileService.set('/app/b.ts', `export default class B {}`);
       fileService.set('/app/c.ts', `export default class {}`);
 
       removeUnusedExport({
-        languageService,
         fileService,
         entrypoints: ['/app/main.ts'],
       });
@@ -232,7 +222,7 @@ import C from './c';`,
     });
 
     it('should not remove export if it has a comment to ignore', () => {
-      const { languageService, fileService } = setup();
+      const fileService = new MemoryFileService();
       fileService.set(
         '/app/a.ts',
         `// ts-remove-unused-skip
@@ -240,7 +230,6 @@ import C from './c';`,
       );
 
       removeUnusedExport({
-        languageService,
         fileService,
         entrypoints: ['/app/main.ts'],
       });
@@ -257,7 +246,7 @@ import C from './c';`,
 
   describe('interface declaration', () => {
     it('should not remove export for interface if its used in some other file', () => {
-      const { languageService, fileService } = setup();
+      const fileService = new MemoryFileService();
       fileService.set(
         '/app/main.ts',
         `import { A } from './a';
@@ -267,7 +256,6 @@ import B from './b';`,
       fileService.set('/app/b.ts', `export default interface B { b: 'b' }`);
 
       removeUnusedExport({
-        languageService,
         fileService,
         entrypoints: ['/app/main.ts'],
       });
@@ -283,12 +271,11 @@ import B from './b';`,
     });
 
     it('should remove export for interface if its not used in some other file', () => {
-      const { languageService, fileService } = setup();
+      const fileService = new MemoryFileService();
       fileService.set('/app/a.ts', `export interface A { a: 'a' }`);
       fileService.set('/app/b.ts', `export default interface B { b: 'b' }`);
 
       removeUnusedExport({
-        languageService,
         fileService,
         entrypoints: ['/app/main.ts'],
       });
@@ -298,7 +285,7 @@ import B from './b';`,
     });
 
     it('should not remove export if it has a comment to ignore', () => {
-      const { languageService, fileService } = setup();
+      const fileService = new MemoryFileService();
       fileService.set(
         '/app/a.ts',
         `// ts-remove-unused-skip
@@ -306,7 +293,6 @@ import B from './b';`,
       );
 
       removeUnusedExport({
-        languageService,
         fileService,
         entrypoints: ['/app/main.ts'],
       });
@@ -323,12 +309,11 @@ import B from './b';`,
 
   describe('type alias declaration', () => {
     it('should not remove export for type if its used in some other file', () => {
-      const { languageService, fileService } = setup();
+      const fileService = new MemoryFileService();
       fileService.set('/app/main.ts', `import { A } from './a';`);
       fileService.set('/app/a.ts', `export type A = 'a';`);
 
       removeUnusedExport({
-        languageService,
         fileService,
         entrypoints: ['/app/main.ts'],
       });
@@ -338,11 +323,10 @@ import B from './b';`,
     });
 
     it('should remove export for type if its not used in some other file', () => {
-      const { languageService, fileService } = setup();
+      const fileService = new MemoryFileService();
       fileService.set('/app/b.ts', `export type B = 'b';`);
 
       removeUnusedExport({
-        languageService,
         fileService,
         entrypoints: ['/app/main.ts'],
       });
@@ -353,7 +337,7 @@ import B from './b';`,
     });
 
     it('should not remove export for type if it has a comment to ignore', () => {
-      const { languageService, fileService } = setup();
+      const fileService = new MemoryFileService();
       fileService.set(
         '/app/a.ts',
         `// ts-remove-unused-skip
@@ -361,7 +345,6 @@ import B from './b';`,
       );
 
       removeUnusedExport({
-        languageService,
         fileService,
         entrypoints: ['/app/main.ts'],
       });
@@ -378,7 +361,7 @@ import B from './b';`,
 
   describe('default export of identifier', () => {
     it('should not remove default export for an identifier if its used in some other file', () => {
-      const { languageService, fileService } = setup();
+      const fileService = new MemoryFileService();
 
       fileService.set(
         '/app/main.ts',
@@ -398,7 +381,6 @@ export default B;`,
       );
 
       removeUnusedExport({
-        languageService,
         fileService,
         entrypoints: ['/app/main.ts'],
       });
@@ -416,7 +398,7 @@ export default B;`,
     });
 
     it('should remove default export for an identifier if its not used in some other file', () => {
-      const { languageService, fileService } = setup();
+      const fileService = new MemoryFileService();
 
       fileService.set(
         '/app/a.ts',
@@ -430,7 +412,6 @@ export default B;`,
       );
 
       removeUnusedExport({
-        languageService,
         fileService,
         entrypoints: ['/app/main.ts'],
       });
@@ -440,7 +421,7 @@ export default B;`,
     });
 
     it('should not remove default export for an identifier if it has a comment to ignore', () => {
-      const { languageService, fileService } = setup();
+      const fileService = new MemoryFileService();
 
       fileService.set(
         '/app/a.ts',
@@ -450,7 +431,6 @@ export default B;`,
       );
 
       removeUnusedExport({
-        languageService,
         fileService,
         entrypoints: ['/app/main.ts'],
       });
@@ -467,14 +447,13 @@ export default B;`,
 
   describe('default export of literal', () => {
     it('should not remove default export for a literal if its used in some other file', () => {
-      const { languageService, fileService } = setup();
+      const fileService = new MemoryFileService();
 
       fileService.set('/app/main.ts', `import a from './a';`);
 
       fileService.set('/app/a.ts', `export default 'a';`);
 
       removeUnusedExport({
-        languageService,
         fileService,
         entrypoints: ['/app/main.ts'],
       });
@@ -484,12 +463,11 @@ export default B;`,
     });
 
     it('should remove default export for a literal if its not used in some other file', () => {
-      const { languageService, fileService } = setup();
+      const fileService = new MemoryFileService();
 
       fileService.set('/app/a.ts', `export default a;`);
 
       removeUnusedExport({
-        languageService,
         fileService,
         entrypoints: ['/app/main.ts'],
       });
@@ -499,7 +477,7 @@ export default B;`,
     });
 
     it('should not remove default export for a literal if it has a comment to ignore', () => {
-      const { languageService, fileService } = setup();
+      const fileService = new MemoryFileService();
 
       fileService.set(
         '/app/a.ts',
@@ -508,7 +486,6 @@ export default B;`,
       );
 
       removeUnusedExport({
-        languageService,
         fileService,
         entrypoints: ['/app/main.ts'],
       });
@@ -524,7 +501,7 @@ export default B;`,
 
   describe('export specifier', () => {
     it('should not remove export specifier for an identifier if its used in some other file', () => {
-      const { languageService, fileService } = setup();
+      const fileService = new MemoryFileService();
 
       fileService.set(
         '/app/main.ts',
@@ -544,7 +521,6 @@ export { B };`,
       );
 
       removeUnusedExport({
-        languageService,
         fileService,
         entrypoints: ['/app/main.ts'],
       });
@@ -562,7 +538,7 @@ export { B };`,
     });
 
     it('should remove export specifier for an identifier if its not used in some other file', () => {
-      const { languageService, fileService } = setup();
+      const fileService = new MemoryFileService();
       fileService.set(
         '/app/main.ts',
         `import { remain } from './c';
@@ -595,7 +571,6 @@ export { d, unused, unused2 };`,
       );
 
       removeUnusedExport({
-        languageService,
         fileService,
         entrypoints: ['/app/main.ts'],
       });
@@ -619,7 +594,7 @@ export { d };`,
     });
 
     it('should not remove export specifier for an identifier if it has a comment to ignore', () => {
-      const { languageService, fileService } = setup();
+      const fileService = new MemoryFileService();
 
       fileService.set(
         '/app/a.ts',
@@ -631,7 +606,6 @@ export { d };`,
       );
 
       removeUnusedExport({
-        languageService,
         fileService,
         entrypoints: ['/app/main.ts'],
       });
@@ -650,14 +624,13 @@ export { d };`,
 
   describe('re-exports', () => {
     it('should not remove re-export if its used in some other file', () => {
-      const { languageService, fileService } = setup();
+      const fileService = new MemoryFileService();
 
       fileService.set('/app/main.ts', `import { a } from './a_reexport';`);
       fileService.set('/app/a_reexport.ts', `export { a } from './a';`);
       fileService.set('/app/a.ts', `export const a = 'a';`);
 
       removeUnusedExport({
-        languageService,
         fileService,
         entrypoints: ['/app/main.ts'],
       });
@@ -670,12 +643,11 @@ export { d };`,
     });
 
     it('should remove re-export if its not used in some other file', () => {
-      const { languageService, fileService } = setup();
+      const fileService = new MemoryFileService();
       fileService.set('/app/a_reexport.ts', `export { a } from './a';`);
       fileService.set('/app/a.ts', `export const a = 'a';`);
 
       removeUnusedExport({
-        languageService,
         fileService,
         entrypoints: ['/app/main.ts'],
       });
@@ -685,7 +657,7 @@ export { d };`,
     });
 
     it('should remove specifier if some re-exported specifier is not used in any other file', () => {
-      const { languageService, fileService } = setup();
+      const fileService = new MemoryFileService();
       fileService.set('/app/main.ts', `import { b1 } from './b_reexport'`);
       fileService.set('/app/b_reexport.ts', `export { b1, b2 } from './b';`);
       fileService.set(
@@ -694,7 +666,6 @@ export { d };`,
       );
 
       removeUnusedExport({
-        languageService,
         fileService,
         entrypoints: ['/app/main.ts'],
       });
@@ -707,7 +678,7 @@ export { d };`,
     });
 
     it('should remove nth re-export if its not used in any other file', () => {
-      const { languageService, fileService } = setup();
+      const fileService = new MemoryFileService();
       fileService.set(
         '/app/a_reexport_1.ts',
         `export { a } from './a_reexport_2';`,
@@ -720,7 +691,6 @@ export { d };`,
       fileService.set('/app/a.ts', `export const a = 'a';`);
 
       removeUnusedExport({
-        languageService,
         fileService,
         entrypoints: ['/app/main.ts'],
       });
@@ -731,11 +701,10 @@ export { d };`,
 
   describe('whole re-export', () => {
     it('should remove declaration that not used in some other file via a whole-reexport', () => {
-      const { languageService, fileService } = setup();
+      const fileService = new MemoryFileService();
       fileService.set('/app/a_reexport.ts', `export * from './a';`);
       fileService.set('/app/a.ts', `export const a = 'a';`);
       removeUnusedExport({
-        languageService,
         fileService,
         entrypoints: ['/app/main.ts'],
       });
@@ -745,7 +714,7 @@ export { d };`,
     });
 
     it('should not remove declaration that is used with `import * as name` in some other file via a whole-reexport', () => {
-      const { languageService, fileService } = setup();
+      const fileService = new MemoryFileService();
 
       fileService.set(
         '/app/main.ts',
@@ -756,7 +725,6 @@ a_namespace.a;`,
       fileService.set('/app/a.ts', `export const a = 'a';`);
 
       removeUnusedExport({
-        languageService,
         fileService,
         entrypoints: ['/app/main.ts'],
       });
@@ -768,14 +736,13 @@ a_namespace.a;`,
     });
 
     it('should not remove declaration that is used named imported in some other file via a whole-reexport', () => {
-      const { languageService, fileService } = setup();
+      const fileService = new MemoryFileService();
 
       fileService.set('/app/main.ts', `import { a } from './a_reexport';`);
       fileService.set('/app/a_reexport.ts', `export * from './a';`);
       fileService.set('/app/a.ts', `export const a = 'a';`);
 
       removeUnusedExport({
-        languageService,
         fileService,
         entrypoints: ['/app/main.ts'],
       });
@@ -787,14 +754,13 @@ a_namespace.a;`,
     });
 
     it('should not remove declaration that is used in default import in some other file via a whole-reexport', () => {
-      const { languageService, fileService } = setup();
+      const fileService = new MemoryFileService();
 
       fileService.set('/app/main.ts', `import a from './a_reexport';`);
       fileService.set('/app/a_reexport.ts', `export * from './a';`);
       fileService.set('/app/a.ts', `export default 'a';`);
 
       removeUnusedExport({
-        languageService,
         fileService,
         entrypoints: ['/app/main.ts'],
       });
@@ -808,7 +774,7 @@ a_namespace.a;`,
 
   describe('locally used declaration but not used in any other file', () => {
     it('should remove export keyword of variable if its not used in any other file', () => {
-      const { languageService, fileService } = setup();
+      const fileService = new MemoryFileService();
       fileService.set('/app/main.ts', `import { a } from './a';`);
 
       fileService.set(
@@ -819,7 +785,6 @@ console.log(b);`,
       );
 
       removeUnusedExport({
-        languageService,
         fileService,
         entrypoints: ['/app/main.ts'],
       });
@@ -833,7 +798,7 @@ console.log(b);`,
     });
 
     it('should remove export keyword of class declaration if its not used in any other file', () => {
-      const { languageService, fileService } = setup();
+      const fileService = new MemoryFileService();
       fileService.set('/app/main.ts', `import { a } from './a';`);
 
       fileService.set(
@@ -844,7 +809,6 @@ console.log(B);`,
       );
 
       removeUnusedExport({
-        languageService,
         fileService,
         entrypoints: ['/app/main.ts'],
       });
@@ -858,7 +822,7 @@ console.log(B);`,
     });
 
     it('should remove export keyword of interface declaration if its not used in any other file', () => {
-      const { languageService, fileService } = setup();
+      const fileService = new MemoryFileService();
       fileService.set('/app/main.ts', `import { a } from './a';`);
 
       fileService.set(
@@ -869,7 +833,6 @@ const b: B = {};`,
       );
 
       removeUnusedExport({
-        languageService,
         fileService,
         entrypoints: ['/app/main.ts'],
       });
@@ -884,7 +847,7 @@ const b: B = {};`,
   });
 
   it('should remove export keyword of type alias declaration if its not used in any other file', () => {
-    const { languageService, fileService } = setup();
+    const fileService = new MemoryFileService();
     fileService.set('/app/main.ts', `import { a } from './a';`);
 
     fileService.set(
@@ -895,7 +858,6 @@ const b: B = 'b';`,
     );
 
     removeUnusedExport({
-      languageService,
       fileService,
       entrypoints: ['/app/main.ts'],
     });
@@ -910,7 +872,7 @@ const b: B = 'b';`,
 
   describe('dynamic import', () => {
     it('should not remove export if its used in dynamic import', () => {
-      const { languageService, fileService } = setup();
+      const fileService = new MemoryFileService();
       fileService.set(
         '/app/main.ts',
         `import('./a.js');
@@ -920,7 +882,6 @@ import('./b.js');`,
       fileService.set('/app/b.ts', `export default 'b';`);
 
       removeUnusedExport({
-        languageService,
         fileService,
         entrypoints: ['/app/main.ts'],
       });
@@ -932,7 +893,7 @@ import('./b.js');`,
 
   describe('deleteUnusedFile', () => {
     it('should not remove file if some exports are used in other files', () => {
-      const { languageService, fileService } = setup();
+      const fileService = new MemoryFileService();
       fileService.set(
         '/app/main.ts',
         `import { a } from './a';
@@ -983,7 +944,6 @@ import('./b.js');`,
       );
 
       removeUnusedExport({
-        languageService,
         fileService,
         entrypoints: ['/app/main.ts'],
         deleteUnusedFile: true,
@@ -997,7 +957,7 @@ import('./b.js');`,
     });
 
     it('should remove file if all exports are not used', () => {
-      const { languageService, fileService } = setup();
+      const fileService = new MemoryFileService();
       fileService.set(
         '/app/a.ts',
         `export const a = 'a';
@@ -1007,7 +967,6 @@ import('./b.js');`,
   export interface E {}`,
       );
       removeUnusedExport({
-        languageService,
         fileService,
         entrypoints: ['/app/main.ts'],
         deleteUnusedFile: true,
@@ -1017,12 +976,11 @@ import('./b.js');`,
     });
 
     it('should not remove file if there are some re-exports of all exports', () => {
-      const { languageService, fileService } = setup();
+      const fileService = new MemoryFileService();
       fileService.set('/app/a_reexport.ts', `export * from './a';`);
       fileService.set('/app/a.ts', `export const a = 'a';`);
 
       removeUnusedExport({
-        languageService,
         fileService,
         entrypoints: ['/app/main.ts'],
         deleteUnusedFile: true,
@@ -1032,7 +990,7 @@ import('./b.js');`,
     });
 
     it('should not remove file if some exports are marked with skip comment', () => {
-      const { languageService, fileService } = setup();
+      const fileService = new MemoryFileService();
       fileService.set(
         '/app/a.ts',
         `// ts-remove-unused-skip
@@ -1080,7 +1038,6 @@ import('./b.js');`,
       );
 
       removeUnusedExport({
-        languageService,
         fileService,
         entrypoints: ['/app/main.ts'],
         deleteUnusedFile: true,
@@ -1096,7 +1053,7 @@ import('./b.js');`,
 
   describe('enableCodeFix', () => {
     it('should apply code fix when enableCodeFix is true', () => {
-      const { languageService, fileService } = setup();
+      const fileService = new MemoryFileService();
 
       fileService.set('/app/main.ts', `import { remain } from './a';`);
       fileService.set(
@@ -1107,7 +1064,6 @@ export const remain = 'remain';`,
       );
 
       removeUnusedExport({
-        languageService,
         fileService,
         entrypoints: ['/app/main.ts'],
         enableCodeFix: true,

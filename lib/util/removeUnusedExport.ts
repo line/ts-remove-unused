@@ -625,7 +625,9 @@ const updateContent = ({
     getScriptSnapshot(fileName) {
       return ts.ScriptSnapshot.fromString(fileService.get(fileName));
     },
-    getCurrentDirectory: () => projectRoot,
+    getCurrentDirectory() {
+      return projectRoot;
+    },
     getDefaultLibFileName(options) {
       return ts.getDefaultLibFileName(options);
     },
@@ -719,27 +721,50 @@ const updateContent = ({
 export const removeUnusedExport = ({
   entrypoints,
   fileService,
-  languageService,
   deleteUnusedFile = false,
   enableCodeFix = false,
   editTracker = disabledEditTracker,
-  compilerOptions = {},
+  options = {},
   projectRoot = '.',
 }: {
   entrypoints: string[];
   fileService: FileService;
-  languageService: ts.LanguageService;
   enableCodeFix?: boolean;
   deleteUnusedFile?: boolean;
   editTracker?: EditTracker;
-  compilerOptions?: ts.CompilerOptions;
+  options?: ts.CompilerOptions;
   projectRoot?: string;
 }) => {
-  const program = languageService.getProgram();
+  const compilerHost: ts.CompilerHost = {
+    getSourceFile: (fileName, languageVersion) => {
+      if (!fileService.exists(fileName)) {
+        return undefined;
+      }
 
-  if (!program) {
-    throw new Error('program not found');
-  }
+      return ts.createSourceFile(
+        fileName,
+        fileService.get(fileName),
+        languageVersion,
+      );
+    },
+    getDefaultLibFileName: (options) => ts.getDefaultLibFilePath(options),
+    writeFile: (fileName, content) => {
+      fileService.set(fileName, content);
+    },
+    getCurrentDirectory: () => projectRoot,
+    fileExists: (fileName) => fileService.exists(fileName),
+    readFile: (fileName) => fileService.get(fileName),
+    getCanonicalFileName: (fileName) =>
+      ts.sys.useCaseSensitiveFileNames ? fileName : fileName.toLowerCase(),
+    useCaseSensitiveFileNames: () => true,
+    getNewLine: () => '\n',
+  };
+
+  const program = ts.createProgram(
+    fileService.getFileNames(),
+    options,
+    compilerHost,
+  );
 
   const dependencyGraph = collectImports({
     fileService,
@@ -793,7 +818,7 @@ export const removeUnusedExport = ({
       editTracker,
       deleteUnusedFile,
       enableCodeFix,
-      options: compilerOptions,
+      options: options,
       projectRoot,
     });
 

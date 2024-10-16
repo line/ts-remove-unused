@@ -57,31 +57,6 @@ export const remove = ({
     fileService.set(fileName, system.readFile(fileName) || '');
   }
 
-  const languageService = ts.createLanguageService({
-    getCompilationSettings() {
-      return options;
-    },
-    getScriptFileNames() {
-      return fileService.getFileNames();
-    },
-    getScriptVersion(fileName) {
-      return fileService.getVersion(fileName);
-    },
-    getScriptSnapshot(fileName) {
-      return ts.ScriptSnapshot.fromString(fileService.get(fileName));
-    },
-    getCurrentDirectory: () => projectRoot,
-    getDefaultLibFileName(options) {
-      return ts.getDefaultLibFileName(options);
-    },
-    fileExists(name) {
-      return fileService.exists(name);
-    },
-    readFile(name) {
-      return fileService.get(name);
-    },
-  });
-
   const targets = fileNames.filter(
     (fileName) => !skip.some((regex) => regex.test(fileName)),
   );
@@ -103,11 +78,10 @@ export const remove = ({
   removeUnusedExport({
     fileService,
     entrypoints,
-    languageService,
     deleteUnusedFile: true,
     enableCodeFix: true,
     editTracker,
-    compilerOptions: options,
+    options,
     projectRoot,
   });
 
