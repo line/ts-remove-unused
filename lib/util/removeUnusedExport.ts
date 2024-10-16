@@ -718,22 +718,14 @@ const updateContent = ({
   return result;
 };
 
-export const removeUnusedExport = ({
-  entrypoints,
+const createProgram = ({
   fileService,
-  deleteUnusedFile = false,
-  enableCodeFix = false,
-  editTracker = disabledEditTracker,
-  options = {},
-  projectRoot = '.',
+  options,
+  projectRoot,
 }: {
-  entrypoints: string[];
   fileService: FileService;
-  enableCodeFix?: boolean;
-  deleteUnusedFile?: boolean;
-  editTracker?: EditTracker;
-  options?: ts.CompilerOptions;
-  projectRoot?: string;
+  options: ts.CompilerOptions;
+  projectRoot: string;
 }) => {
   const compilerHost: ts.CompilerHost = {
     getSourceFile: (fileName, languageVersion) => {
@@ -765,6 +757,28 @@ export const removeUnusedExport = ({
     options,
     compilerHost,
   );
+
+  return program;
+};
+
+export const removeUnusedExport = ({
+  entrypoints,
+  fileService,
+  deleteUnusedFile = false,
+  enableCodeFix = false,
+  editTracker = disabledEditTracker,
+  options = {},
+  projectRoot = '.',
+}: {
+  entrypoints: string[];
+  fileService: FileService;
+  enableCodeFix?: boolean;
+  deleteUnusedFile?: boolean;
+  editTracker?: EditTracker;
+  options?: ts.CompilerOptions;
+  projectRoot?: string;
+}) => {
+  const program = createProgram({ fileService, options, projectRoot });
 
   const dependencyGraph = collectImports({
     fileService,
