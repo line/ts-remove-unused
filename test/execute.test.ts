@@ -41,7 +41,7 @@ describe('cli', () => {
     assert.equal(
       stripedOutput.startsWith(`tsconfig using test/fixtures/project/tsconfig.json
 
-Found 4 file(s), skipping 1 file(s)...
+Project has 5 file(s), skipping 1 file(s)...
 `),
       true,
     );

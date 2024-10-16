@@ -57,20 +57,16 @@ export const remove = ({
     fileService.set(fileName, system.readFile(fileName) || '');
   }
 
-  const targets = fileNames.filter(
-    (fileName) => !skip.some((regex) => regex.test(fileName)),
-  );
-
   const entrypoints = fileNames.filter((fileName) =>
     skip.some((regex) => regex.test(fileName)),
   );
 
-  editTracker.setTotal(targets.length);
+  editTracker.setTotal(fileNames.length - entrypoints.length);
 
   logger.write(
     chalk.gray(
-      `Found ${targets.length} file(s), skipping ${
-        fileNames.length - targets.length
+      `Project has ${fileNames.length} file(s), skipping ${
+        entrypoints.length
       } file(s)...\n\n`,
     ),
   );
@@ -91,7 +87,7 @@ export const remove = ({
     logger.write(chalk.gray(`Writing to disk...\n`));
   }
 
-  for (const target of targets) {
+  for (const target of fileNames) {
     if (!fileService.exists(target)) {
       if (mode == 'write') {
         system.deleteFile?.(target);
