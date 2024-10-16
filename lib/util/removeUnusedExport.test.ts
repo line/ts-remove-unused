@@ -1049,6 +1049,51 @@ import('./b.js');`,
       assert.equal(fileService.exists('/app/d.ts'), true);
       assert.equal(fileService.exists('/app/e.ts'), true);
     });
+
+    it('should remove files that are not connected to the graph that starts from entrypoints', () => {
+      const fileService = new MemoryFileService();
+      fileService.set('/app/main.ts', `import { a } from './a';`);
+      fileService.set('/app/a.ts', `export const a = () => 'a';`);
+      fileService.set('/app/b.ts', `import { c } from './c';`);
+      fileService.set('/app/c.ts', `export const c = 'c';`);
+
+      removeUnusedExport({
+        fileService,
+        entrypoints: ['/app/main.ts'],
+        deleteUnusedFile: true,
+      });
+
+      assert.equal(fileService.exists('/app/a.ts'), true);
+      assert.equal(fileService.exists('/app/b.ts'), false);
+      assert.equal(fileService.exists('/app/c.ts'), false);
+    });
+
+    it('should remove files that are unreachable from entrypoints', () => {
+      const fileService = new MemoryFileService();
+      fileService.set('/app/main.ts', `import { a } from './a';`);
+      fileService.set(
+        '/app/a.ts',
+        `import { b } from './b';
+export const a = () => b;`,
+      );
+      fileService.set('/app/b.ts', `export const b = 'b';`);
+      fileService.set(
+        '/app/c.ts',
+        `import { b } from './b';
+export const c = () => b;`,
+      );
+      fileService.set('/app/d.ts', `import { c } from './c';`);
+
+      removeUnusedExport({
+        fileService,
+        entrypoints: ['/app/main.ts'],
+        deleteUnusedFile: true,
+      });
+      assert.equal(fileService.exists('/app/a.ts'), true);
+      assert.equal(fileService.exists('/app/b.ts'), true);
+      assert.equal(fileService.exists('/app/c.ts'), false);
+      assert.equal(fileService.exists('/app/d.ts'), false);
+    });
   });
 
   describe('enableCodeFix', () => {
