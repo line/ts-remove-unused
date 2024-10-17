@@ -4,7 +4,7 @@ import { removeUnusedExport } from './removeUnusedExport.js';
 import { MemoryFileService } from './MemoryFileService.js';
 
 describe('removeUnusedExport', () => {
-  describe('dependency graph special cases', () => {
+  describe('deleteUnusedFile is false', () => {
     it('should not remove export if its used in some other file even if its not reachable from entrypoint', () => {
       const fileService = new MemoryFileService();
       fileService.set('/app/a.ts', `export const a = 'a';`);
@@ -16,6 +16,16 @@ describe('removeUnusedExport', () => {
       });
 
       assert.equal(fileService.get('/app/a.ts'), `export const a = 'a';`);
+    });
+
+    it('should only remove the export keyword', () => {
+      const fileService = new MemoryFileService();
+      fileService.set('/app/a.ts', `export const a = 'a';`);
+      removeUnusedExport({
+        fileService,
+        entrypoints: ['/app/main.ts'],
+      });
+      assert.equal(fileService.get('/app/a.ts'), `const a = 'a';`);
     });
   });
 
