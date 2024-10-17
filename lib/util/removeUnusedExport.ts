@@ -561,14 +561,14 @@ const getNecessaryFiles = ({
   dependencyGraph: DependencyGraph;
   files: string[];
 }) => {
-  const result = new Set<string>();
-  const stack = [targetFile];
-
   // when the target file is not in the dependency graph reachable from the entrypoints, we return all files that are not included in the dependency graph.
   // this ensures that the result of removeUnusedExports is correct when deleteUnusedFile is false.
   if (!dependencyGraph.vertexes.has(targetFile)) {
     return new Set(files.filter((file) => !dependencyGraph.vertexes.has(file)));
   }
+
+  const result = new Set<string>();
+  const stack = [targetFile];
 
   while (stack.length > 0) {
     const file = stack.pop();
@@ -879,6 +879,11 @@ export const removeUnusedExport = ({
       case 'delete': {
         editTracker.delete(file);
         fileService.delete(file);
+
+        if (vertex) {
+          dependencyGraph.deleteVertex(file);
+          stack.push(...Array.from(vertex.to));
+        }
         break;
       }
       case 'edit': {
@@ -890,6 +895,10 @@ export const removeUnusedExport = ({
         }
         editTracker.end(file);
         fileService.set(file, result.content);
+
+        if (vertex && result.removedExports.length > 0) {
+          stack.push(...Array.from(vertex.to));
+        }
         break;
       }
     }
