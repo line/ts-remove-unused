@@ -2,7 +2,6 @@ import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import { removeUnusedExport } from './removeUnusedExport.js';
 import { MemoryFileService } from './MemoryFileService.js';
-import { remove } from '../remove.js';
 
 describe('removeUnusedExport', () => {
   describe('variable statement', () => {
