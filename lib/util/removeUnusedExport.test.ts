@@ -2,6 +2,7 @@ import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import { removeUnusedExport } from './removeUnusedExport.js';
 import { MemoryFileService } from './MemoryFileService.js';
+import { remove } from '../remove.js';
 
 describe('removeUnusedExport', () => {
   describe('variable statement', () => {
@@ -1322,6 +1323,27 @@ export const b = () => c;`,
       assert.equal(fileService.exists('/app/a.ts'), true);
       assert.equal(fileService.exists('/app/b.ts'), false);
       assert.equal(fileService.exists('/app/c.ts'), false);
+    });
+
+    it('should correctly handle files that rely on files that are part of the dependency graph but are not reachable from the entrypoint', () => {
+      const fileService = new MemoryFileService();
+      fileService.set('/app/main.ts', `import { a } from './a';`);
+      fileService.set(
+        '/app/a.ts',
+        `export const a = 'a';
+export const a2 = 'a2';`,
+      );
+      fileService.set('/app/b.ts', `import { a2 } from './a';`);
+
+      removeUnusedExport({
+        fileService,
+        entrypoints: ['/app/main.ts'],
+        deleteUnusedFile: true,
+        enableCodeFix: true,
+      });
+
+      assert.equal(fileService.get('/app/a.ts'), `export const a = 'a';\n`);
+      assert.equal(fileService.exists('/app/b.ts'), false);
     });
   });
 });
