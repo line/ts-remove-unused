@@ -555,12 +555,20 @@ const disabledEditTracker: EditTracker = {
 const getNecessaryFiles = ({
   targetFile,
   dependencyGraph,
+  files,
 }: {
   targetFile: string;
   dependencyGraph: DependencyGraph;
+  files: string[];
 }) => {
   const result = new Set<string>();
   const stack = [targetFile];
+
+  // when the target file is not in the dependency graph reachable from the entrypoints, we return all files that are not included in the dependency graph.
+  // this ensures that the result of removeUnusedExports is correct when deleteUnusedFile is false.
+  if (!dependencyGraph.vertexes.has(targetFile)) {
+    return new Set(files.filter((file) => !dependencyGraph.vertexes.has(file)));
+  }
 
   while (stack.length > 0) {
     const file = stack.pop();
@@ -574,6 +582,7 @@ const getNecessaryFiles = ({
     const vertex = dependencyGraph.vertexes.get(file);
 
     if (!vertex) {
+      // should not happen
       continue;
     }
 
@@ -822,6 +831,7 @@ export const removeUnusedExport = ({
     const necessaryFiles = getNecessaryFiles({
       targetFile: file,
       dependencyGraph,
+      files: fileService.getFileNames(),
     });
 
     const files = Array.from(necessaryFiles).reduce(
