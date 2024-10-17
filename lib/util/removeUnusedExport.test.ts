@@ -1344,5 +1344,31 @@ export const a2 = 'a2';`,
       assert.equal(fileService.get('/app/a.ts'), `export const a = 'a';\n`);
       assert.equal(fileService.exists('/app/b.ts'), false);
     });
+
+    it('should not remove exports that are not reachable from the entrypoint but is used in some file marked with skip', () => {
+      const fileService = new MemoryFileService();
+      fileService.set(
+        '/app/a.ts',
+        `import { b } from './b';
+// ts-remove-unused-skip
+export const a = () => b;`,
+      );
+      fileService.set('/app/b.ts', `export const b = 'b';`);
+
+      removeUnusedExport({
+        fileService,
+        entrypoints: ['/app/main.ts'],
+        deleteUnusedFile: true,
+        enableCodeFix: true,
+      });
+
+      assert.equal(
+        fileService.get('/app/a.ts'),
+        `import { b } from './b';
+// ts-remove-unused-skip
+export const a = () => b;`,
+      );
+      assert.equal(fileService.get('/app/b.ts'), `export const b = 'b';`);
+    });
   });
 });
