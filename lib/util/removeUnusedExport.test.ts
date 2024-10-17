@@ -1209,6 +1209,27 @@ export const c = () => b;`,
 
         assert.equal(fileService.exists('/app/a.ts'), false);
       });
+
+      it('should not remove files that have a comment to skip', () => {
+        const fileService = new MemoryFileService();
+        fileService.set(
+          '/app/a.ts',
+          `// ts-remove-unused-skip
+export const a = 'a';`,
+        );
+
+        removeUnusedExport({
+          fileService,
+          entrypoints: ['/app/main.ts'],
+          deleteUnusedFile: true,
+        });
+
+        assert.equal(
+          fileService.get('/app/a.ts'),
+          `// ts-remove-unused-skip
+export const a = 'a';`,
+        );
+      });
     });
 
     describe("when the export is in a file that's reachable from the entrypoint", () => {
