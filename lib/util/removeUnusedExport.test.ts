@@ -1167,6 +1167,10 @@ export const c = () => b;`,
           fileService.set('/app/a.ts', `export const a = 'a';`);
           fileService.set('/app/b.ts', `import { a } from './a';`);
 
+          // we have another set of files to make sure that it works regardless of the order of the files
+          fileService.set('/app/c.ts', `import { d } from './d';`);
+          fileService.set('/app/d.ts', `export const d = 'd';`);
+
           removeUnusedExport({
             fileService,
             entrypoints: ['/app/main.ts'],
@@ -1175,6 +1179,8 @@ export const c = () => b;`,
 
           assert.equal(fileService.exists('/app/a.ts'), false);
           assert.equal(fileService.exists('/app/b.ts'), false);
+          assert.equal(fileService.exists('/app/c.ts'), false);
+          assert.equal(fileService.exists('/app/d.ts'), false);
         });
 
         it('should remove files that do not form another dependency graph', () => {
