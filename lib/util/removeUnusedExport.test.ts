@@ -5,27 +5,67 @@ import { MemoryFileService } from './MemoryFileService.js';
 
 describe('removeUnusedExport', () => {
   describe('deleteUnusedFile is false', () => {
-    it('should not remove export if its used in some other file even if its not reachable from entrypoint', () => {
-      const fileService = new MemoryFileService();
-      fileService.set('/app/a.ts', `export const a = 'a';`);
-      fileService.set('/app/b.ts', `import { a } from './a';`);
+    describe('when the export is in a file that is not reachable from the entrypoint', () => {
+      it('should not remove export if its used in some other file', () => {
+        const fileService = new MemoryFileService();
+        fileService.set('/app/a.ts', `export const a = 'a';`);
+        fileService.set('/app/b.ts', `import { a } from './a';`);
 
-      removeUnusedExport({
-        fileService,
-        entrypoints: ['/app/main.ts'],
+        removeUnusedExport({
+          fileService,
+          entrypoints: ['/app/main.ts'],
+        });
+
+        assert.equal(fileService.get('/app/a.ts'), `export const a = 'a';`);
       });
 
-      assert.equal(fileService.get('/app/a.ts'), `export const a = 'a';`);
+      it('should correctly remove export if its not used', () => {
+        const fileService = new MemoryFileService();
+        fileService.set('/app/a.ts', `export const a = 'a';`);
+
+        removeUnusedExport({
+          fileService,
+          entrypoints: ['/app/main.ts'],
+        });
+
+        assert.equal(fileService.get('/app/a.ts'), `const a = 'a';`);
+      });
     });
 
-    it('should only remove the export keyword', () => {
-      const fileService = new MemoryFileService();
-      fileService.set('/app/a.ts', `export const a = 'a';`);
-      removeUnusedExport({
-        fileService,
-        entrypoints: ['/app/main.ts'],
+    describe("when the export is in a file that's reachable from the entrypoint", () => {
+      it('should not remove export if its used in some other file', () => {
+        const fileService = new MemoryFileService();
+        fileService.set('/app/main.ts', `import { a } from './a';`);
+        fileService.set('/app/a.ts', `export const a = 'a';`);
+
+        removeUnusedExport({
+          fileService,
+          entrypoints: ['/app/main.ts'],
+        });
+
+        assert.equal(fileService.get('/app/a.ts'), `export const a = 'a';`);
       });
-      assert.equal(fileService.get('/app/a.ts'), `const a = 'a';`);
+
+      it('should correctly remove export if its not used', () => {
+        const fileService = new MemoryFileService();
+        fileService.set('/app/main.ts', `import { a } from './a';`);
+        fileService.set(
+          '/app/a.ts',
+          `export const a = 'a';
+export const a2 = 'a2';`,
+        );
+
+        removeUnusedExport({
+          fileService,
+          entrypoints: ['/app/main.ts'],
+        });
+
+        assert.equal(
+          fileService.get('/app/a.ts'),
+          `export const a = 'a';
+const a2 = 'a2';`,
+        );
+      });
     });
   });
 
