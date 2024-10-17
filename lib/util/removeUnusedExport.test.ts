@@ -956,7 +956,7 @@ import('./b.js');`,
     });
   });
 
-  describe('deleteUnusedFile', () => {
+  describe('deleteUnusedFile is true', () => {
     it('should not remove file if some exports are used in other files', () => {
       const fileService = new MemoryFileService();
       fileService.set(
@@ -1158,6 +1158,76 @@ export const c = () => b;`,
       assert.equal(fileService.exists('/app/b.ts'), true);
       assert.equal(fileService.exists('/app/c.ts'), false);
       assert.equal(fileService.exists('/app/d.ts'), false);
+    });
+
+    describe('when the export is in a file that is not reachable from the entrypoint', () => {
+      describe('when the export is in a file that is not reachable from the entrypoint', () => {
+        it('should remove all files that are not reachable no matter if they form another dependency graph', () => {
+          const fileService = new MemoryFileService();
+          fileService.set('/app/a.ts', `export const a = 'a';`);
+          fileService.set('/app/b.ts', `import { a } from './a';`);
+
+          removeUnusedExport({
+            fileService,
+            entrypoints: ['/app/main.ts'],
+            deleteUnusedFile: true,
+          });
+
+          assert.equal(fileService.exists('/app/a.ts'), false);
+          assert.equal(fileService.exists('/app/b.ts'), false);
+        });
+
+        it('should remove files that do not form another dependency graph', () => {
+          const fileService = new MemoryFileService();
+          fileService.set('/app/a.ts', `export const a = 'a';`);
+
+          removeUnusedExport({
+            fileService,
+            entrypoints: ['/app/main.ts'],
+            deleteUnusedFile: true,
+          });
+
+          assert.equal(fileService.exists('/app/a.ts'), false);
+        });
+      });
+
+      describe("when the export is in a file that's reachable from the entrypoint", () => {
+        it('should not remove export if its used in some other file', () => {
+          const fileService = new MemoryFileService();
+          fileService.set('/app/main.ts', `import { a } from './a';`);
+          fileService.set('/app/a.ts', `export const a = 'a';`);
+
+          removeUnusedExport({
+            fileService,
+            entrypoints: ['/app/main.ts'],
+            deleteUnusedFile: true,
+          });
+
+          assert.equal(fileService.get('/app/a.ts'), `export const a = 'a';`);
+        });
+
+        it('should correctly remove export if its not used', () => {
+          const fileService = new MemoryFileService();
+          fileService.set('/app/main.ts', `import { a } from './a';`);
+          fileService.set(
+            '/app/a.ts',
+            `export const a = 'a';
+  export const a2 = 'a2';`,
+          );
+
+          removeUnusedExport({
+            fileService,
+            entrypoints: ['/app/main.ts'],
+            deleteUnusedFile: true,
+          });
+
+          assert.equal(
+            fileService.get('/app/a.ts'),
+            `export const a = 'a';
+  const a2 = 'a2';`,
+          );
+        });
+      });
     });
   });
 
