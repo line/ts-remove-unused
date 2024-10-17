@@ -754,7 +754,7 @@ const createProgram = ({
         languageVersion,
       );
     },
-    getDefaultLibFileName: (options) => ts.getDefaultLibFilePath(options),
+    getDefaultLibFileName: (o) => ts.getDefaultLibFilePath(o),
     writeFile: (fileName, content) => {
       fileService.set(fileName, content);
     },
