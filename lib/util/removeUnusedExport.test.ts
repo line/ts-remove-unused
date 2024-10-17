@@ -1370,5 +1370,40 @@ export const a = () => b;`,
       );
       assert.equal(fileService.get('/app/b.ts'), `export const b = 'b';`);
     });
+
+    it.only('should keep the entrypoint files untouched', () => {
+      const fileService = new MemoryFileService();
+      fileService.set(
+        '/app/main.ts',
+        `import { a } from './a';
+export const d = 'd';
+export const main = 'main';`,
+      );
+      fileService.set(
+        '/app/a.ts',
+        `import { d } from './main';
+export const a = () => d;
+export const a2 = 'a2';`,
+      );
+
+      removeUnusedExport({
+        fileService,
+        entrypoints: ['/app/main.ts'],
+        deleteUnusedFile: true,
+        enableCodeFix: true,
+      });
+
+      assert.equal(
+        fileService.get('/app/main.ts'),
+        `import { a } from './a';
+export const d = 'd';
+export const main = 'main';`,
+      );
+      assert.equal(
+        fileService.get('/app/a.ts'),
+        `import { d } from './main';
+export const a = () => d;\n`,
+      );
+    });
   });
 });
