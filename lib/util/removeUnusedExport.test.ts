@@ -1371,7 +1371,7 @@ export const a = () => b;`,
       assert.equal(fileService.get('/app/b.ts'), `export const b = 'b';`);
     });
 
-    it.only('should keep the entrypoint files untouched', () => {
+    it('should keep the entrypoint files untouched', () => {
       const fileService = new MemoryFileService();
       fileService.set(
         '/app/main.ts',

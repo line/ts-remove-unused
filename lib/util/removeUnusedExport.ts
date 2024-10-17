@@ -882,7 +882,9 @@ export const removeUnusedExport = ({
 
         if (vertex) {
           dependencyGraph.deleteVertex(file);
-          stack.push(...Array.from(vertex.to));
+          stack.push(
+            ...Array.from(vertex.to).filter((f) => !entrypoints.includes(f)),
+          );
         }
         break;
       }
@@ -897,7 +899,9 @@ export const removeUnusedExport = ({
         fileService.set(file, result.content);
 
         if (vertex && result.removedExports.length > 0) {
-          stack.push(...Array.from(vertex.to));
+          stack.push(
+            ...Array.from(vertex.to).filter((f) => !entrypoints.includes(f)),
+          );
         }
         break;
       }
