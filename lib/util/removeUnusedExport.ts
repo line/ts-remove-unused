@@ -801,17 +801,19 @@ export const removeUnusedExport = ({
     entrypoints,
   });
 
-  const stack: string[] = [];
-
   let filesOutsideOfGraphHasSkipComment = false;
+
+  const initialFiles: { file: string; depth: number }[] = [];
 
   for (const file of fileService.getFileNames()) {
     if (entrypoints.includes(file)) {
       continue;
     }
 
-    if (dependencyGraph.vertexes.has(file)) {
-      stack.push(file);
+    const vertex = dependencyGraph.vertexes.get(file);
+
+    if (vertex) {
+      initialFiles.push({ file, depth: vertex.data.depth });
       continue;
     }
 
@@ -827,8 +829,13 @@ export const removeUnusedExport = ({
       continue;
     }
 
-    stack.push(file);
+    initialFiles.push({ file, depth: -1 });
   }
+
+  // sort initial files by depth so that we process the files closest to the entrypoints first
+  initialFiles.sort((a, b) => b.depth - a.depth);
+
+  const stack = initialFiles.map((v) => v.file);
 
   while (stack.length > 0) {
     const file = stack.pop();
@@ -837,13 +844,12 @@ export const removeUnusedExport = ({
       break;
     }
 
-    const sourceFile = program.getSourceFile(file);
-
-    if (!sourceFile) {
+    // if the file is not in the file service, it means it has been deleted in a previous iteration
+    if (!fileService.exists(file)) {
       continue;
     }
 
-    editTracker.start(file, sourceFile?.getFullText() || '');
+    editTracker.start(file, fileService.get(file));
 
     const vertex = dependencyGraph.vertexes.get(file);
 
