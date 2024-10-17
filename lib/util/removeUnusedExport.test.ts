@@ -1274,4 +1274,33 @@ export const remain = 'remain';`,
       );
     });
   });
+
+  describe('complex scenarios', () => {
+    it('should recursively remove files', () => {
+      const fileService = new MemoryFileService();
+      fileService.set('/app/main.ts', `import { a2 } from './a';`);
+      fileService.set(
+        '/app/a.ts',
+        `import { b } from './b';
+export const a = () => b;
+export const a2 = 'a2';`,
+      );
+      fileService.set(
+        '/app/b.ts',
+        `import { c } from './c';
+export const b = () => c;`,
+      );
+      fileService.set('/app/c.ts', `export const c = 'c';`);
+
+      removeUnusedExport({
+        fileService,
+        entrypoints: ['/app/main.ts'],
+        deleteUnusedFile: true,
+        enableCodeFix: true,
+      });
+      assert.equal(fileService.exists('/app/a.ts'), true);
+      assert.equal(fileService.exists('/app/b.ts'), false);
+      assert.equal(fileService.exists('/app/c.ts'), false);
+    });
+  });
 });
