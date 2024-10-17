@@ -1040,8 +1040,9 @@ const a2 = 'a2';`,
       assert.equal(fileService.exists('/app/a.ts'), false);
     });
 
-    it('should not remove file if there are some re-exports of all exports', () => {
+    it('should not remove re-exports of all exports file if its used', () => {
       const fileService = new MemoryFileService();
+      fileService.set('/app/main.ts', `import { a } from './a_reexport';`);
       fileService.set('/app/a_reexport.ts', `export * from './a';`);
       fileService.set('/app/a.ts', `export const a = 'a';`);
 
@@ -1052,6 +1053,20 @@ const a2 = 'a2';`,
       });
 
       assert.equal(fileService.exists('/app/a_reexport.ts'), true);
+    });
+
+    it('should remove re-exports of all exports file if its not used', () => {
+      const fileService = new MemoryFileService();
+      fileService.set('/app/a_reexport.ts', `export * from './a';`);
+      fileService.set('/app/a.ts', `export const a = 'a';`);
+
+      removeUnusedExport({
+        fileService,
+        entrypoints: ['/app/main.ts'],
+        deleteUnusedFile: true,
+      });
+
+      assert.equal(fileService.exists('/app/a_reexport.ts'), false);
     });
 
     it('should not remove file if some exports are marked with skip comment', () => {

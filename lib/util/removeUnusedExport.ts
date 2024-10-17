@@ -646,8 +646,8 @@ const processFile = ({
     getCurrentDirectory() {
       return projectRoot;
     },
-    getDefaultLibFileName(options) {
-      return ts.getDefaultLibFileName(options);
+    getDefaultLibFileName(o) {
+      return ts.getDefaultLibFileName(o);
     },
     fileExists(name) {
       return fileService.exists(name);
@@ -801,10 +801,34 @@ export const removeUnusedExport = ({
     entrypoints,
   });
 
-  // todo: push to stack after updating content
-  const stack = fileService
-    .getFileNames()
-    .filter((item) => !entrypoints.includes(item));
+  const stack: string[] = [];
+
+  let filesOutsideOfGraphHasSkipComment = false;
+
+  for (const file of fileService.getFileNames()) {
+    if (entrypoints.includes(file)) {
+      continue;
+    }
+
+    if (dependencyGraph.vertexes.has(file)) {
+      stack.push(file);
+      continue;
+    }
+
+    if (fileService.get(file).includes(IGNORE_COMMENT)) {
+      filesOutsideOfGraphHasSkipComment = true;
+    }
+
+    if (deleteUnusedFile && !filesOutsideOfGraphHasSkipComment) {
+      editTracker.start(file, fileService.get(file));
+      editTracker.delete(file);
+      fileService.delete(file);
+
+      continue;
+    }
+
+    stack.push(file);
+  }
 
   while (stack.length > 0) {
     const file = stack.pop();
