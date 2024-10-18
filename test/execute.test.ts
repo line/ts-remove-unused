@@ -1,7 +1,7 @@
 import { dirname, resolve } from 'node:path';
 import { remove } from '../lib/remove.js';
 import { fileURLToPath } from 'node:url';
-import { describe, it } from 'node:test';
+import { before, describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import { stdout } from 'node:process';
 import ts from 'typescript';
@@ -12,7 +12,14 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const LOG = !!process.env.LOG;
 
 describe('cli', () => {
-  it('should execute', () => {
+  before(() => {
+    globalThis.__INTERNAL_WORKER_URL__ = new URL(
+      '../dist/worker.js',
+      import.meta.url,
+    ).href;
+  });
+
+  it('should execute', async () => {
     let output = '';
     const logger = {
       write: (text: string) => {
@@ -24,7 +31,7 @@ describe('cli', () => {
       isTTY: false as const,
     };
 
-    remove({
+    await remove({
       configPath: resolve(__dirname, 'fixtures/project/tsconfig.json'),
       skip: [/main.ts/],
       projectRoot: resolve(__dirname, 'fixtures/project'),

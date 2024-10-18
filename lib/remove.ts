@@ -1,4 +1,5 @@
 import ts from 'typescript';
+import Tinypool from 'tinypool';
 import { MemoryFileService } from './util/MemoryFileService.js';
 import { removeUnusedExport } from './util/removeUnusedExport.js';
 import chalk from 'chalk';
@@ -20,7 +21,7 @@ const createNodeJsLogger = (): Logger =>
         isTTY: false,
       };
 
-export const remove = ({
+export const remove = async ({
   configPath,
   skip,
   projectRoot,
@@ -35,6 +36,8 @@ export const remove = ({
   system?: ts.System;
   logger?: Logger;
 }) => {
+  const pool = new Tinypool();
+
   const editTracker = new CliEditTracker(logger, mode, projectRoot);
   const { config, error } = ts.readConfigFile(configPath, system.readFile);
 
@@ -71,7 +74,7 @@ export const remove = ({
     ),
   );
 
-  removeUnusedExport({
+  await removeUnusedExport({
     fileService,
     entrypoints,
     deleteUnusedFile: true,
@@ -79,7 +82,9 @@ export const remove = ({
     editTracker,
     options,
     projectRoot,
+    pool,
   });
+  await pool.destroy();
 
   editTracker.clearProgressOutput();
 

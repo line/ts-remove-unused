@@ -11,6 +11,7 @@ import { getFileFromModuleSpecifierText } from './getFileFromModuleSpecifierText
 import { DependencyGraph } from './DependencyGraph.js';
 import { collectImports } from './collectImports.js';
 import { MemoryFileService } from './MemoryFileService.js';
+import type Tinypool from 'tinypool';
 
 const findFirstNodeOfKind = (root: ts.Node, kind: ts.SyntaxKind) => {
   let result: ts.Node | undefined;
@@ -552,6 +553,11 @@ const disabledEditTracker: EditTracker = {
   removeExport: () => {},
 };
 
+declare global {
+  // eslint-disable-next-line no-var
+  var __INTERNAL_WORKER_URL__: string | undefined;
+}
+
 const getNecessaryFiles = ({
   targetFile,
   dependencyGraph,
@@ -606,7 +612,8 @@ const getNecessaryFiles = ({
   return result;
 };
 
-const processFile = ({
+// for use in worker
+export const processFile = ({
   file,
   files,
   deleteUnusedFile,
@@ -764,7 +771,10 @@ const createProgram = ({
   return program;
 };
 
-export const removeUnusedExport = ({
+// the default worker url is relative to the output directory
+const defaultWorkerUrl = new URL('./worker.js', import.meta.url).href;
+
+export const removeUnusedExport = async ({
   entrypoints,
   fileService,
   deleteUnusedFile = false,
@@ -772,6 +782,7 @@ export const removeUnusedExport = ({
   editTracker = disabledEditTracker,
   options = {},
   projectRoot = '.',
+  pool,
 }: {
   entrypoints: string[];
   fileService: FileService;
@@ -780,7 +791,16 @@ export const removeUnusedExport = ({
   editTracker?: EditTracker;
   options?: ts.CompilerOptions;
   projectRoot?: string;
+  pool: Tinypool;
 }) => {
+  const run = (
+    arg: Parameters<typeof processFile>[0],
+  ): Promise<ReturnType<typeof processFile>> =>
+    pool.run(arg, {
+      filename: globalThis.__INTERNAL_WORKER_URL__ || defaultWorkerUrl,
+      name: 'processFile',
+    });
+
   const program = createProgram({ fileService, options, projectRoot });
 
   const dependencyGraph = collectImports({
@@ -825,16 +845,10 @@ export const removeUnusedExport = ({
 
   const stack = initialFiles.map((v) => v.file);
 
-  while (stack.length > 0) {
-    const file = stack.pop();
-
-    if (!file) {
-      break;
-    }
-
+  const task = async (file: string) => {
     // if the file is not in the file service, it means it has been deleted in a previous iteration
     if (!fileService.exists(file)) {
-      continue;
+      return;
     }
 
     editTracker.start(file, fileService.get(file));
@@ -843,7 +857,7 @@ export const removeUnusedExport = ({
 
     if (vertex && vertex.data.fromDynamic.size > 0) {
       editTracker.end(file);
-      continue;
+      return;
     }
 
     const necessaryFiles = getNecessaryFiles({
@@ -860,7 +874,7 @@ export const removeUnusedExport = ({
       {} as { [fileName: string]: string },
     );
 
-    const result = processFile({
+    const result = await run({
       file,
       files,
       deleteUnusedFile,
@@ -900,5 +914,29 @@ export const removeUnusedExport = ({
         break;
       }
     }
-  }
+  };
+
+  const processTasks = () => {
+    const promises: Promise<unknown>[] = [];
+
+    while (stack.length > 0) {
+      const file = stack.pop();
+
+      if (!file) {
+        break;
+      }
+
+      promises.push(task(file));
+    }
+
+    return Promise.all(promises).then((): Promise<void> | void => {
+      if (stack.length === 0) {
+        return;
+      }
+
+      return processTasks();
+    });
+  };
+
+  await processTasks();
 };
