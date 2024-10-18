@@ -657,18 +657,6 @@ const processFile = ({
     },
   });
 
-  const program = languageService.getProgram();
-
-  if (!program) {
-    throw new Error('program not found');
-  }
-
-  const sourceFile = program.getSourceFile(file);
-
-  if (!sourceFile) {
-    throw new Error('source file not found');
-  }
-
   let content = fileService.get(file);
   let isUsed = false;
 
