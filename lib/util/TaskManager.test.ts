@@ -16,4 +16,19 @@ describe('TaskManager', () => {
 
     assert.equal(result, 'a\nb\nc\n');
   });
+
+  it('should execute tasks that were added after the execution has started', async () => {
+    let result = '';
+
+    const taskManager = new TaskManager(async (c) => {
+      if (c.file === 'a') {
+        c.add('c');
+      }
+      result += `${c.file}\n`;
+    });
+
+    taskManager.execute(['a', 'b']);
+
+    assert.equal(result, 'a\nb\nc\n');
+  });
 });
