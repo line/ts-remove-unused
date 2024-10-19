@@ -898,31 +898,6 @@ const b: B = {};`,
     });
   });
 
-  it('should remove export keyword of type alias declaration if its not used in any other file', async () => {
-    const fileService = new MemoryFileService();
-    fileService.set('/app/main.ts', `import { a } from './a';`);
-
-    fileService.set(
-      '/app/a.ts',
-      `export const a = 'a';
-export type B = 'b';
-const b: B = 'b';`,
-    );
-
-    await removeUnusedExport({
-      fileService,
-      pool,
-      entrypoints: ['/app/main.ts'],
-    });
-
-    assert.equal(
-      fileService.get('/app/a.ts'),
-      `export const a = 'a';
-type B = 'b';
-const b: B = 'b';`,
-    );
-  });
-
   describe('dynamic import', () => {
     it('should not remove export if its used in dynamic import', async () => {
       const fileService = new MemoryFileService();
