@@ -844,98 +844,95 @@ export const removeUnusedExport = async ({
   // sort initial files by depth so that we process the files closest to the entrypoints first
   initialFiles.sort((a, b) => a.depth - b.depth);
 
-  const taskManager = new TaskManager(
-    initialFiles.map((v) => v.file),
-    async (c) => {
-      // if the file is not in the file service, it means it has been deleted in a previous iteration
-      if (!fileService.exists(c.file)) {
-        return;
-      }
+  const taskManager = new TaskManager(async (c) => {
+    // if the file is not in the file service, it means it has been deleted in a previous iteration
+    if (!fileService.exists(c.file)) {
+      return;
+    }
 
-      const vertex = dependencyGraph.vertexes.get(c.file);
+    const vertex = dependencyGraph.vertexes.get(c.file);
 
-      if (vertex && vertex.data.fromDynamic.size > 0) {
-        await Promise.resolve();
-
-        if (c.signal.aborted) {
-          return;
-        }
-
-        editTracker.start(c.file, fileService.get(c.file));
-        editTracker.end(c.file);
-        return;
-      }
-
-      const necessaryFiles = getNecessaryFiles({
-        targetFile: c.file,
-        dependencyGraph,
-        files: fileService.getFileNames(),
-      });
-
-      const files = Array.from(necessaryFiles).reduce(
-        (acc, cur) => ({
-          ...acc,
-          [cur]: fileService.get(cur),
-        }),
-        {} as { [fileName: string]: string },
-      );
-
+    if (vertex && vertex.data.fromDynamic.size > 0) {
       await Promise.resolve();
 
       if (c.signal.aborted) {
         return;
       }
 
-      const result = await processFileInPool(pool, {
-        file: c.file,
-        files,
-        deleteUnusedFile,
-        enableCodeFix,
-        options,
-        projectRoot,
-      });
+      editTracker.start(c.file, fileService.get(c.file));
+      editTracker.end(c.file);
+      return;
+    }
 
-      if (c.signal.aborted) {
-        return;
-      }
+    const necessaryFiles = getNecessaryFiles({
+      targetFile: c.file,
+      dependencyGraph,
+      files: fileService.getFileNames(),
+    });
 
-      switch (result.operation) {
-        case 'delete': {
-          editTracker.start(c.file, fileService.get(c.file));
-          editTracker.delete(c.file);
-          fileService.delete(c.file);
+    const files = Array.from(necessaryFiles).reduce(
+      (acc, cur) => ({
+        ...acc,
+        [cur]: fileService.get(cur),
+      }),
+      {} as { [fileName: string]: string },
+    );
 
-          if (vertex) {
-            dependencyGraph.deleteVertex(c.file);
-            c.add(
-              ...Array.from(vertex.to).filter((f) => !entrypoints.includes(f)),
-            );
-          }
-          break;
+    await Promise.resolve();
+
+    if (c.signal.aborted) {
+      return;
+    }
+
+    const result = await processFileInPool(pool, {
+      file: c.file,
+      files,
+      deleteUnusedFile,
+      enableCodeFix,
+      options,
+      projectRoot,
+    });
+
+    if (c.signal.aborted) {
+      return;
+    }
+
+    switch (result.operation) {
+      case 'delete': {
+        editTracker.start(c.file, fileService.get(c.file));
+        editTracker.delete(c.file);
+        fileService.delete(c.file);
+
+        if (vertex) {
+          dependencyGraph.deleteVertex(c.file);
+          c.add(
+            ...Array.from(vertex.to).filter((f) => !entrypoints.includes(f)),
+          );
         }
-        case 'edit': {
-          editTracker.start(c.file, fileService.get(c.file));
-          for (const item of result.removedExports) {
-            editTracker.removeExport(item.fileName, {
-              code: item.code,
-              position: item.position,
-            });
-          }
-          editTracker.end(c.file);
-          fileService.set(c.file, result.content);
-
-          if (vertex && result.removedExports.length > 0) {
-            c.add(
-              ...Array.from(vertex.to).filter((f) => !entrypoints.includes(f)),
-            );
-          }
-          break;
-        }
+        break;
       }
-    },
-  );
+      case 'edit': {
+        editTracker.start(c.file, fileService.get(c.file));
+        for (const item of result.removedExports) {
+          editTracker.removeExport(item.fileName, {
+            code: item.code,
+            position: item.position,
+          });
+        }
+        editTracker.end(c.file);
+        fileService.set(c.file, result.content);
 
-  await taskManager.execute();
+        if (vertex && result.removedExports.length > 0) {
+          c.add(
+            ...Array.from(vertex.to).filter((f) => !entrypoints.includes(f)),
+          );
+        }
+        break;
+      }
+    }
+  });
+
+  await taskManager.execute(initialFiles.map((v) => v.file));
 };
 
 type TaskHandler = ({
@@ -960,9 +957,8 @@ class TaskManager {
   #queue: string[] = [];
   #ongoing: Task[] = [];
 
-  constructor(initialFiles: string[], handler: TaskHandler) {
+  constructor(handler: TaskHandler) {
     this.#handler = handler;
-    this.#queue.push(...initialFiles);
   }
 
   #startQueued() {
@@ -998,7 +994,9 @@ class TaskManager {
     }
   }
 
-  async execute() {
+  async execute(files: string[]) {
+    this.#queue.push(...files);
+
     while (this.#queue.length > 0 || this.#ongoing.length > 0) {
       this.#startQueued();
       await Promise.race(this.#ongoing.map((t) => t.promise));
