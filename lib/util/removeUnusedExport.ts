@@ -841,102 +841,167 @@ export const removeUnusedExport = async ({
   }
 
   // sort initial files by depth so that we process the files closest to the entrypoints first
-  initialFiles.sort((a, b) => b.depth - a.depth);
+  initialFiles.sort((a, b) => a.depth - b.depth);
 
-  const stack = initialFiles.map((v) => v.file);
-
-  const task = async (file: string) => {
-    // if the file is not in the file service, it means it has been deleted in a previous iteration
-    if (!fileService.exists(file)) {
-      return;
-    }
-
-    editTracker.start(file, fileService.get(file));
-
-    const vertex = dependencyGraph.vertexes.get(file);
-
-    if (vertex && vertex.data.fromDynamic.size > 0) {
-      editTracker.end(file);
-      return;
-    }
-
-    const necessaryFiles = getNecessaryFiles({
-      targetFile: file,
-      dependencyGraph,
-      files: fileService.getFileNames(),
-    });
-
-    const files = Array.from(necessaryFiles).reduce(
-      (acc, cur) => ({
-        ...acc,
-        [cur]: fileService.get(cur),
-      }),
-      {} as { [fileName: string]: string },
-    );
-
-    const result = await run({
-      file,
-      files,
-      deleteUnusedFile,
-      enableCodeFix,
-      options,
-      projectRoot,
-    });
-
-    switch (result.operation) {
-      case 'delete': {
-        editTracker.delete(file);
-        fileService.delete(file);
-
-        if (vertex) {
-          dependencyGraph.deleteVertex(file);
-          stack.push(
-            ...Array.from(vertex.to).filter((f) => !entrypoints.includes(f)),
-          );
-        }
-        break;
+  const taskManager = new TaskManager(
+    initialFiles.map((v) => v.file),
+    async (c) => {
+      // if the file is not in the file service, it means it has been deleted in a previous iteration
+      if (!fileService.exists(c.file)) {
+        return;
       }
-      case 'edit': {
-        for (const item of result.removedExports) {
-          editTracker.removeExport(item.fileName, {
-            code: item.code,
-            position: item.position,
-          });
-        }
-        editTracker.end(file);
-        fileService.set(file, result.content);
 
-        if (vertex && result.removedExports.length > 0) {
-          stack.push(
-            ...Array.from(vertex.to).filter((f) => !entrypoints.includes(f)),
-          );
+      const vertex = dependencyGraph.vertexes.get(c.file);
+
+      if (vertex && vertex.data.fromDynamic.size > 0) {
+        await Promise.resolve();
+
+        if (c.signal.aborted) {
+          return;
         }
-        break;
+
+        editTracker.start(c.file, fileService.get(c.file));
+        editTracker.end(c.file);
+        return;
       }
-    }
-  };
 
-  const processTasks = () => {
-    const promises: Promise<unknown>[] = [];
+      const necessaryFiles = getNecessaryFiles({
+        targetFile: c.file,
+        dependencyGraph,
+        files: fileService.getFileNames(),
+      });
 
-    while (stack.length > 0) {
-      const file = stack.pop();
+      const files = Array.from(necessaryFiles).reduce(
+        (acc, cur) => ({
+          ...acc,
+          [cur]: fileService.get(cur),
+        }),
+        {} as { [fileName: string]: string },
+      );
+
+      await Promise.resolve();
+
+      if (c.signal.aborted) {
+        return;
+      }
+
+      const result = await run({
+        file: c.file,
+        files,
+        deleteUnusedFile,
+        enableCodeFix,
+        options,
+        projectRoot,
+      });
+
+      if (c.signal.aborted) {
+        return;
+      }
+
+      switch (result.operation) {
+        case 'delete': {
+          editTracker.start(c.file, fileService.get(c.file));
+          editTracker.delete(c.file);
+          fileService.delete(c.file);
+
+          if (vertex) {
+            dependencyGraph.deleteVertex(c.file);
+            c.add(
+              ...Array.from(vertex.to).filter((f) => !entrypoints.includes(f)),
+            );
+          }
+          break;
+        }
+        case 'edit': {
+          editTracker.start(c.file, fileService.get(c.file));
+          for (const item of result.removedExports) {
+            editTracker.removeExport(item.fileName, {
+              code: item.code,
+              position: item.position,
+            });
+          }
+          editTracker.end(c.file);
+          fileService.set(c.file, result.content);
+
+          if (vertex && result.removedExports.length > 0) {
+            c.add(
+              ...Array.from(vertex.to).filter((f) => !entrypoints.includes(f)),
+            );
+          }
+          break;
+        }
+      }
+    },
+  );
+
+  await taskManager.execute();
+};
+
+type TaskHandler = ({
+  file,
+  signal,
+  add,
+}: {
+  file: string;
+  signal: AbortSignal;
+  add: (...files: string[]) => void;
+}) => Promise<void>;
+
+type Task = {
+  file: string;
+  controller: AbortController;
+  promise: Promise<void>;
+  isFulfilled: boolean;
+};
+
+class TaskManager {
+  #handler: TaskHandler;
+  #queue: string[] = [];
+  #ongoing: Task[] = [];
+
+  constructor(initialFiles: string[], handler: TaskHandler) {
+    this.#handler = handler;
+    this.#queue.push(...initialFiles);
+  }
+
+  #startQueued() {
+    while (this.#queue.length > 0) {
+      const file = this.#queue.shift();
 
       if (!file) {
         break;
       }
 
-      promises.push(task(file));
+      const controller = new AbortController();
+      const signal = controller.signal;
+
+      const task = {
+        file,
+        controller,
+        promise: this.#handler({
+          file,
+          signal,
+          add: (...files) => {
+            this.#ongoing
+              .filter((t) => files.includes(t.file))
+              .forEach((t) => t.controller.abort());
+            this.#queue.push(...files);
+          },
+        }).then(() => {
+          task.isFulfilled = true;
+        }),
+        isFulfilled: false,
+      };
+
+      this.#ongoing.push(task);
     }
+  }
 
-    return Promise.all(promises).then((): Promise<void> | void => {
-      if (stack.length === 0) {
-        return;
-      }
-
-      return processTasks();
-    });
-  };
-
-  await processTasks();
-};
+  async execute() {
+    while (this.#queue.length > 0 || this.#ongoing.length > 0) {
+      this.#startQueued();
+      await Promise.race(this.#ongoing.map((t) => t.promise));
+      this.#ongoing = this.#ongoing.filter((t) => !t.isFulfilled);
+    }
+  }
+}
