@@ -612,31 +612,15 @@ const getNecessaryFiles = ({
   return result;
 };
 
-// for use in worker
-export const processFile = ({
-  file,
-  files,
-  deleteUnusedFile,
-  enableCodeFix,
+const createLanguageService = ({
   options,
   projectRoot,
+  fileService,
 }: {
-  file: string;
-  files: {
-    [fileName: string]: string;
-  };
-  deleteUnusedFile: boolean;
-  enableCodeFix: boolean;
   options: ts.CompilerOptions;
   projectRoot: string;
+  fileService: FileService;
 }) => {
-  const removedExports: RemovedExport[] = [];
-  const fileService = new MemoryFileService();
-
-  for (const [fileName, content] of Object.entries(files)) {
-    fileService.set(fileName, content);
-  }
-
   const languageService = ts.createLanguageService({
     getCompilationSettings() {
       return options;
@@ -662,6 +646,40 @@ export const processFile = ({
     readFile(name) {
       return fileService.get(name);
     },
+  });
+
+  return languageService;
+};
+
+// for use in worker
+export const processFile = ({
+  file,
+  files,
+  deleteUnusedFile,
+  enableCodeFix,
+  options,
+  projectRoot,
+}: {
+  file: string;
+  files: {
+    [fileName: string]: string;
+  };
+  deleteUnusedFile: boolean;
+  enableCodeFix: boolean;
+  options: ts.CompilerOptions;
+  projectRoot: string;
+}) => {
+  const removedExports: RemovedExport[] = [];
+  const fileService = new MemoryFileService();
+
+  for (const [fileName, content] of Object.entries(files)) {
+    fileService.set(fileName, content);
+  }
+
+  const languageService = createLanguageService({
+    options,
+    projectRoot,
+    fileService,
   });
 
   let content = fileService.get(file);
