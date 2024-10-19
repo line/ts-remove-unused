@@ -774,6 +774,15 @@ const createProgram = ({
 // the default worker url is relative to the output directory
 const defaultWorkerUrl = new URL('./worker.js', import.meta.url).href;
 
+const processFileInPool: (
+  pool: Tinypool,
+  arg: Parameters<typeof processFile>[0],
+) => Promise<ReturnType<typeof processFile>> = (pool, arg) =>
+  pool.run(arg, {
+    filename: globalThis.__INTERNAL_WORKER_URL__ || defaultWorkerUrl,
+    name: 'processFile',
+  });
+
 export const removeUnusedExport = async ({
   entrypoints,
   fileService,
@@ -793,14 +802,6 @@ export const removeUnusedExport = async ({
   projectRoot?: string;
   pool: Tinypool;
 }) => {
-  const run = (
-    arg: Parameters<typeof processFile>[0],
-  ): Promise<ReturnType<typeof processFile>> =>
-    pool.run(arg, {
-      filename: globalThis.__INTERNAL_WORKER_URL__ || defaultWorkerUrl,
-      name: 'processFile',
-    });
-
   const program = createProgram({ fileService, options, projectRoot });
 
   const dependencyGraph = collectImports({
@@ -885,7 +886,7 @@ export const removeUnusedExport = async ({
         return;
       }
 
-      const result = await run({
+      const result = await processFileInPool(pool, {
         file: c.file,
         files,
         deleteUnusedFile,
