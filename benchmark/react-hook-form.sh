@@ -40,4 +40,4 @@ cat > tsconfig.json << EOF
 }
 EOF
 
-hyperfine --runs 5 -i "npx @line/ts-remove-unused --check --skip 'src/index\.ts'"
+hyperfine --warmup 3 --runs 5 -i "npx @line/ts-remove-unused --check --skip 'src/index\.ts'"
