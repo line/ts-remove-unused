@@ -1,9 +1,9 @@
-rm -rf react-hook-form
-git clone --depth=1 -b v7.53.1 git@github.com:react-hook-form/react-hook-form.git react-hook-form 
-cd react-hook-form
+if [ ! -d "react-hook-form" ]; then
+  git clone --depth=1 -b v7.53.1 git@github.com:react-hook-form/react-hook-form.git react-hook-form 
+  cd react-hook-form
 
-# we need to alter the tsconfig.json to skip test files
-cat > tsconfig.json << EOF
+  # we need to alter the tsconfig.json to skip test files
+  cat > tsconfig.json << EOF
 {
   "compilerOptions": {
     "sourceMap": true,
@@ -39,5 +39,8 @@ cat > tsconfig.json << EOF
   ]
 }
 EOF
+else
+  cd react-hook-form
+fi
 
 hyperfine --warmup 3 --runs 5 -i "npx @line/ts-remove-unused --check --skip 'src/index\.ts'"
