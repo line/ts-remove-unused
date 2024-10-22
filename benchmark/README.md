@@ -2,7 +2,6 @@
 
 All scripts should be be executed with `benchmark/` as the working directory.
 
-
 ## Prerequisites
 
 - hyperfine
@@ -10,5 +9,6 @@ All scripts should be be executed with `benchmark/` as the working directory.
 ## Run
 
 ```bash
-./react-hook-form.sh
+./react-hook-form.sh # benchmark a library
+./taxonomy.sh # benchmark a Next.js project
 ```
