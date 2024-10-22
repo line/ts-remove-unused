@@ -4,7 +4,8 @@ All scripts should be be executed with `benchmark/` as the working directory.
 
 ## Prerequisites
 
-- hyperfine
+1. Install hyperfine
+2. Make sure that @line/ts-remove-unused is available (using `npm i -g`)
 
 ## Run
 
