@@ -43,4 +43,5 @@ else
   cd react-hook-form
 fi
 
+npx @line/ts-remove-unused --version
 hyperfine --warmup 3 --runs 5 -i "npx @line/ts-remove-unused --check --skip 'src/index\.ts'"
