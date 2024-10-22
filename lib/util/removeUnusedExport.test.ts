@@ -1454,5 +1454,21 @@ export const main = 'main';`,
 export const a = () => d;\n`,
       );
     });
+
+    it('should not delete dynamically imported files', () => {
+      const fileService = new MemoryFileService();
+      fileService.set('/app/main.ts', `import('./a');`);
+      fileService.set('/app/a.ts', `export const a = 'a';`);
+
+      removeUnusedExport({
+        fileService,
+        pool,
+        entrypoints: ['/app/main.ts'],
+        deleteUnusedFile: true,
+        enableCodeFix: true,
+      });
+
+      assert.equal(fileService.exists('/app/a.ts'), true);
+    });
   });
 });
