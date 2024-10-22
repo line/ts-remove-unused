@@ -11,8 +11,8 @@ import { getFileFromModuleSpecifierText } from './getFileFromModuleSpecifierText
 import { DependencyGraph } from './DependencyGraph.js';
 import { collectImports } from './collectImports.js';
 import { MemoryFileService } from './MemoryFileService.js';
-import type Tinypool from 'tinypool';
 import { TaskManager } from './TaskManager.js';
+import { WorkerPool } from './WorkerPool.js';
 
 const findFirstNodeOfKind = (root: ts.Node, kind: ts.SyntaxKind) => {
   let result: ts.Node | undefined;
@@ -554,11 +554,6 @@ const disabledEditTracker: EditTracker = {
   removeExport: () => {},
 };
 
-declare global {
-  // eslint-disable-next-line no-var
-  var __INTERNAL_WORKER_URL__: string | undefined;
-}
-
 const getNecessaryFiles = ({
   targetFile,
   dependencyGraph,
@@ -790,18 +785,6 @@ const createProgram = ({
   return program;
 };
 
-// the default worker url is relative to the output directory
-const defaultWorkerUrl = new URL('./worker.js', import.meta.url).href;
-
-const processFileInPool: (
-  pool: Tinypool,
-  arg: Parameters<typeof processFile>[0],
-) => Promise<ReturnType<typeof processFile>> = (pool, arg) =>
-  pool.run(arg, {
-    filename: globalThis.__INTERNAL_WORKER_URL__ || defaultWorkerUrl,
-    name: 'processFile',
-  });
-
 export const removeUnusedExport = async ({
   entrypoints,
   fileService,
@@ -819,7 +802,7 @@ export const removeUnusedExport = async ({
   editTracker?: EditTracker;
   options?: ts.CompilerOptions;
   projectRoot?: string;
-  pool: Tinypool;
+  pool: WorkerPool<typeof processFile>;
 }) => {
   const program = createProgram({ fileService, options, projectRoot });
 
@@ -903,7 +886,7 @@ export const removeUnusedExport = async ({
       return;
     }
 
-    const result = await processFileInPool(pool, {
+    const result = await pool.run({
       file: c.file,
       files,
       deleteUnusedFile,

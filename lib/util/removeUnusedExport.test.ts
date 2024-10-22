@@ -1,22 +1,21 @@
 import { after, before, describe, it } from 'node:test';
 import assert from 'node:assert/strict';
-import Tinypool from 'tinypool';
-import { removeUnusedExport } from './removeUnusedExport.js';
+import { processFile, removeUnusedExport } from './removeUnusedExport.js';
 import { MemoryFileService } from './MemoryFileService.js';
+import { WorkerPool } from './WorkerPool.js';
 
 describe('removeUnusedExport', () => {
-  let pool: Tinypool;
+  let pool: WorkerPool<typeof processFile>;
 
   before(() => {
-    pool = new Tinypool();
-    globalThis.__INTERNAL_WORKER_URL__ = new URL(
-      '../../dist/worker.js',
-      import.meta.url,
-    ).href;
+    pool = new WorkerPool({
+      name: 'processFile',
+      url: new URL('../../dist/worker.js', import.meta.url).href,
+    });
   });
 
   after(async () => {
-    await pool.destroy();
+    await pool.close();
   });
 
   describe('variable statement', () => {
