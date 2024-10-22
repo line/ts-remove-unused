@@ -784,6 +784,65 @@ const createProgram = ({
   return program;
 };
 
+// whole reexports (export * from './foo') will not be detected as usage by the ts.LanguageService.findReferences API
+// when the entrypoint includes whole reexports, we need to add the imported files to entrypoints to avoid mistakenly deleting them
+const collectSkipFiles = ({
+  entrypoints,
+  program,
+  fileService,
+}: {
+  entrypoints: string[];
+  program: ts.Program;
+  fileService: FileService;
+}) => {
+  const stack = [...entrypoints];
+  const result: string[] = [];
+
+  while (stack.length > 0) {
+    const file = stack.pop();
+
+    if (!file) {
+      break;
+    }
+
+    const sourceFile = program.getSourceFile(file);
+
+    if (!sourceFile) {
+      continue;
+    }
+
+    const visit = (node: ts.Node) => {
+      if (!ts.isExportDeclaration(node)) {
+        return;
+      }
+
+      if (!node.moduleSpecifier || !ts.isStringLiteral(node.moduleSpecifier)) {
+        return;
+      }
+
+      if (node.exportClause) {
+        return;
+      }
+
+      const dest = getFileFromModuleSpecifierText({
+        specifier: node.moduleSpecifier.text,
+        program,
+        fileName: sourceFile.fileName,
+        fileService,
+      });
+
+      if (dest) {
+        stack.push(dest);
+        result.push(dest);
+      }
+    };
+
+    sourceFile.forEachChild(visit);
+  }
+
+  return result;
+};
+
 export const removeUnusedExport = async ({
   entrypoints,
   fileService,
@@ -804,6 +863,12 @@ export const removeUnusedExport = async ({
   pool: WorkerPool<typeof processFile>;
 }) => {
   const program = createProgram({ fileService, options, projectRoot });
+
+  const skipFiles = collectSkipFiles({
+    entrypoints,
+    program,
+    fileService,
+  });
 
   const dependencyGraph = collectImports({
     fileService,
@@ -831,7 +896,11 @@ export const removeUnusedExport = async ({
       filesOutsideOfGraphHasSkipComment = true;
     }
 
-    if (deleteUnusedFile && !filesOutsideOfGraphHasSkipComment) {
+    if (
+      deleteUnusedFile &&
+      !filesOutsideOfGraphHasSkipComment &&
+      !skipFiles.includes(file)
+    ) {
       editTracker.start(file, fileService.get(file));
       editTracker.delete(file);
       fileService.delete(file);
@@ -901,6 +970,12 @@ export const removeUnusedExport = async ({
     switch (result.operation) {
       case 'delete': {
         editTracker.start(c.file, fileService.get(c.file));
+
+        if (skipFiles.includes(c.file)) {
+          editTracker.end(c.file);
+          break;
+        }
+
         editTracker.delete(c.file);
         fileService.delete(c.file);
 
