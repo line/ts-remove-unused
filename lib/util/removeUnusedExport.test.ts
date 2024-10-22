@@ -1455,12 +1455,12 @@ export const a = () => d;\n`,
       );
     });
 
-    it('should not delete dynamically imported files', () => {
+    it('should not delete dynamically imported files', async () => {
       const fileService = new MemoryFileService();
       fileService.set('/app/main.ts', `import('./a');`);
       fileService.set('/app/a.ts', `export const a = 'a';`);
 
-      removeUnusedExport({
+      await removeUnusedExport({
         fileService,
         pool,
         entrypoints: ['/app/main.ts'],
@@ -1469,6 +1469,23 @@ export const a = () => d;\n`,
       });
 
       assert.equal(fileService.exists('/app/a.ts'), true);
+    });
+
+    it('should not delete files when then entrypoint is a reexport', async () => {
+      const fileService = new MemoryFileService();
+      fileService.set('/app/main.ts', `export { a } from './a';`);
+      fileService.set('/app/a.ts', `export const a = 'a';`);
+
+      await removeUnusedExport({
+        fileService,
+        pool,
+        entrypoints: ['/app/main.ts'],
+        deleteUnusedFile: true,
+        enableCodeFix: true,
+      });
+
+      assert.equal(fileService.exists('/app/a.ts'), true);
+      assert.equal(fileService.exists('/app/main.ts'), true);
     });
   });
 });
