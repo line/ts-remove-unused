@@ -236,10 +236,9 @@ const getAncestorFiles = (
 
 const getUnusedExports = (
   languageService: ts.LanguageService,
-  sourceFile: ts.SourceFile,
+  fileName: string,
   fileService: FileService,
 ) => {
-  const { fileName } = sourceFile;
   const nodes: SupportedNode[] = [];
   let isUsed = false;
 
@@ -247,6 +246,12 @@ const getUnusedExports = (
 
   if (!program) {
     throw new Error('program not found');
+  }
+
+  const sourceFile = program.getSourceFile(fileName);
+
+  if (!sourceFile) {
+    throw new Error('source file not found');
   }
 
   const visit = (node: ts.Node) => {
@@ -392,15 +397,9 @@ type RemovedExport = {
 
 const getTextChanges = (
   languageService: ts.LanguageService,
-  file: string,
+  fileName: string,
   fileService: FileService,
 ) => {
-  const sourceFile = languageService.getProgram()?.getSourceFile(file);
-
-  if (!sourceFile) {
-    throw new Error('source file not found');
-  }
-
   const removedExports: RemovedExport[] = [];
   const changes: ts.TextChange[] = [];
   // usually we want to remove all unused exports in one pass, but there are some cases where we need to do multiple passes
@@ -409,7 +408,7 @@ const getTextChanges = (
 
   const { nodes, isUsed } = getUnusedExports(
     languageService,
-    sourceFile,
+    fileName,
     fileService,
   );
   for (const node of nodes) {
@@ -430,7 +429,7 @@ const getTextChanges = (
           },
         });
         removedExports.push({
-          fileName: sourceFile.fileName,
+          fileName,
           position: node.parent.parent.getStart(),
           code: node.parent.parent.getText(),
         });
@@ -452,7 +451,7 @@ const getTextChanges = (
         : '';
 
       removedExports.push({
-        fileName: sourceFile.fileName,
+        fileName,
         position: node.getStart(),
         code: `export { ${node.getText()} }${from};`,
       });
@@ -470,7 +469,7 @@ const getTextChanges = (
       });
 
       removedExports.push({
-        fileName: sourceFile.fileName,
+        fileName,
         position: node.getStart(),
         code: node.getText(),
       });
@@ -504,7 +503,7 @@ const getTextChanges = (
           );
 
         removedExports.push({
-          fileName: sourceFile.fileName,
+          fileName,
           position: node.getStart(),
           code,
         });
@@ -537,7 +536,7 @@ const getTextChanges = (
     });
 
     removedExports.push({
-      fileName: sourceFile.fileName,
+      fileName,
       position: node.getStart(),
       code:
         findFirstNodeOfKind(node, ts.SyntaxKind.Identifier)?.getText() || '',
