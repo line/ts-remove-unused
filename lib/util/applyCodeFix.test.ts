@@ -104,4 +104,15 @@ export default a;`,
 export default a;`,
     );
   });
+
+  it('should not remove unused positional parameters from arrow function', async () => {
+    const { languageService, fileService } = setup();
+    fileService.set('/app/a.ts', `const a = (b: string) => 1;`);
+    const result = await applyCodeFix({
+      fixId: fixIdDelete,
+      languageService,
+      fileName: '/app/a.ts',
+    });
+    assert.equal(result, `const a = (b: string) => 1;`);
+  });
 });
