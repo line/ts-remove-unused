@@ -140,13 +140,25 @@ npx @line/ts-remove-unused --skip 'src/main\.ts'
 > [!WARNING]
 > THIS COMMAND WILL DELETE CODE FROM YOUR PROJECT. Using it in a git controlled environment is highly recommended. If you're just playing around use `--check`.
 
-### Check
+### Options
+
+#### `--check`
 
 Use `--check` to check for unused files and exports without making changes to project files. The command will exit with exit code 1 if there are any unused files or exports discovered.
 
 ```bash
 npx @line/ts-remove-unused --skip 'src/main\.ts' --check
 ```
+
+#### `--include-d-ts`
+
+By default, `.d.ts` files are skipped. If you want to include `.d.ts` files, use the `--include-d-ts` option.
+
+#### `--experimental-recursive`
+
+The default behavior of the CLI is to process all files once. Some issues may not be detected if the unused code is a result of the modification of another file in the project. When this option is enabled, ts-remove-unused will recursively re-edit/re-check files that may be affected by a file edit.
+
+This option is still experimental since it's not optimized (yet) for large scale projects. Using this flag for large scale projects is not recommended.
 
 ### Use the JavaScript API
 
@@ -177,8 +189,6 @@ The `--skip` option is also available to skip files that match a given regex pat
 ```bash
 npx @line/ts-remove-unused --skip 'src/main\.ts' --skip '/pages/'
 ```
-
-By default, `.d.ts` files are skipped. If you want to include `.d.ts` files, use the `--include-d-ts` option.
 
 ## How does ts-remove-unused handle test files?
 
