@@ -72,4 +72,36 @@ export const a = 'a';`,
 
     assert.equal(result, `export const a = 'a';`);
   });
+
+  it('should not remove unused positional parameters from method declaration', () => {
+    const { languageService, fileService } = setup();
+
+    fileService.set(
+      '/app/a.ts',
+      `const a = {
+  fn(b: string, c: number) {
+    return c;
+  },
+};
+
+export default a;`,
+    );
+
+    const result = applyCodeFix({
+      fixId: fixIdDelete,
+      languageService,
+      fileName: '/app/a.ts',
+    });
+
+    assert.equal(
+      result,
+      `const a = {
+  fn(b: string, c: number) {
+    return c;
+  },
+};
+
+export default a;`,
+    );
+  });
 });
