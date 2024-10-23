@@ -12,4 +12,5 @@ All scripts should be be executed with `benchmark/` as the working directory.
 ```bash
 ./react-hook-form.sh # benchmark a library
 ./taxonomy.sh # benchmark a Next.js project
+./excalidraw.sh 
 ```
