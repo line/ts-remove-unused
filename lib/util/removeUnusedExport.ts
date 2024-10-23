@@ -852,6 +852,7 @@ export const removeUnusedExport = async ({
   options = {},
   projectRoot = '.',
   pool,
+  recursive,
 }: {
   entrypoints: string[];
   fileService: FileService;
@@ -860,6 +861,7 @@ export const removeUnusedExport = async ({
   editTracker?: EditTracker;
   options?: ts.CompilerOptions;
   projectRoot?: string;
+  recursive: boolean;
   pool: WorkerPool<typeof processFile>;
 }) => {
   const program = createProgram({ fileService, options, projectRoot });
@@ -981,9 +983,12 @@ export const removeUnusedExport = async ({
 
         if (vertex) {
           dependencyGraph.deleteVertex(c.file);
-          c.add(
-            ...Array.from(vertex.to).filter((f) => !entrypoints.includes(f)),
-          );
+
+          if (recursive) {
+            c.add(
+              ...Array.from(vertex.to).filter((f) => !entrypoints.includes(f)),
+            );
+          }
         }
         break;
       }
@@ -998,7 +1003,7 @@ export const removeUnusedExport = async ({
         editTracker.end(c.file);
         fileService.set(c.file, result.content);
 
-        if (vertex && result.removedExports.length > 0) {
+        if (vertex && result.removedExports.length > 0 && recursive) {
           c.add(
             ...Array.from(vertex.to).filter((f) => !entrypoints.includes(f)),
           );

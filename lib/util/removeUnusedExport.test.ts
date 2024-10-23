@@ -6,6 +6,7 @@ import { WorkerPool } from './WorkerPool.js';
 
 describe('removeUnusedExport', () => {
   let pool: WorkerPool<typeof processFile>;
+  const recursive = true;
 
   before(() => {
     pool = new WorkerPool({
@@ -27,6 +28,7 @@ describe('removeUnusedExport', () => {
       await removeUnusedExport({
         fileService,
         pool,
+        recursive,
         entrypoints: ['/app/main.ts'],
       });
 
@@ -41,6 +43,7 @@ describe('removeUnusedExport', () => {
       await removeUnusedExport({
         fileService,
         pool,
+        recursive,
         entrypoints: ['/app/main.ts'],
       });
 
@@ -60,6 +63,7 @@ describe('removeUnusedExport', () => {
       await removeUnusedExport({
         fileService,
         pool,
+        recursive,
         entrypoints: ['/app/main.ts'],
       });
 
@@ -90,6 +94,7 @@ import c from './c';`,
       await removeUnusedExport({
         fileService,
         pool,
+        recursive,
         entrypoints: ['/app/main.ts'],
       });
 
@@ -113,6 +118,7 @@ import c from './c';`,
       await removeUnusedExport({
         fileService,
         pool,
+        recursive,
         entrypoints: ['/app/main.ts'],
       });
 
@@ -135,6 +141,7 @@ export function a2() {
       await removeUnusedExport({
         fileService,
         pool,
+        recursive,
         entrypoints: ['/app/main.ts'],
       });
 
@@ -168,6 +175,7 @@ export default async function() {}`,
       await removeUnusedExport({
         fileService,
         pool,
+        recursive,
         entrypoints: ['/app/main.ts'],
       });
       // async function will be removed afterwards with codeFix
@@ -190,6 +198,7 @@ async function a2() {}`,
       await removeUnusedExport({
         fileService,
         pool,
+        recursive,
         entrypoints: ['/app/main.ts'],
       });
 
@@ -220,6 +229,7 @@ import C from './c';`,
       await removeUnusedExport({
         fileService,
         pool,
+        recursive,
         entrypoints: ['/app/main.ts'],
       });
 
@@ -237,6 +247,7 @@ import C from './c';`,
       await removeUnusedExport({
         fileService,
         pool,
+        recursive,
         entrypoints: ['/app/main.ts'],
       });
 
@@ -256,6 +267,7 @@ import C from './c';`,
       await removeUnusedExport({
         fileService,
         pool,
+        recursive,
         entrypoints: ['/app/main.ts'],
       });
 
@@ -283,6 +295,7 @@ import B from './b';`,
       await removeUnusedExport({
         fileService,
         pool,
+        recursive,
         entrypoints: ['/app/main.ts'],
       });
 
@@ -304,6 +317,7 @@ import B from './b';`,
       await removeUnusedExport({
         fileService,
         pool,
+        recursive,
         entrypoints: ['/app/main.ts'],
       });
 
@@ -322,6 +336,7 @@ import B from './b';`,
       await removeUnusedExport({
         fileService,
         pool,
+        recursive,
         entrypoints: ['/app/main.ts'],
       });
 
@@ -344,6 +359,7 @@ import B from './b';`,
       await removeUnusedExport({
         fileService,
         pool,
+        recursive,
         entrypoints: ['/app/main.ts'],
       });
 
@@ -358,6 +374,7 @@ import B from './b';`,
       await removeUnusedExport({
         fileService,
         pool,
+        recursive,
         entrypoints: ['/app/main.ts'],
       });
 
@@ -377,6 +394,7 @@ import B from './b';`,
       await removeUnusedExport({
         fileService,
         pool,
+        recursive,
         entrypoints: ['/app/main.ts'],
       });
 
@@ -414,6 +432,7 @@ export default B;`,
       await removeUnusedExport({
         fileService,
         pool,
+        recursive,
         entrypoints: ['/app/main.ts'],
       });
 
@@ -446,6 +465,7 @@ export default B;`,
       await removeUnusedExport({
         fileService,
         pool,
+        recursive,
         entrypoints: ['/app/main.ts'],
       });
 
@@ -466,6 +486,7 @@ export default B;`,
       await removeUnusedExport({
         fileService,
         pool,
+        recursive,
         entrypoints: ['/app/main.ts'],
       });
 
@@ -490,6 +511,7 @@ export default B;`,
       await removeUnusedExport({
         fileService,
         pool,
+        recursive,
         entrypoints: ['/app/main.ts'],
       });
 
@@ -505,6 +527,7 @@ export default B;`,
       await removeUnusedExport({
         fileService,
         pool,
+        recursive,
         entrypoints: ['/app/main.ts'],
       });
 
@@ -524,6 +547,7 @@ export default B;`,
       await removeUnusedExport({
         fileService,
         pool,
+        recursive,
         entrypoints: ['/app/main.ts'],
       });
 
@@ -560,6 +584,7 @@ export { B };`,
       await removeUnusedExport({
         fileService,
         pool,
+        recursive,
         entrypoints: ['/app/main.ts'],
       });
 
@@ -611,6 +636,7 @@ export { d, unused, unused2 };`,
       await removeUnusedExport({
         fileService,
         pool,
+        recursive,
         entrypoints: ['/app/main.ts'],
       });
 
@@ -647,6 +673,7 @@ export { d };`,
       await removeUnusedExport({
         fileService,
         pool,
+        recursive,
         entrypoints: ['/app/main.ts'],
       });
 
@@ -673,6 +700,7 @@ export { d };`,
       await removeUnusedExport({
         fileService,
         pool,
+        recursive,
         entrypoints: ['/app/main.ts'],
       });
 
@@ -691,6 +719,7 @@ export { d };`,
       await removeUnusedExport({
         fileService,
         pool,
+        recursive,
         entrypoints: ['/app/main.ts'],
       });
 
@@ -710,6 +739,7 @@ export { d };`,
       await removeUnusedExport({
         fileService,
         pool,
+        recursive,
         entrypoints: ['/app/main.ts'],
       });
 
@@ -736,6 +766,7 @@ export { d };`,
       await removeUnusedExport({
         fileService,
         pool,
+        recursive,
         entrypoints: ['/app/main.ts'],
       });
 
@@ -751,6 +782,7 @@ export { d };`,
       await removeUnusedExport({
         fileService,
         pool,
+        recursive,
         entrypoints: ['/app/main.ts'],
       });
       // todo: removing whole re-export is not supported yet
@@ -772,6 +804,7 @@ a_namespace.a;`,
       await removeUnusedExport({
         fileService,
         pool,
+        recursive,
         entrypoints: ['/app/main.ts'],
       });
       assert.equal(
@@ -791,6 +824,7 @@ a_namespace.a;`,
       await removeUnusedExport({
         fileService,
         pool,
+        recursive,
         entrypoints: ['/app/main.ts'],
       });
       assert.equal(
@@ -810,6 +844,7 @@ a_namespace.a;`,
       await removeUnusedExport({
         fileService,
         pool,
+        recursive,
         entrypoints: ['/app/main.ts'],
       });
       assert.equal(
@@ -835,6 +870,7 @@ console.log(b);`,
       await removeUnusedExport({
         fileService,
         pool,
+        recursive,
         entrypoints: ['/app/main.ts'],
       });
 
@@ -860,6 +896,7 @@ console.log(B);`,
       await removeUnusedExport({
         fileService,
         pool,
+        recursive,
         entrypoints: ['/app/main.ts'],
       });
 
@@ -885,6 +922,7 @@ const b: B = {};`,
       await removeUnusedExport({
         fileService,
         pool,
+        recursive,
         entrypoints: ['/app/main.ts'],
       });
 
@@ -911,6 +949,7 @@ import('./b.js');`,
       await removeUnusedExport({
         fileService,
         pool,
+        recursive,
         entrypoints: ['/app/main.ts'],
       });
 
@@ -929,6 +968,7 @@ import('./b.js');`,
         await removeUnusedExport({
           fileService,
           pool,
+          recursive,
           entrypoints: ['/app/main.ts'],
         });
 
@@ -942,6 +982,7 @@ import('./b.js');`,
         await removeUnusedExport({
           fileService,
           pool,
+          recursive,
           entrypoints: ['/app/main.ts'],
         });
 
@@ -958,6 +999,7 @@ import('./b.js');`,
         await removeUnusedExport({
           fileService,
           pool,
+          recursive,
           entrypoints: ['/app/main.ts'],
         });
 
@@ -976,6 +1018,7 @@ export const a2 = 'a2';`,
         await removeUnusedExport({
           fileService,
           pool,
+          recursive,
           entrypoints: ['/app/main.ts'],
         });
 
@@ -1043,6 +1086,7 @@ const a2 = 'a2';`,
       await removeUnusedExport({
         fileService,
         pool,
+        recursive,
         entrypoints: ['/app/main.ts'],
         deleteUnusedFile: true,
       });
@@ -1067,6 +1111,7 @@ const a2 = 'a2';`,
       await removeUnusedExport({
         fileService,
         pool,
+        recursive,
         entrypoints: ['/app/main.ts'],
         deleteUnusedFile: true,
       });
@@ -1083,6 +1128,7 @@ const a2 = 'a2';`,
       await removeUnusedExport({
         fileService,
         pool,
+        recursive,
         entrypoints: ['/app/main.ts'],
         deleteUnusedFile: true,
       });
@@ -1098,6 +1144,7 @@ const a2 = 'a2';`,
       await removeUnusedExport({
         fileService,
         pool,
+        recursive,
         entrypoints: ['/app/main.ts'],
         deleteUnusedFile: true,
       });
@@ -1156,6 +1203,7 @@ const a2 = 'a2';`,
       await removeUnusedExport({
         fileService,
         pool,
+        recursive,
         entrypoints: ['/app/main.ts'],
         deleteUnusedFile: true,
       });
@@ -1177,6 +1225,7 @@ const a2 = 'a2';`,
       await removeUnusedExport({
         fileService,
         pool,
+        recursive,
         entrypoints: ['/app/main.ts'],
         deleteUnusedFile: true,
       });
@@ -1205,6 +1254,7 @@ export const c = () => b;`,
       await removeUnusedExport({
         fileService,
         pool,
+        recursive,
         entrypoints: ['/app/main.ts'],
         deleteUnusedFile: true,
       });
@@ -1227,6 +1277,7 @@ export const c = () => b;`,
         await removeUnusedExport({
           fileService,
           pool,
+          recursive,
           entrypoints: ['/app/main.ts'],
           deleteUnusedFile: true,
         });
@@ -1244,6 +1295,7 @@ export const c = () => b;`,
         await removeUnusedExport({
           fileService,
           pool,
+          recursive,
           entrypoints: ['/app/main.ts'],
           deleteUnusedFile: true,
         });
@@ -1262,6 +1314,7 @@ export const a = 'a';`,
         await removeUnusedExport({
           fileService,
           pool,
+          recursive,
           entrypoints: ['/app/main.ts'],
           deleteUnusedFile: true,
         });
@@ -1283,6 +1336,7 @@ export const a = 'a';`,
         await removeUnusedExport({
           fileService,
           pool,
+          recursive,
           entrypoints: ['/app/main.ts'],
           deleteUnusedFile: true,
         });
@@ -1302,6 +1356,7 @@ export const a = 'a';`,
         await removeUnusedExport({
           fileService,
           pool,
+          recursive,
           entrypoints: ['/app/main.ts'],
           deleteUnusedFile: true,
         });
@@ -1330,6 +1385,7 @@ export const remain = 'remain';`,
       await removeUnusedExport({
         fileService,
         pool,
+        recursive,
         entrypoints: ['/app/main.ts'],
         enableCodeFix: true,
       });
@@ -1361,6 +1417,7 @@ export const b = () => c;`,
       await removeUnusedExport({
         fileService,
         pool,
+        recursive,
         entrypoints: ['/app/main.ts'],
         deleteUnusedFile: true,
         enableCodeFix: true,
@@ -1383,6 +1440,7 @@ export const a2 = 'a2';`,
       await removeUnusedExport({
         fileService,
         pool,
+        recursive,
         entrypoints: ['/app/main.ts'],
         deleteUnusedFile: true,
         enableCodeFix: true,
@@ -1405,6 +1463,7 @@ export const a = () => b;`,
       await removeUnusedExport({
         fileService,
         pool,
+        recursive,
         entrypoints: ['/app/main.ts'],
         deleteUnusedFile: true,
         enableCodeFix: true,
@@ -1437,6 +1496,7 @@ export const a2 = 'a2';`,
       await removeUnusedExport({
         fileService,
         pool,
+        recursive,
         entrypoints: ['/app/main.ts'],
         deleteUnusedFile: true,
         enableCodeFix: true,
@@ -1463,6 +1523,7 @@ export const a = () => d;\n`,
       await removeUnusedExport({
         fileService,
         pool,
+        recursive,
         entrypoints: ['/app/main.ts'],
         deleteUnusedFile: true,
         enableCodeFix: true,
@@ -1479,6 +1540,7 @@ export const a = () => d;\n`,
       await removeUnusedExport({
         fileService,
         pool,
+        recursive,
         entrypoints: ['/app/main.ts'],
         deleteUnusedFile: true,
         enableCodeFix: true,
@@ -1496,6 +1558,7 @@ export const a = () => d;\n`,
       await removeUnusedExport({
         fileService,
         pool,
+        recursive,
         entrypoints: ['/app/main.ts'],
         deleteUnusedFile: true,
         enableCodeFix: true,
@@ -1514,6 +1577,7 @@ export const a = () => d;\n`,
       await removeUnusedExport({
         fileService,
         pool,
+        recursive,
         entrypoints: ['/app/main.ts'],
         deleteUnusedFile: true,
         enableCodeFix: true,

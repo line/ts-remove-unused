@@ -32,6 +32,7 @@ export const remove = async ({
   skip,
   projectRoot,
   mode,
+  recursive = false,
   system = ts.sys,
   logger = createNodeJsLogger(),
 }: {
@@ -39,6 +40,7 @@ export const remove = async ({
   skip: RegExp[];
   projectRoot: string;
   mode: 'check' | 'write';
+  recursive?: boolean;
   system?: ts.System;
   logger?: Logger;
 }) => {
@@ -94,6 +96,7 @@ export const remove = async ({
     options,
     projectRoot,
     pool,
+    recursive,
   });
 
   editTracker.clearProgressOutput();
