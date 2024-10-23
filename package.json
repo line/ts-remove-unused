@@ -20,7 +20,8 @@
     "build": "rm -rf dist && node ./build.js",
     "type-check": "tsc -b",
     "prepublishOnly": "npm run build",
-    "test": "npm run build && tsx ./test.js"
+    "test": "npm run build && tsx ./test.js",
+    "check-unused": "npm run build && npx @line/ts-remove-unused --skip 'lib/[a-z]+\\.ts' --project tsconfig.lib.json --check"
   },
   "devDependencies": {
     "@eslint/js": "^9.10.0",
