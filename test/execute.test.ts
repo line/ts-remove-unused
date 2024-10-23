@@ -32,9 +32,9 @@ describe('cli', () => {
     };
 
     await remove({
-      configPath: resolve(__dirname, 'fixtures/project/tsconfig.json'),
+      configPath: resolve(__dirname, 'fixtures/simple/tsconfig.json'),
       skip: [/main\.ts/],
-      projectRoot: resolve(__dirname, 'fixtures/project'),
+      projectRoot: resolve(__dirname, 'fixtures/simple'),
       mode: 'check',
       logger,
       system: {
@@ -47,7 +47,7 @@ describe('cli', () => {
 
     assert.equal(
       stripedOutput,
-      `tsconfig using test/fixtures/project/tsconfig.json
+      `tsconfig using test/fixtures/simple/tsconfig.json
 
 Project has 5 file(s), skipping 1 file(s)...
 
