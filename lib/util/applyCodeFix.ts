@@ -18,7 +18,9 @@ export const filterChanges = ({
 
   const visit = (node: ts.Node) => {
     if (
-      (ts.isArrowFunction(node) || ts.isMethodDeclaration(node)) &&
+      (ts.isArrowFunction(node) ||
+        ts.isMethodDeclaration(node) ||
+        ts.isFunctionDeclaration(node)) &&
       node.parameters.length > 0
     ) {
       const start = node.parameters[0]?.getStart();

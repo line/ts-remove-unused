@@ -115,4 +115,15 @@ export default a;`,
     });
     assert.equal(result, `const a = (b: string) => 1;`);
   });
+
+  it('should not remove unused positional parameters from function declaration', async () => {
+    const { languageService, fileService } = setup();
+    fileService.set('/app/a.ts', `function a(b: string) { return 1; }`);
+    const result = await applyCodeFix({
+      fixId: fixIdDelete,
+      languageService,
+      fileName: '/app/a.ts',
+    });
+    assert.equal(result, `function a(b: string) { return 1; }`);
+  });
 });
