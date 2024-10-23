@@ -39,7 +39,6 @@ const setup = () => {
 describe('applyCodeFix', () => {
   it('should clean up unused identifiers', () => {
     const { languageService, fileService } = setup();
-    fileService.set('/app/main.ts', `import { a } from './a';`);
 
     fileService.set(
       '/app/a.ts',
@@ -58,7 +57,6 @@ const b = 'b';`,
 
   it('should clean up unused imports', () => {
     const { languageService, fileService } = setup();
-    fileService.set('/app/main.ts', `import { a } from './a';`);
 
     fileService.set(
       '/app/a.ts',
