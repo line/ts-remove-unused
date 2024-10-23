@@ -19,6 +19,10 @@ cli
     '--check',
     'Check if there are any unused exports without removing them',
   )
+  .option(
+    '--experimental-recursive',
+    'Recursively process files until there are no issue',
+  )
   .action((options) => {
     const skipArg = options.skip;
 
@@ -38,6 +42,7 @@ cli
       skip,
       mode: options.check ? 'check' : 'write',
       projectRoot: cwd(),
+      recursive: !!options.experimentalRecursive,
     });
   });
 

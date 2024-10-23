@@ -13,10 +13,10 @@ export const getFileFromModuleSpecifierText = ({
   fileService: FileService;
 }) =>
   ts.resolveModuleName(specifier, fileName, program.getCompilerOptions(), {
-    fileExists(fileName) {
-      return fileService.exists(fileName);
+    fileExists(f) {
+      return fileService.exists(f);
     },
-    readFile(fileName) {
-      return fileService.get(fileName);
+    readFile(f) {
+      return fileService.get(f);
     },
   }).resolvedModule?.resolvedFileName;

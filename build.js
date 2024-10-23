@@ -4,7 +4,7 @@ import { fileURLToPath } from 'node:url';
 import ts from 'typescript';
 
 build({
-  entryPoints: ['lib/cli.ts', 'lib/main.ts'],
+  entryPoints: ['lib/cli.ts', 'lib/main.ts', 'lib/worker.ts'],
   outdir: 'dist',
   bundle: true,
   external: ['chalk', 'cac', 'typescript'],

@@ -6,6 +6,8 @@ import { Logger } from './util/Logger.js';
 import { cwd, stdout } from 'node:process';
 import { CliEditTracker } from './util/CliEditTracker.js';
 import { relative } from 'node:path';
+import { WorkerPool } from './util/WorkerPool.js';
+import type { processFile } from './util/removeUnusedExport.js';
 
 const createNodeJsLogger = (): Logger =>
   'isTTY' in stdout && stdout.isTTY
@@ -20,11 +22,17 @@ const createNodeJsLogger = (): Logger =>
         isTTY: false,
       };
 
-export const remove = ({
+declare global {
+  // eslint-disable-next-line no-var
+  var __INTERNAL_WORKER_URL__: string | undefined;
+}
+
+export const remove = async ({
   configPath,
   skip,
   projectRoot,
   mode,
+  recursive = false,
   system = ts.sys,
   logger = createNodeJsLogger(),
 }: {
@@ -32,9 +40,17 @@ export const remove = ({
   skip: RegExp[];
   projectRoot: string;
   mode: 'check' | 'write';
+  recursive?: boolean;
   system?: ts.System;
   logger?: Logger;
 }) => {
+  const pool = new WorkerPool<typeof processFile>({
+    name: 'processFile',
+    url:
+      globalThis.__INTERNAL_WORKER_URL__ ||
+      new URL('./worker.js', import.meta.url).href,
+  });
+
   const editTracker = new CliEditTracker(logger, mode, projectRoot);
   const { config, error } = ts.readConfigFile(configPath, system.readFile);
 
@@ -57,52 +73,30 @@ export const remove = ({
     fileService.set(fileName, system.readFile(fileName) || '');
   }
 
-  const languageService = ts.createLanguageService({
-    getCompilationSettings() {
-      return options;
-    },
-    getScriptFileNames() {
-      return fileService.getFileNames();
-    },
-    getScriptVersion(fileName) {
-      return fileService.getVersion(fileName);
-    },
-    getScriptSnapshot(fileName) {
-      return ts.ScriptSnapshot.fromString(fileService.get(fileName));
-    },
-    getCurrentDirectory: () => projectRoot,
-    getDefaultLibFileName(options) {
-      return ts.getDefaultLibFileName(options);
-    },
-    fileExists(name) {
-      return fileService.exists(name);
-    },
-    readFile(name) {
-      return fileService.get(name);
-    },
-  });
-
-  const targets = fileNames.filter(
-    (fileName) => !skip.some((regex) => regex.test(fileName)),
+  const entrypoints = fileNames.filter((fileName) =>
+    skip.some((regex) => regex.test(fileName)),
   );
 
-  editTracker.setTotal(targets.length);
+  editTracker.setTotal(fileNames.length - entrypoints.length);
 
   logger.write(
     chalk.gray(
-      `Found ${targets.length} file(s), skipping ${
-        fileNames.length - targets.length
+      `Project has ${fileNames.length} file(s), skipping ${
+        entrypoints.length
       } file(s)...\n\n`,
     ),
   );
 
-  removeUnusedExport({
+  await removeUnusedExport({
     fileService,
-    targetFile: targets,
-    languageService,
+    entrypoints,
     deleteUnusedFile: true,
     enableCodeFix: true,
     editTracker,
+    options,
+    projectRoot,
+    pool,
+    recursive,
   });
 
   editTracker.clearProgressOutput();
@@ -111,7 +105,7 @@ export const remove = ({
     logger.write(chalk.gray(`Writing to disk...\n`));
   }
 
-  for (const target of targets) {
+  for (const target of fileNames) {
     if (!fileService.exists(target)) {
       if (mode == 'write') {
         system.deleteFile?.(target);
@@ -125,6 +119,8 @@ export const remove = ({
   }
 
   editTracker.logResult();
+
+  await pool.close();
 
   if (mode === 'check' && !editTracker.isClean) {
     system.exit(1);

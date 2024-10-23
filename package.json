@@ -20,7 +20,7 @@
     "build": "rm -rf dist && node ./build.js",
     "type-check": "tsc -b",
     "prepublishOnly": "npm run build",
-    "test": "tsx ./test.js"
+    "test": "npm run build && tsx ./test.js"
   },
   "devDependencies": {
     "@eslint/js": "^9.10.0",
