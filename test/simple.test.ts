@@ -1,7 +1,7 @@
 import { dirname, resolve } from 'node:path';
 import { remove } from '../lib/remove.js';
 import { fileURLToPath } from 'node:url';
-import { before, test, it } from 'node:test';
+import { before, test } from 'node:test';
 import assert from 'node:assert/strict';
 import { stdout } from 'node:process';
 import ts from 'typescript';

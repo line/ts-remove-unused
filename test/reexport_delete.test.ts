@@ -18,7 +18,7 @@ before(() => {
   ).href;
 });
 
-test('reexport_delete_sample', async () => {
+test('reexport_delete', async () => {
   let output = '';
   const logger = {
     write: (text: string) => {
@@ -31,12 +31,9 @@ test('reexport_delete_sample', async () => {
   };
 
   await remove({
-    configPath: resolve(
-      __dirname,
-      'fixtures/reexport_delete_sample/tsconfig.json',
-    ),
+    configPath: resolve(__dirname, 'fixtures/reexport_delete/tsconfig.json'),
     skip: [/main\.ts/],
-    projectRoot: resolve(__dirname, 'fixtures/reexport_delete_sample'),
+    projectRoot: resolve(__dirname, 'fixtures/reexport_delete'),
     mode: 'check',
     logger,
     system: {
@@ -49,7 +46,7 @@ test('reexport_delete_sample', async () => {
 
   assert.equal(
     stripedOutput,
-    `tsconfig using test/fixtures/reexport_delete_sample/tsconfig.json
+    `tsconfig using test/fixtures/reexport_delete/tsconfig.json
 
 Project has 3 file(s), skipping 1 file(s)...
 
