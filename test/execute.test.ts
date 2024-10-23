@@ -33,7 +33,7 @@ describe('cli', () => {
 
     await remove({
       configPath: resolve(__dirname, 'fixtures/project/tsconfig.json'),
-      skip: [/main.ts/],
+      skip: [/main\.ts/],
       projectRoot: resolve(__dirname, 'fixtures/project'),
       mode: 'check',
       logger,
@@ -89,6 +89,49 @@ Project has 5 file(s), skipping 1 file(s)...
     assert.equal(
       lines.includes(`export d.ts:9:2     'export default function ()'`),
       true,
+    );
+  });
+
+  it('should work with reexport_delete_sample', async () => {
+    let output = '';
+    const logger = {
+      write: (text: string) => {
+        if (LOG) {
+          stdout.write(text);
+        }
+        output += text;
+      },
+      isTTY: false as const,
+    };
+
+    await remove({
+      configPath: resolve(
+        __dirname,
+        'fixtures/reexport_delete_sample/tsconfig.json',
+      ),
+      skip: [/main\.ts/],
+      projectRoot: resolve(__dirname, 'fixtures/reexport_delete_sample'),
+      mode: 'check',
+      logger,
+      system: {
+        ...ts.sys,
+        exit: () => {},
+      },
+    });
+
+    const stripedOutput = stripAnsi(output);
+
+    assert.equal(
+      stripedOutput,
+      `tsconfig using test/fixtures/reexport_delete_sample/tsconfig.json
+
+Project has 3 file(s), skipping 1 file(s)...
+
+file   a.ts
+export b.ts:0:0     'export * from './a';'
+
+✖ delete 1 file(s), remove 1 export(s)
+`,
     );
   });
 });
