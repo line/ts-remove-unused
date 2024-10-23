@@ -39,7 +39,6 @@ const setup = () => {
 describe('applyCodeFix', () => {
   it('should clean up unused identifiers', () => {
     const { languageService, fileService } = setup();
-    fileService.set('/app/main.ts', `import { a } from './a';`);
 
     fileService.set(
       '/app/a.ts',
@@ -58,7 +57,6 @@ const b = 'b';`,
 
   it('should clean up unused imports', () => {
     const { languageService, fileService } = setup();
-    fileService.set('/app/main.ts', `import { a } from './a';`);
 
     fileService.set(
       '/app/a.ts',
@@ -73,5 +71,55 @@ export const a = 'a';`,
     });
 
     assert.equal(result, `export const a = 'a';`);
+  });
+
+  it('should not remove unused positional parameters from method declaration', () => {
+    const { languageService, fileService } = setup();
+
+    fileService.set(
+      '/app/a.ts',
+      `const a = {
+  fn(b: string, c: number) {
+    return c;
+  },
+};`,
+    );
+
+    const result = applyCodeFix({
+      fixId: fixIdDelete,
+      languageService,
+      fileName: '/app/a.ts',
+    });
+
+    assert.equal(
+      result,
+      `const a = {
+  fn(b: string, c: number) {
+    return c;
+  },
+};`,
+    );
+  });
+
+  it('should not remove unused positional parameters from arrow function', async () => {
+    const { languageService, fileService } = setup();
+    fileService.set('/app/a.ts', `const a = (b: string) => 1;`);
+    const result = await applyCodeFix({
+      fixId: fixIdDelete,
+      languageService,
+      fileName: '/app/a.ts',
+    });
+    assert.equal(result, `const a = (b: string) => 1;`);
+  });
+
+  it('should not remove unused positional parameters from function declaration', async () => {
+    const { languageService, fileService } = setup();
+    fileService.set('/app/a.ts', `function a(b: string) { return 1; }`);
+    const result = await applyCodeFix({
+      fixId: fixIdDelete,
+      languageService,
+      fileName: '/app/a.ts',
+    });
+    assert.equal(result, `function a(b: string) { return 1; }`);
   });
 });
