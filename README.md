@@ -167,7 +167,7 @@ Alternatively, you can use the JavaScript API to execute ts-remove-unused.
 ```typescript
 import { remove } from '@line/ts-remove-unused';
 
-remove({
+await remove({
   configPath: '/path/to/project/tsconfig.json',
   projectRoot: '/path/to/project',
   skip: [/main\.ts/],
