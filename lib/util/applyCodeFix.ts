@@ -7,7 +7,7 @@ export const fixIdDeleteImports = 'unusedIdentifier_deleteImports';
 type FixId = typeof fixIdDelete | typeof fixIdDeleteImports;
 
 // we don't want to remove unused positional parameters from functions
-export const filterChanges = ({
+const filterChanges = ({
   sourceFile,
   textChanges,
 }: {

@@ -82,9 +82,7 @@ export const a = 'a';`,
   fn(b: string, c: number) {
     return c;
   },
-};
-
-export default a;`,
+};`,
     );
 
     const result = applyCodeFix({
@@ -99,9 +97,7 @@ export default a;`,
   fn(b: string, c: number) {
     return c;
   },
-};
-
-export default a;`,
+};`,
     );
   });
 
