@@ -1587,5 +1587,24 @@ export const a = () => d;\n`,
       assert.equal(fileService.exists('/app/main.ts'), true);
       assert.equal(fileService.exists('/app/a_reexport.ts'), true);
     });
+
+    it('should remove whole reexport if the specifier file is deleted', async () => {
+      const fileService = new MemoryFileService();
+      fileService.set('/app/main.ts', `import { b } from './b';`);
+      fileService.set('/app/b.ts', `export * from './a';export const b = 'b';`);
+      fileService.set('/app/a.ts', `export const a = 'a';`);
+
+      await removeUnusedExport({
+        fileService,
+        pool,
+        recursive,
+        entrypoints: ['/app/main.ts'],
+        deleteUnusedFile: true,
+        enableCodeFix: true,
+      });
+
+      assert.equal(fileService.exists('/app/a.ts'), false);
+      assert.equal(fileService.get('/app/b.ts'), `export const b = 'b';`);
+    });
   });
 });

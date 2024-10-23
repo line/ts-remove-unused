@@ -843,6 +843,62 @@ const collectSkipFiles = ({
   return result;
 };
 
+const removeWholeExportSpecifier = (
+  content: string,
+  specifier: string,
+  target?: ts.ScriptTarget,
+) => {
+  const sourceFile = ts.createSourceFile(
+    'tmp.ts',
+    content,
+    target ?? ts.ScriptTarget.Latest,
+  );
+
+  const result: {
+    textChange: ts.TextChange;
+    info: { position: number; code: string };
+  }[] = [];
+
+  const visit = (node: ts.Node) => {
+    if (result.length > 0) {
+      return;
+    }
+
+    if (
+      ts.isExportDeclaration(node) &&
+      node.moduleSpecifier &&
+      ts.isStringLiteral(node.moduleSpecifier) &&
+      !node.exportClause &&
+      node.moduleSpecifier.text === specifier
+    ) {
+      result.push({
+        textChange: {
+          newText: '',
+          span: {
+            start: node.getFullStart(),
+            length: node.getFullWidth(),
+          },
+        },
+        info: {
+          position: node.getStart(sourceFile),
+          code: node.getText(sourceFile),
+        },
+      });
+    }
+  };
+
+  sourceFile.forEachChild(visit);
+
+  if (!result[0]) {
+    return null;
+  }
+
+  return {
+    info: result[0].info,
+    content: applyTextChanges(content, [result[0].textChange]),
+  };
+};
+
 export const removeUnusedExport = async ({
   entrypoints,
   fileService,
@@ -916,6 +972,8 @@ export const removeUnusedExport = async ({
   // sort initial files by depth so that we process the files closest to the entrypoints first
   initialFiles.sort((a, b) => a.depth - b.depth);
 
+  const wholeReexportsToBeDeleted: { file: string; specifier: string }[] = [];
+
   const taskManager = new TaskManager(async (c) => {
     // if the file is not in the file service, it means it has been deleted in a previous iteration
     if (!fileService.exists(c.file)) {
@@ -982,6 +1040,20 @@ export const removeUnusedExport = async ({
         fileService.delete(c.file);
 
         if (vertex) {
+          for (const v of vertex.from) {
+            const target = dependencyGraph.vertexes.get(v);
+
+            if (!target) {
+              continue;
+            }
+
+            const specifier = target.data.wholeReexportSpecifier.get(c.file);
+
+            if (target.data.hasReexport && specifier) {
+              wholeReexportsToBeDeleted.push({ file: v, specifier });
+            }
+          }
+
           dependencyGraph.deleteVertex(c.file);
 
           if (recursive) {
@@ -1014,4 +1086,22 @@ export const removeUnusedExport = async ({
   });
 
   await taskManager.execute(initialFiles.map((v) => v.file));
+
+  for (const item of wholeReexportsToBeDeleted) {
+    if (!fileService.exists(item.file)) {
+      continue;
+    }
+    const content = fileService.get(item.file);
+    const result = removeWholeExportSpecifier(content, item.specifier);
+
+    if (!result) {
+      continue;
+    }
+
+    fileService.set(item.file, result.content);
+
+    editTracker.start(item.file, content);
+    editTracker.removeExport(item.file, result.info);
+    editTracker.end(item.file);
+  }
 };

@@ -19,10 +19,13 @@ const getMatchingNode = (node: ts.Node) => {
 
   if (ts.isExportDeclaration(node)) {
     if (node.moduleSpecifier && ts.isStringLiteral(node.moduleSpecifier)) {
-      return {
+      const result = {
         type: 'reexport' as const,
         specifier: node.moduleSpecifier.text,
+        whole: !node.exportClause,
       };
+
+      return result;
     }
     return {
       type: 'reexport' as const,
@@ -112,6 +115,12 @@ export const collectImports = ({
           fileName: sourceFile.fileName,
           fileService,
         });
+
+        if (match.type === 'reexport' && dest && match.whole) {
+          graph.vertexes
+            .get(file)
+            ?.data.wholeReexportSpecifier.set(dest, match.specifier);
+        }
 
         if (dest && files.has(dest)) {
           graph.addEdge(sourceFile.fileName, dest);
