@@ -7,7 +7,7 @@ build({
   entryPoints: ['lib/cli.ts', 'lib/main.ts', 'lib/worker.ts'],
   outdir: 'dist',
   bundle: true,
-  external: ['chalk', 'cac', 'typescript', 'tinypool'],
+  external: ['chalk', 'cac', 'typescript'],
   target: 'node18',
   platform: 'node',
   format: 'esm',
