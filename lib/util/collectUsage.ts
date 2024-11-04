@@ -58,14 +58,16 @@ export const collectUsage = ({
 
         namedImports.elements.forEach((element) => {
           result[resolved] ||= new Set();
-          result[resolved].add(element.propertyName?.text || element.name.text);
+          result[resolved]?.add(
+            element.propertyName?.text || element.name.text,
+          );
         });
       }
 
       // we have a default import; i.e. `import foo from './foo';`
       if (node.importClause?.name) {
         result[resolved] ||= new Set();
-        result[resolved].add('default');
+        result[resolved]?.add('default');
       }
     }
   };
