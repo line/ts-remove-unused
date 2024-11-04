@@ -58,7 +58,9 @@ export const collectUsage = ({
 
         namedImports.elements.forEach((element) => {
           result[resolved] ||= [];
-          result[resolved].push(element.name.text);
+          result[resolved].push(
+            element.propertyName?.text || element.name.text,
+          );
         });
       }
     }

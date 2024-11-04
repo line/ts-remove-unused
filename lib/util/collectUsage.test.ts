@@ -26,4 +26,16 @@ describe('collectUsage', () => {
       '/app/b.ts': ['b', 'c'],
     });
   });
+
+  it('should collect aliased named imports', () => {
+    const result = collectUsage({
+      file: '/app/a.ts',
+      content: 'import { b as c } from "./b";',
+      destFiles: new Set(['/app/b.ts']),
+    });
+
+    assert.deepEqual(result, {
+      '/app/b.ts': ['b'],
+    });
+  });
 });
