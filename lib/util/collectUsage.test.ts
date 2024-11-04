@@ -11,7 +11,7 @@ describe('collectUsage', () => {
     });
 
     assert.deepEqual(result, {
-      '/app/b.ts': ['b'],
+      '/app/b.ts': new Set(['b']),
     });
   });
 
@@ -23,7 +23,7 @@ describe('collectUsage', () => {
     });
 
     assert.deepEqual(result, {
-      '/app/b.ts': ['b', 'c'],
+      '/app/b.ts': new Set(['b', 'c']),
     });
   });
 
@@ -35,7 +35,7 @@ describe('collectUsage', () => {
     });
 
     assert.deepEqual(result, {
-      '/app/b.ts': ['b'],
+      '/app/b.ts': new Set(['b']),
     });
   });
 
@@ -47,7 +47,19 @@ describe('collectUsage', () => {
     });
 
     assert.deepEqual(result, {
-      '/app/b.ts': ['default'],
+      '/app/b.ts': new Set(['default']),
+    });
+  });
+
+  it('should collect when default and named imports are mixed', () => {
+    const result = collectUsage({
+      file: '/app/a.ts',
+      content: 'import b, { c } from "./b";',
+      destFiles: new Set(['/app/b.ts']),
+    });
+
+    assert.deepEqual(result, {
+      '/app/b.ts': new Set(['default', 'c']),
     });
   });
 });

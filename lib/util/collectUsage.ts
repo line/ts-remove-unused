@@ -31,7 +31,7 @@ export const collectUsage = ({
   destFiles: Set<string>;
   options?: ts.CompilerOptions;
 }) => {
-  const result: { [file: string]: string[] } = {};
+  const result: { [file: string]: Set<string> } = {};
 
   const sourceFile = ts.createSourceFile(file, content, ts.ScriptTarget.ESNext);
 
@@ -57,17 +57,15 @@ export const collectUsage = ({
         const namedImports = node.importClause?.namedBindings;
 
         namedImports.elements.forEach((element) => {
-          result[resolved] ||= [];
-          result[resolved].push(
-            element.propertyName?.text || element.name.text,
-          );
+          result[resolved] ||= new Set();
+          result[resolved].add(element.propertyName?.text || element.name.text);
         });
       }
 
       // we have a default import; i.e. `import foo from './foo';`
       if (node.importClause?.name) {
-        result[resolved] ||= [];
-        result[resolved].push('default');
+        result[resolved] ||= new Set();
+        result[resolved].add('default');
       }
     }
   };
