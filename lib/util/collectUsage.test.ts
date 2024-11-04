@@ -62,4 +62,16 @@ describe('collectUsage', () => {
       '/app/b.ts': new Set(['default', 'c']),
     });
   });
+
+  it('should collect when the default specifier is used in a named import', () => {
+    const result = collectUsage({
+      file: '/app/a.ts',
+      content: 'import { default as b } from "./b";',
+      destFiles: new Set(['/app/b.ts']),
+    });
+
+    assert.deepEqual(result, {
+      '/app/b.ts': new Set(['default']),
+    });
+  });
 });
