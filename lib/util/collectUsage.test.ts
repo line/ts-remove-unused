@@ -38,4 +38,16 @@ describe('collectUsage', () => {
       '/app/b.ts': ['b'],
     });
   });
+
+  it('should collect a single default import', () => {
+    const result = collectUsage({
+      file: '/app/a.ts',
+      content: 'import b from "./b";',
+      destFiles: new Set(['/app/b.ts']),
+    });
+
+    assert.deepEqual(result, {
+      '/app/b.ts': ['default'],
+    });
+  });
 });

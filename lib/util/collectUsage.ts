@@ -63,6 +63,12 @@ export const collectUsage = ({
           );
         });
       }
+
+      // we have a default import; i.e. `import foo from './foo';`
+      if (node.importClause?.name) {
+        result[resolved] ||= [];
+        result[resolved].push('default');
+      }
     }
   };
 
