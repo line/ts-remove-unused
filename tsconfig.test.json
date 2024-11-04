@@ -16,6 +16,6 @@
     "noUncheckedIndexedAccess": true
   },
   "include": ["**/*.test.ts", "test"],
-  "exclude": ["test/fixtures"],
+  "exclude": ["test/fixtures", "benchmark"],
   "references": [{ "path": "./tsconfig.lib.json" }]
 }
