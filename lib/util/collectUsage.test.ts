@@ -87,4 +87,16 @@ describe('collectUsage', () => {
       '/app/c.ts': new Set(['c']),
     });
   });
+
+  it('should collect when there are multiple import declarations referencing the same file', () => {
+    const result = collectUsage({
+      file: '/app/a.ts',
+      content: 'import { b } from "./b"; import { c } from "./b";',
+      destFiles: new Set(['/app/b.ts']),
+    });
+
+    assert.deepEqual(result, {
+      '/app/b.ts': new Set(['b', 'c']),
+    });
+  });
 });
