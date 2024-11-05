@@ -16,6 +16,7 @@ const resolve = ({
       return destFiles.has(f);
     },
     readFile(f) {
+      // it seems that this is never called in ts.resolveModuleName so we can just throw
       throw new Error(`Unexpected readFile call: ${f}`);
     },
   }).resolvedModule?.resolvedFileName;
