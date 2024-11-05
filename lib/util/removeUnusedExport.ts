@@ -105,7 +105,7 @@ const getSpecifier = (node: SupportedNode, sourceFile: ts.SourceFile) => {
       return node.name?.getText(sourceFile) || null;
     }
     case ts.SyntaxKind.TypeAliasDeclaration: {
-      return '';
+      return node.name?.getText(sourceFile) || null;
     }
     case ts.SyntaxKind.ExportAssignment: {
       return '';
