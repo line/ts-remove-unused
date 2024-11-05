@@ -147,7 +147,10 @@ const getUnusedExports = (
     return { nodes, isUsed, sourceFile };
   }
 
-  const visit = (node: ts.Node) => {
+  const visit = (node: ts.Node, parent: ts.Node) => {
+    // when we manually create a sourceFile, we have to set the parent manually
+    (node as { parent: ts.Node }).parent = parent;
+
     if (ts.isExportDeclaration(node) && !node.exportClause) {
       // special case for `export * from './foo';`
       isUsed = true;
@@ -171,10 +174,10 @@ const getUnusedExports = (
       return;
     }
 
-    node.forEachChild(visit);
+    node.forEachChild((child) => visit(child, node));
   };
 
-  sourceFile.forEachChild(visit);
+  sourceFile.forEachChild((child) => visit(child, sourceFile));
 
   return { nodes, isUsed, sourceFile };
 };
@@ -278,9 +281,7 @@ const getTextChanges = (
       break;
     }
 
-    // sometimes the parent is undefined contrary to the type definition
-    // todo: investigate why this happens
-    if (ts.isExportSpecifier(node) && node.parent) {
+    if (ts.isExportSpecifier(node)) {
       const specifierCount = Array.from(node.parent.elements || []).length;
 
       if (specifierCount === 1) {
@@ -391,9 +392,7 @@ const getTextChanges = (
       node.getChildren(sourceFile)[syntaxListIndex + 1];
 
     if (!syntaxList || !syntaxListNextSibling) {
-      continue;
-      // fixme: this should not happen
-      // throw new Error('syntax list not found');
+      throw new Error('syntax list not found');
     }
 
     changes.push({
