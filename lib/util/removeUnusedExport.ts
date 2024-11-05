@@ -83,6 +83,41 @@ const isTarget = (node: ts.Node): node is SupportedNode => {
   return false;
 };
 
+const getSpecifier = (node: SupportedNode, sourceFile: ts.SourceFile) => {
+  switch (node.kind) {
+    case ts.SyntaxKind.VariableStatement: {
+      const declaration = node.declarationList.declarations[0];
+
+      if (!declaration) {
+        return null;
+      }
+
+      return declaration.name.getText(sourceFile);
+    }
+    case ts.SyntaxKind.FunctionDeclaration: {
+      return '';
+    }
+    case ts.SyntaxKind.InterfaceDeclaration: {
+      return '';
+    }
+    case ts.SyntaxKind.TypeAliasDeclaration: {
+      return '';
+    }
+    case ts.SyntaxKind.ExportAssignment: {
+      return '';
+    }
+    case ts.SyntaxKind.ExportSpecifier: {
+      return '';
+    }
+    case ts.SyntaxKind.ClassDeclaration: {
+      return '';
+    }
+    default: {
+      throw new Error(`unexpected node: ${node satisfies never}`);
+    }
+  }
+};
+
 const getUnusedExports = (
   usage: Set<string>,
   fileName: string,
@@ -115,9 +150,9 @@ const getUnusedExports = (
         return;
       }
 
-      const text = node.getText(sourceFile);
+      const text = getSpecifier(node, sourceFile);
 
-      if (usage.has(text)) {
+      if (!text || usage.has(text)) {
         isUsed = true;
         return;
       } else {
