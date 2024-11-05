@@ -108,7 +108,7 @@ const getSpecifier = (node: SupportedNode, sourceFile: ts.SourceFile) => {
       return node.name?.getText(sourceFile) || null;
     }
     case ts.SyntaxKind.ExportAssignment: {
-      return '';
+      return 'default';
     }
     case ts.SyntaxKind.ExportSpecifier: {
       return '';
