@@ -115,7 +115,13 @@ const getSpecifier = (node: SupportedNode, sourceFile: ts.SourceFile) => {
       return '';
     }
     case ts.SyntaxKind.ClassDeclaration: {
-      return '';
+      if (
+        node.modifiers?.some((v) => v.kind === ts.SyntaxKind.DefaultKeyword)
+      ) {
+        return 'default';
+      }
+
+      return node.name?.getText(sourceFile) || null;
     }
     default: {
       throw new Error(`unexpected node: ${node satisfies never}`);
