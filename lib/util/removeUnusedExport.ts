@@ -111,7 +111,7 @@ const getSpecifier = (node: SupportedNode, sourceFile: ts.SourceFile) => {
       return 'default';
     }
     case ts.SyntaxKind.ExportSpecifier: {
-      return '';
+      return node.name.getText(sourceFile);
     }
     case ts.SyntaxKind.ClassDeclaration: {
       if (
@@ -272,6 +272,7 @@ const getTextChanges = (
     fileName,
     fileService,
   );
+
   for (const node of nodes) {
     if (aborted === true) {
       break;
