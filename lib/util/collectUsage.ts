@@ -53,6 +53,15 @@ export const collectUsage = ({
       }
 
       if (
+        node.importClause?.namedBindings?.kind === ts.SyntaxKind.NamespaceImport
+      ) {
+        result[resolved] ||= new Set();
+        result[resolved]?.add('*');
+
+        return;
+      }
+
+      if (
         node.importClause?.namedBindings?.kind === ts.SyntaxKind.NamedImports
       ) {
         const namedImports = node.importClause?.namedBindings;
