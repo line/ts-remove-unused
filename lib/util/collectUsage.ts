@@ -119,6 +119,31 @@ export const collectUsage = ({
 
       return;
     }
+
+    if (
+      ts.isCallExpression(node) &&
+      node.expression.kind === ts.SyntaxKind.ImportKeyword &&
+      node.arguments[0] &&
+      ts.isStringLiteral(node.arguments[0])
+    ) {
+      const resolved = resolve({
+        specifier: node.arguments[0].text,
+        destFiles,
+        file,
+        options,
+      });
+
+      if (!resolved) {
+        return;
+      }
+
+      result[resolved] ||= new Set();
+      result[resolved]?.add('*');
+
+      return;
+    }
+
+    node.forEachChild(visit);
   };
 
   sourceFile.forEachChild(visit);

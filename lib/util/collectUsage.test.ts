@@ -184,4 +184,17 @@ describe('collectUsage', () => {
       '/app/b.ts': new Set(['*']),
     });
   });
+
+  it('should collect dynamic imports', () => {
+    const result = collectUsage({
+      file: '/app/a.ts',
+      content: 'import("./b");',
+      destFiles: new Set(['/app/b.ts']),
+    });
+
+    assert.deepEqual(result, {
+      // for now, we don't know what's being imported so we just add a wildcard
+      '/app/b.ts': new Set(['*']),
+    });
+  });
 });
