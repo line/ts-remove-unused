@@ -99,4 +99,16 @@ describe('collectUsage', () => {
       '/app/b.ts': new Set(['b', 'c']),
     });
   });
+
+  it('should collect namespace imports', () => {
+    const result = collectUsage({
+      file: '/app/a.ts',
+      content: 'import * as b from "./b";',
+      destFiles: new Set(['/app/b.ts']),
+    });
+
+    assert.deepEqual(result, {
+      '/app/b.ts': new Set(['*']),
+    });
+  });
 });
