@@ -94,16 +94,15 @@ const getSpecifier = (node: SupportedNode, sourceFile: ts.SourceFile) => {
 
       return declaration.name.getText(sourceFile);
     }
-    case ts.SyntaxKind.FunctionDeclaration: {
+    case ts.SyntaxKind.FunctionDeclaration:
+    case ts.SyntaxKind.InterfaceDeclaration: {
       if (
         node.modifiers?.some((v) => v.kind === ts.SyntaxKind.DefaultKeyword)
       ) {
         return 'default';
       }
+
       return node.name?.getText(sourceFile) || null;
-    }
-    case ts.SyntaxKind.InterfaceDeclaration: {
-      return '';
     }
     case ts.SyntaxKind.TypeAliasDeclaration: {
       return '';
