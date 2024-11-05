@@ -794,7 +794,7 @@ export const removeUnusedExport = async ({
   options?: ts.CompilerOptions;
   projectRoot?: string;
   recursive: boolean;
-  pool: WorkerPool<typeof processFile>;
+  pool?: WorkerPool<typeof processFile>;
 }) => {
   const program = createProgram({ fileService, options, projectRoot });
 
@@ -890,7 +890,9 @@ export const removeUnusedExport = async ({
       return;
     }
 
-    const result = await pool.run({
+    const fn = pool ? pool.run.bind(pool) : processFile;
+
+    const result = await fn({
       file: c.file,
       files,
       deleteUnusedFile,
