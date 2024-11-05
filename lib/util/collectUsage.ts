@@ -79,6 +79,45 @@ export const collectUsage = ({
         result[resolved] ||= new Set();
         result[resolved]?.add('default');
       }
+
+      return;
+    }
+
+    if (
+      ts.isExportDeclaration(node) &&
+      node.moduleSpecifier &&
+      ts.isStringLiteral(node.moduleSpecifier)
+    ) {
+      const resolved = resolve({
+        specifier: node.moduleSpecifier.text,
+        destFiles,
+        file,
+        options,
+      });
+
+      if (!resolved) {
+        return;
+      }
+
+      if (node.exportClause?.kind === ts.SyntaxKind.NamespaceExport) {
+        result[resolved] ||= new Set();
+        result[resolved]?.add('*');
+
+        return;
+      }
+
+      if (node.exportClause?.kind === ts.SyntaxKind.NamedExports) {
+        const namedExports = node.exportClause;
+
+        namedExports.elements.forEach((element) => {
+          result[resolved] ||= new Set();
+          result[resolved]?.add(
+            element.propertyName?.text || element.name.text,
+          );
+        });
+      }
+
+      return;
     }
   };
 
