@@ -97,6 +97,11 @@ const getUnusedExports = (
     ts.ScriptTarget.Latest,
   );
 
+  if (usage.has('*')) {
+    isUsed = true;
+    return { nodes, isUsed, sourceFile };
+  }
+
   const visit = (node: ts.Node) => {
     if (ts.isExportDeclaration(node) && !node.exportClause) {
       // special case for `export * from './foo';`

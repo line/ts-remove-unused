@@ -855,6 +855,23 @@ a_namespace.a;`,
     });
   });
 
+  describe('namespace import', () => {
+    it('should not remove export for namespace import if its used in some other file', async () => {
+      const fileService = new MemoryFileService();
+      fileService.set('/app/main.ts', `import * as a from './a';`);
+      fileService.set('/app/a.ts', `export const a = 'a';`);
+
+      await removeUnusedExport({
+        fileService,
+        pool,
+        recursive,
+        entrypoints: ['/app/main.ts'],
+      });
+
+      assert.equal(fileService.get('/app/a.ts'), `export const a = 'a';`);
+    });
+  });
+
   describe('locally used declaration but not used in any other file', () => {
     it('should remove export keyword of variable if its not used in any other file', async () => {
       const fileService = new MemoryFileService();
