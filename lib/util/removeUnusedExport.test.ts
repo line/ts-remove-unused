@@ -213,7 +213,7 @@ async function a2() {}`,
   });
 
   describe('class declaration', () => {
-    it('should not remove export for function if its used in some other file', async () => {
+    it('should not remove export for class if its used in some other file', async () => {
       const fileService = new MemoryFileService();
 
       fileService.set(
@@ -238,7 +238,7 @@ import C from './c';`,
       assert.equal(fileService.get('/app/c.ts'), `export default class {}`);
     });
 
-    it('should remove export for function if its not used in some other file', async () => {
+    it('should remove export for class if its not used in some other file', async () => {
       const fileService = new MemoryFileService();
       fileService.set('/app/a.ts', `export class A {}`);
       fileService.set('/app/b.ts', `export default class B {}`);
