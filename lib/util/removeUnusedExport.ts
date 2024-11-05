@@ -136,16 +136,16 @@ const getUnusedExports = (
   const nodes: SupportedNode[] = [];
   let isUsed = false;
 
+  if (usage.has('*')) {
+    isUsed = true;
+    return { nodes, isUsed };
+  }
+
   const sourceFile = ts.createSourceFile(
     fileName,
     fileService.get(fileName),
     ts.ScriptTarget.Latest,
   );
-
-  if (usage.has('*')) {
-    isUsed = true;
-    return { nodes, isUsed, sourceFile };
-  }
 
   const visit = (node: ts.Node, parent: ts.Node) => {
     // when we manually create a sourceFile, we have to set the parent manually
@@ -154,12 +154,16 @@ const getUnusedExports = (
     if (ts.isExportDeclaration(node) && !node.exportClause) {
       // special case for `export * from './foo';`
       isUsed = true;
+
+      node.forEachChild((child) => visit(child, node));
       return;
     }
 
     if (isTarget(node)) {
       if (getLeadingComment(node, sourceFile).includes(IGNORE_COMMENT)) {
         isUsed = true;
+
+        node.forEachChild((child) => visit(child, node));
         return;
       }
 
@@ -167,10 +171,11 @@ const getUnusedExports = (
 
       if (!text || usage.has(text)) {
         isUsed = true;
-        return;
       } else {
         nodes.push(node);
       }
+
+      node.forEachChild((child) => visit(child, node));
       return;
     }
 
@@ -179,18 +184,17 @@ const getUnusedExports = (
 
   sourceFile.forEachChild((child) => visit(child, sourceFile));
 
-  return { nodes, isUsed, sourceFile };
+  return { nodes, isUsed };
 };
 
 const getUpdatedExportDeclaration = (
   exportDeclaration: ts.ExportDeclaration,
   removeTarget: ts.ExportSpecifier,
-  sourceFile: ts.SourceFile,
 ) => {
   const tmpFile = ts.createSourceFile(
     'tmp.ts',
-    exportDeclaration.getText(sourceFile),
-    sourceFile.languageVersion,
+    exportDeclaration.getText(),
+    exportDeclaration.getSourceFile().languageVersion,
   );
 
   const transformer: ts.TransformerFactory<ts.SourceFile> =
@@ -198,7 +202,7 @@ const getUpdatedExportDeclaration = (
       const visitor = (node: ts.Node): ts.Node | undefined => {
         if (
           ts.isExportSpecifier(node) &&
-          node.getText(tmpFile) === removeTarget.getText(sourceFile)
+          node.getText(tmpFile) === removeTarget.getText()
         ) {
           return undefined;
         }
@@ -215,11 +219,11 @@ const getUpdatedExportDeclaration = (
   return result ? printer.printFile(result).trim() : '';
 };
 
-const stripExportKeyword = (syntaxList: ts.Node, sourceFile: ts.SourceFile) => {
+const stripExportKeyword = (syntaxList: ts.Node) => {
   const file = ts.createSourceFile(
     'tmp.ts',
-    `${syntaxList.getText(sourceFile)} function f() {}`,
-    sourceFile.languageVersion,
+    `${syntaxList.getText()} function f() {}`,
+    syntaxList.getSourceFile().languageVersion,
   );
 
   const transformer: ts.TransformerFactory<ts.SourceFile> =
@@ -270,11 +274,7 @@ const getTextChanges = (
   // for example, when we have multiple export specifiers in one export declaration, we want to remove them one by one because the text change range will conflict
   let aborted = false;
 
-  const { nodes, isUsed, sourceFile } = getUnusedExports(
-    usage,
-    fileName,
-    fileService,
-  );
+  const { nodes, isUsed } = getUnusedExports(usage, fileName, fileService);
 
   for (const node of nodes) {
     if (aborted === true) {
@@ -295,8 +295,8 @@ const getTextChanges = (
         });
         removedExports.push({
           fileName,
-          position: node.parent.parent.getStart(sourceFile),
-          code: node.parent.parent.getText(sourceFile),
+          position: node.parent.parent.getStart(),
+          code: node.parent.parent.getText(),
         });
 
         continue;
@@ -304,25 +304,21 @@ const getTextChanges = (
 
       aborted = true;
       changes.push({
-        newText: getUpdatedExportDeclaration(
-          node.parent.parent,
-          node,
-          sourceFile,
-        ),
+        newText: getUpdatedExportDeclaration(node.parent.parent, node),
         span: {
-          start: node.parent.parent.getStart(sourceFile),
-          length: node.parent.parent.getWidth(sourceFile),
+          start: node.parent.parent.getStart(),
+          length: node.parent.parent.getWidth(),
         },
       });
 
       const from = node.parent.parent.moduleSpecifier
-        ? ` from ${node.parent.parent.moduleSpecifier.getText(sourceFile)}`
+        ? ` from ${node.parent.parent.moduleSpecifier.getText()}`
         : '';
 
       removedExports.push({
         fileName,
-        position: node.getStart(sourceFile),
-        code: `export { ${node.getText(sourceFile)} }${from};`,
+        position: node.getStart(),
+        code: `export { ${node.getText()} }${from};`,
       });
 
       continue;
@@ -339,15 +335,15 @@ const getTextChanges = (
 
       removedExports.push({
         fileName,
-        position: node.getStart(sourceFile),
-        code: node.getText(sourceFile),
+        position: node.getStart(),
+        code: node.getText(),
       });
       continue;
     }
 
     if (ts.isFunctionDeclaration(node) || ts.isClassDeclaration(node)) {
       const identifier = node
-        .getChildren(sourceFile)
+        .getChildren()
         .find((n) => n.kind === ts.SyntaxKind.Identifier);
 
       // when the identifier is not found, it's likely a default export of an unnamed function/class declaration.
@@ -363,17 +359,17 @@ const getTextChanges = (
 
         // there's no identifier so we try to get something like `export default function()` or `export default class`
         const code = node
-          .getText(sourceFile)
+          .getText()
           .slice(
             0,
             ts.isFunctionDeclaration(node)
-              ? node.getText(sourceFile).indexOf(')') + 1
-              : node.getText(sourceFile).indexOf('{') - 1,
+              ? node.getText().indexOf(')') + 1
+              : node.getText().indexOf('{') - 1,
           );
 
         removedExports.push({
           fileName,
-          position: node.getStart(sourceFile),
+          position: node.getStart(),
           code,
         });
 
@@ -384,12 +380,12 @@ const getTextChanges = (
     // we want to correctly remove 'default' when its a default export so we get the syntaxList node instead of the exportKeyword node
     // note: the first syntaxList node should contain the export keyword
     const syntaxListIndex = node
-      .getChildren(sourceFile)
+      .getChildren()
       .findIndex((n) => n.kind === ts.SyntaxKind.SyntaxList);
 
-    const syntaxList = node.getChildren(sourceFile)[syntaxListIndex];
-    const syntaxListNextSibling =
-      node.getChildren(sourceFile)[syntaxListIndex + 1];
+    const syntaxList = node.getChildren()[syntaxListIndex];
+
+    const syntaxListNextSibling = node.getChildren()[syntaxListIndex + 1];
 
     if (!syntaxList || !syntaxListNextSibling) {
       throw new Error('syntax list not found');
@@ -397,23 +393,19 @@ const getTextChanges = (
 
     changes.push({
       newText: ts.isFunctionDeclaration(node)
-        ? stripExportKeyword(syntaxList, sourceFile)
+        ? stripExportKeyword(syntaxList)
         : '',
       span: {
-        start: syntaxList.getStart(sourceFile),
-        length:
-          syntaxListNextSibling.getStart(sourceFile) -
-          syntaxList.getStart(sourceFile),
+        start: syntaxList.getStart(),
+        length: syntaxListNextSibling.getStart() - syntaxList.getStart(),
       },
     });
 
     removedExports.push({
       fileName,
-      position: node.getStart(sourceFile),
+      position: node.getStart(),
       code:
-        findFirstNodeOfKind(node, ts.SyntaxKind.Identifier)?.getText(
-          sourceFile,
-        ) || '',
+        findFirstNodeOfKind(node, ts.SyntaxKind.Identifier)?.getText() || '',
     });
   }
 
