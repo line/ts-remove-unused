@@ -185,6 +185,18 @@ describe('collectUsage', () => {
     });
   });
 
+  it('should collect whole reexports', () => {
+    const result = collectUsage({
+      file: '/app/a.ts',
+      content: 'export * from "./b";',
+      destFiles: new Set(['/app/b.ts']),
+    });
+
+    assert.deepEqual(result, {
+      '/app/b.ts': new Set(['*']),
+    });
+  });
+
   it('should collect dynamic imports', () => {
     const result = collectUsage({
       file: '/app/a.ts',

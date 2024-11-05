@@ -115,6 +115,15 @@ export const collectUsage = ({
             element.propertyName?.text || element.name.text,
           );
         });
+
+        return;
+      }
+
+      if (typeof node.exportClause === 'undefined') {
+        result[resolved] ||= new Set();
+        result[resolved]?.add('*');
+
+        return;
       }
 
       return;
