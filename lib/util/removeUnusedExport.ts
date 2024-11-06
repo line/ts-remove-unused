@@ -419,58 +419,52 @@ const disabledEditTracker: EditTracker = {
   removeExport: () => {},
 };
 
-const getNecessaryFiles = ({
+type SubgraphNode = {
+  file: string;
+  from: SubgraphNode[];
+  to: string[];
+  content: string;
+};
+
+// todo: consider what happens when there is a circular dependency
+const getMinimalSubgraph = ({
   targetFile,
   dependencyGraph,
-  files,
+  fileService,
 }: {
   targetFile: string;
   dependencyGraph: DependencyGraph;
-  files: string[];
+  fileService: FileService;
 }) => {
-  // when the target file is not in the dependency graph reachable from the entrypoints, we return all files that are not included in the dependency graph.
-  // this ensures that the result of removeUnusedExports is correct when deleteUnusedFile is false.
-  if (!dependencyGraph.vertexes.has(targetFile)) {
-    return new Set(files.filter((file) => !dependencyGraph.vertexes.has(file)));
-  }
-
-  const result = new Set<string>();
-  const stack = [targetFile];
-
-  while (stack.length > 0) {
-    const file = stack.pop();
-
-    if (!file) {
-      break;
-    }
-
-    result.add(file);
-
+  const createSubgraphNode = (file: string, parent: string | null) => {
     const vertex = dependencyGraph.vertexes.get(file);
 
+    const result: SubgraphNode = {
+      file,
+      from: [] as SubgraphNode[],
+      to: parent ? [parent] : [],
+      content: fileService.get(file),
+    };
+
     if (!vertex) {
-      // should not happen
-      continue;
+      // this happens when
+      // - there are no imports in the entrypoint
+      // - the file is unreachable from the entrypoint and has no connections between other unreachable files
+      return result;
+    }
+
+    if (parent && !vertex.data.hasReexport) {
+      return result;
     }
 
     for (const from of vertex.from) {
-      result.add(from);
-
-      const fromVertex = dependencyGraph.vertexes.get(from);
-
-      if (fromVertex && fromVertex.data.hasReexport) {
-        stack.push(from);
-
-        continue;
-      }
-
-      if (vertex.data.fromDynamic.has(from)) {
-        stack.push(from);
-      }
+      result.from.push(createSubgraphNode(from, file));
     }
-  }
 
-  return result;
+    return result;
+  };
+
+  return createSubgraphNode(targetFile, null);
 };
 
 const createLanguageService = ({
@@ -514,40 +508,75 @@ const createLanguageService = ({
 
 // for use in worker
 export const processFile = ({
-  file,
-  files,
+  subgraph,
   deleteUnusedFile,
   enableCodeFix,
   options,
   projectRoot,
 }: {
-  file: string;
-  files: {
-    [fileName: string]: string;
-  };
+  subgraph: SubgraphNode;
   deleteUnusedFile: boolean;
   enableCodeFix: boolean;
   options: ts.CompilerOptions;
   projectRoot: string;
 }) => {
+  const { file } = subgraph;
   const removedExports: RemovedExport[] = [];
   const fileService = new MemoryFileService();
+  const nodeMap = new Map<string, SubgraphNode>();
 
-  const usage = new Set<string>();
+  const stack = [subgraph];
 
-  for (const [fileName, content] of Object.entries(files)) {
-    fileService.set(fileName, content);
+  while (stack.length > 0) {
+    const node = stack.pop();
 
-    // todo: the result should be reusable if we specify all files in the dependency graph for destFiles
-    const collected = collectUsage({
-      file: fileName,
-      content,
-      destFiles: new Set([file]),
-      options,
-    });
+    if (!node) {
+      break;
+    }
 
-    collected[file]?.forEach((v) => usage.add(v));
+    nodeMap.set(node.file, node);
+
+    for (const f of node.from) {
+      stack.push(f);
+    }
+
+    fileService.set(node.file, node.content);
   }
+
+  const collectUsageRecursively = (node: SubgraphNode) => {
+    const result: string[] = [];
+
+    for (const item of node.from) {
+      // todo: it should be possible to reuse the result of collectUsage if destFiles includes all files in the dependency graph
+      const collected = collectUsage({
+        file: item.file,
+        content: item.content,
+        destFiles: new Set(item.to),
+        options,
+      })[node.file];
+
+      if (!collected) {
+        continue;
+      }
+
+      for (const v of collected) {
+        if (typeof v === 'string') {
+          result.push(v);
+          continue;
+        }
+
+        const n = nodeMap.get(v.file);
+
+        if (n) {
+          result.push(...collectUsageRecursively(n));
+        }
+      }
+    }
+
+    return result;
+  };
+
+  const usage = new Set(collectUsageRecursively(subgraph));
 
   const languageService = createLanguageService({
     options,
@@ -872,19 +901,11 @@ export const removeUnusedExport = async ({
       return;
     }
 
-    const necessaryFiles = getNecessaryFiles({
+    const subgraph = getMinimalSubgraph({
       targetFile: c.file,
       dependencyGraph,
-      files: fileService.getFileNames(),
+      fileService,
     });
-
-    const files = Array.from(necessaryFiles).reduce(
-      (acc, cur) => ({
-        ...acc,
-        [cur]: fileService.get(cur),
-      }),
-      {} as { [fileName: string]: string },
-    );
 
     await Promise.resolve();
 
@@ -895,8 +916,7 @@ export const removeUnusedExport = async ({
     const fn = pool ? pool.run.bind(pool) : processFile;
 
     const result = await fn({
-      file: c.file,
-      files,
+      subgraph,
       deleteUnusedFile,
       enableCodeFix,
       options,
