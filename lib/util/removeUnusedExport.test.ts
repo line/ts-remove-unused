@@ -1549,7 +1549,7 @@ export const a = () => d;\n`,
       assert.equal(fileService.exists('/app/a.ts'), true);
     });
 
-    it('should not delete files when then entrypoint is a reexport', async () => {
+    it('should not delete files when the entrypoint is a reexport', async () => {
       const fileService = new MemoryFileService();
       fileService.set('/app/main.ts', `export { a } from './a';`);
       fileService.set('/app/a.ts', `export const a = 'a';`);

@@ -7,7 +7,6 @@ import {
   fixIdDeleteImports,
 } from './applyCodeFix.js';
 import { EditTracker } from './EditTracker.js';
-import { getFileFromModuleSpecifierText } from './getFileFromModuleSpecifierText.js';
 import { DependencyGraph } from './DependencyGraph.js';
 import { collectImports } from './collectImports.js';
 import { MemoryFileService } from './MemoryFileService.js';
@@ -424,6 +423,7 @@ type SubgraphNode = {
   from: SubgraphNode[];
   to: string[];
   content: string;
+  isEntrypoint: boolean;
 };
 
 // todo: consider what happens when there is a circular dependency
@@ -444,6 +444,7 @@ const getMinimalSubgraph = ({
       from: [] as SubgraphNode[],
       to: parent ? [parent] : [],
       content: fileService.get(file),
+      isEntrypoint: !!vertex && vertex.data.depth === 0,
     };
 
     if (!vertex) {
@@ -567,9 +568,16 @@ export const processFile = ({
 
         const n = nodeMap.get(v.file);
 
-        if (n) {
-          result.push(...collectUsageRecursively(n));
+        if (!n) {
+          continue;
         }
+
+        if (n.isEntrypoint) {
+          result.push('*');
+          continue;
+        }
+
+        result.push(...collectUsageRecursively(n));
       }
     }
 
@@ -691,65 +699,6 @@ const createProgram = ({
   return program;
 };
 
-// whole reexports (export * from './foo') will not be detected as usage by the ts.LanguageService.findReferences API
-// when the entrypoint includes whole reexports, we need to add the imported files to entrypoints to avoid mistakenly deleting them
-const collectSkipFiles = ({
-  entrypoints,
-  program,
-  fileService,
-}: {
-  entrypoints: string[];
-  program: ts.Program;
-  fileService: FileService;
-}) => {
-  const stack = [...entrypoints];
-  const result: string[] = [];
-
-  while (stack.length > 0) {
-    const file = stack.pop();
-
-    if (!file) {
-      break;
-    }
-
-    const sourceFile = program.getSourceFile(file);
-
-    if (!sourceFile) {
-      continue;
-    }
-
-    const visit = (node: ts.Node) => {
-      if (!ts.isExportDeclaration(node)) {
-        return;
-      }
-
-      if (!node.moduleSpecifier || !ts.isStringLiteral(node.moduleSpecifier)) {
-        return;
-      }
-
-      if (node.exportClause) {
-        return;
-      }
-
-      const dest = getFileFromModuleSpecifierText({
-        specifier: node.moduleSpecifier.text,
-        program,
-        fileName: sourceFile.fileName,
-        fileService,
-      });
-
-      if (dest) {
-        stack.push(dest);
-        result.push(dest);
-      }
-    };
-
-    sourceFile.forEachChild(visit);
-  }
-
-  return result;
-};
-
 const removeWholeExportSpecifier = (
   content: string,
   specifier: string,
@@ -829,12 +778,6 @@ export const removeUnusedExport = async ({
 }) => {
   const program = createProgram({ fileService, options, projectRoot });
 
-  const skipFiles = collectSkipFiles({
-    entrypoints,
-    program,
-    fileService,
-  });
-
   const dependencyGraph = collectImports({
     fileService,
     program,
@@ -864,7 +807,7 @@ export const removeUnusedExport = async ({
     if (
       deleteUnusedFile &&
       !filesOutsideOfGraphHasSkipComment &&
-      !skipFiles.includes(file)
+      !entrypoints.includes(file)
     ) {
       editTracker.start(file, fileService.get(file));
       editTracker.delete(file);
@@ -919,7 +862,7 @@ export const removeUnusedExport = async ({
       case 'delete': {
         editTracker.start(c.file, fileService.get(c.file));
 
-        if (skipFiles.includes(c.file)) {
+        if (entrypoints.includes(c.file)) {
           editTracker.end(c.file);
           break;
         }
