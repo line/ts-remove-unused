@@ -852,7 +852,7 @@ export const removeUnusedExport = async ({
 
     const vertex = dependencyGraph.vertexes.get(file);
 
-    if (vertex) {
+    if (vertex && vertex.data.depth < Infinity) {
       initialFiles.push({ file, depth: vertex.data.depth });
       continue;
     }
