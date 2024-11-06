@@ -785,7 +785,7 @@ export { d };`,
         recursive,
         entrypoints: ['/app/main.ts'],
       });
-      // todo: removing whole re-export is not supported yet
+      // unless the file in the specifier is deleted, we can't remove the whole re-export
       // assert.equal(fileService.get('/app/a_reexport.ts'), '');
       assert.equal(fileService.get('/app/a.ts'), `const a = 'a';`);
     });
