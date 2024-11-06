@@ -68,6 +68,12 @@ export const collectImports = ({
   const stack: { depth: number; file: string }[] = [];
   const untouched = new Set(fileService.getFileNames());
 
+  const wholeReexportSpecifiers: {
+    file: string;
+    dest: string;
+    specifier: string;
+  }[] = [];
+
   for (const entrypoint of entrypoints) {
     stack.push({ file: entrypoint, depth: 0 });
   }
@@ -111,11 +117,13 @@ export const collectImports = ({
         });
 
         if (match.type === 'reexport' && dest && match.whole) {
-          // in most cases, graph.vertexes.get(file) should exist since we are traversing the graph from the entrypoints
-          // todo: look into cases where it doesn't exist
-          graph.vertexes
-            .get(file)
-            ?.data.wholeReexportSpecifier.set(dest, match.specifier);
+          // we delay recording the whole reexport specifier until we have traversed the whole graph
+          // since we don't know if the vertex exists yet
+          wholeReexportSpecifiers.push({
+            file,
+            dest,
+            specifier: match.specifier,
+          });
         }
 
         if (dest && files.has(dest)) {
@@ -135,12 +143,6 @@ export const collectImports = ({
       vertex.data.depth = depth;
     }
   }
-
-  const wholeExportSpecifiersToBeRecorded: {
-    file: string;
-    dest: string;
-    specifier: string;
-  }[] = [];
 
   for (const file of untouched.values()) {
     const sourceFile = program.getSourceFile(file);
@@ -169,7 +171,7 @@ export const collectImports = ({
         if (match.type === 'reexport' && dest && match.whole) {
           // we delay recording the whole reexport specifier until we have traversed the whole graph
           // since we don't know if the vertex exists yet
-          wholeExportSpecifiersToBeRecorded.push({
+          wholeReexportSpecifiers.push({
             file,
             dest,
             specifier: match.specifier,
@@ -193,7 +195,7 @@ export const collectImports = ({
     }
   }
 
-  for (const item of wholeExportSpecifiersToBeRecorded) {
+  for (const item of wholeReexportSpecifiers) {
     graph.vertexes
       .get(item.file)
       ?.data.wholeReexportSpecifier.set(item.dest, item.specifier);
