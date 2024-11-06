@@ -2,10 +2,10 @@ import { dirname, resolve } from 'node:path';
 import { remove } from '../lib/remove.js';
 import { fileURLToPath } from 'node:url';
 import { before, test } from 'node:test';
-import assert from 'node:assert/strict';
 import { stdout } from 'node:process';
 import ts from 'typescript';
 import stripAnsi from 'strip-ansi';
+import { assertEqualOutput } from './helpers/assertEqualOutput.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -44,7 +44,7 @@ test('simple', async () => {
 
   const stripedOutput = stripAnsi(output);
 
-  assert.equal(
+  assertEqualOutput(
     stripedOutput,
     `tsconfig using test/fixtures/simple/tsconfig.json
 
