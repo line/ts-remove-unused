@@ -193,7 +193,7 @@ describe('collectUsage', () => {
     });
 
     assert.deepEqual(result, {
-      '/app/b.ts': new Set(['*']),
+      '/app/b.ts': new Set([{ type: 'wholeReexport', file: '/app/a.ts' }]),
     });
   });
 

@@ -32,7 +32,9 @@ export const collectUsage = ({
   destFiles: Set<string>;
   options?: ts.CompilerOptions;
 }) => {
-  const result: { [file: string]: Set<string> } = {};
+  const result: {
+    [file: string]: Set<string | { type: 'wholeReexport'; file: string }>;
+  } = {};
 
   const sourceFile = ts.createSourceFile(file, content, ts.ScriptTarget.ESNext);
 
@@ -99,6 +101,7 @@ export const collectUsage = ({
         return;
       }
 
+      // export * as foo from './foo';
       if (node.exportClause?.kind === ts.SyntaxKind.NamespaceExport) {
         result[resolved] ||= new Set();
         result[resolved]?.add('*');
@@ -106,6 +109,7 @@ export const collectUsage = ({
         return;
       }
 
+      // export { foo, bar } from './foo';
       if (node.exportClause?.kind === ts.SyntaxKind.NamedExports) {
         const namedExports = node.exportClause;
 
@@ -119,9 +123,10 @@ export const collectUsage = ({
         return;
       }
 
+      // export * from './foo';
       if (typeof node.exportClause === 'undefined') {
         result[resolved] ||= new Set();
-        result[resolved]?.add('*');
+        result[resolved]?.add({ type: 'wholeReexport', file });
 
         return;
       }
