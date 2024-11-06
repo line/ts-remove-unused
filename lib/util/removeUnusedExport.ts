@@ -453,7 +453,7 @@ const getMinimalSubgraph = ({
       return result;
     }
 
-    if (parent && !vertex.data.hasReexport) {
+    if (parent && vertex.data.wholeReexportSpecifier.size === 0) {
       return result;
     }
 
@@ -889,18 +889,6 @@ export const removeUnusedExport = async ({
 
     const vertex = dependencyGraph.vertexes.get(c.file);
 
-    if (vertex && vertex.data.fromDynamic.size > 0) {
-      await Promise.resolve();
-
-      if (c.signal.aborted) {
-        return;
-      }
-
-      editTracker.start(c.file, fileService.get(c.file));
-      editTracker.end(c.file);
-      return;
-    }
-
     const subgraph = getMinimalSubgraph({
       targetFile: c.file,
       dependencyGraph,
@@ -949,7 +937,7 @@ export const removeUnusedExport = async ({
 
             const specifier = target.data.wholeReexportSpecifier.get(c.file);
 
-            if (target.data.hasReexport && specifier) {
+            if (specifier) {
               wholeReexportsToBeDeleted.push({ file: v, specifier });
             }
           }

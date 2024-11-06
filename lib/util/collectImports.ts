@@ -93,8 +93,6 @@ export const collectImports = ({
       continue;
     }
 
-    let hasReexport = false;
-
     const visit = (node: ts.Node) => {
       const match = getMatchingNode(node);
 
@@ -105,10 +103,6 @@ export const collectImports = ({
       }
 
       if (match.specifier) {
-        if (match.type === 'reexport') {
-          hasReexport = true;
-        }
-
         const dest = getFileFromModuleSpecifierText({
           specifier: match.specifier,
           program,
@@ -126,9 +120,6 @@ export const collectImports = ({
 
         if (dest && files.has(dest)) {
           graph.addEdge(sourceFile.fileName, dest);
-          if (match.type === 'dynamicImport') {
-            graph.vertexes.get(dest)?.data.fromDynamic.add(file);
-          }
           stack.push({ file: dest, depth: depth + 1 });
         }
 
@@ -141,7 +132,6 @@ export const collectImports = ({
     const vertex = graph.vertexes.get(file);
 
     if (vertex) {
-      vertex.data.hasReexport = hasReexport;
       vertex.data.depth = depth;
     }
   }
@@ -159,8 +149,6 @@ export const collectImports = ({
       continue;
     }
 
-    let hasReexport = false;
-
     const visit = (node: ts.Node) => {
       const match = getMatchingNode(node);
 
@@ -171,10 +159,6 @@ export const collectImports = ({
       }
 
       if (match.specifier) {
-        if (match.type === 'reexport') {
-          hasReexport = true;
-        }
-
         const dest = getFileFromModuleSpecifierText({
           specifier: match.specifier,
           program,
@@ -194,9 +178,6 @@ export const collectImports = ({
 
         if (dest && files.has(dest)) {
           graph.addEdge(sourceFile.fileName, dest);
-          if (match.type === 'dynamicImport') {
-            graph.vertexes.get(dest)?.data.fromDynamic.add(file);
-          }
         }
 
         return;
@@ -208,7 +189,6 @@ export const collectImports = ({
     const vertex = graph.vertexes.get(file);
 
     if (vertex) {
-      vertex.data.hasReexport = hasReexport;
       vertex.data.depth = Infinity;
     }
   }
