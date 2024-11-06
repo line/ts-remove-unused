@@ -442,7 +442,8 @@ const getMinimalSubgraph = ({
     const result: SubgraphNode = {
       file,
       from: [] as SubgraphNode[],
-      to: parent ? [parent] : [],
+      // while from only includes nodes in the subgraph, to includes all connections to reuse results of collectUsage
+      to: vertex ? Array.from(vertex.to) : [],
       content: fileService.get(file),
       isEntrypoint: !!vertex && vertex.data.depth === 0,
     };
@@ -507,6 +508,8 @@ const createLanguageService = ({
   return languageService;
 };
 
+const cache = new Map<string, ReturnType<typeof collectUsage>>();
+
 // for use in worker
 export const processFile = ({
   subgraph,
@@ -548,19 +551,35 @@ export const processFile = ({
     const result: string[] = [];
 
     for (const item of node.from) {
-      // todo: it should be possible to reuse the result of collectUsage if destFiles includes all files in the dependency graph
-      const collected = collectUsage({
+      const key = JSON.stringify({
         file: item.file,
         content: item.content,
-        destFiles: new Set(item.to),
+        destFiles: [...item.to].sort(),
         options,
-      })[node.file];
+      });
 
-      if (!collected) {
+      let collected: ReturnType<typeof collectUsage>;
+
+      if (cache.has(key)) {
+        collected = cache.get(key)!;
+      } else {
+        collected = collectUsage({
+          file: item.file,
+          content: item.content,
+          destFiles: new Set(item.to),
+          options,
+        });
+
+        cache.set(key, collected);
+      }
+
+      const list = collected[node.file];
+
+      if (!list) {
         continue;
       }
 
-      for (const v of collected) {
+      for (const v of list) {
         if (typeof v === 'string') {
           result.push(v);
           continue;
