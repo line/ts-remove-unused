@@ -66,7 +66,7 @@ export const collectImports = ({
   const files = new Set(fileService.getFileNames());
 
   const stack: { depth: number; file: string }[] = [];
-  const visited = new Set<string>();
+  const untouched = new Set(fileService.getFileNames());
 
   for (const entrypoint of entrypoints) {
     stack.push({ file: entrypoint, depth: 0 });
@@ -81,11 +81,11 @@ export const collectImports = ({
 
     const { file, depth } = item;
 
-    if (visited.has(file)) {
+    if (!untouched.has(file)) {
       continue;
     }
 
-    visited.add(file);
+    untouched.delete(file);
 
     const sourceFile = program.getSourceFile(file);
 
@@ -117,6 +117,8 @@ export const collectImports = ({
         });
 
         if (match.type === 'reexport' && dest && match.whole) {
+          // in most cases, graph.vertexes.get(file) should exist since we are traversing the graph from the entrypoints
+          // todo: look into cases where it doesn't exist
           graph.vertexes
             .get(file)
             ?.data.wholeReexportSpecifier.set(dest, match.specifier);
@@ -142,6 +144,79 @@ export const collectImports = ({
       vertex.data.hasReexport = hasReexport;
       vertex.data.depth = depth;
     }
+  }
+
+  const wholeExportSpecifiersToBeRecorded: {
+    file: string;
+    dest: string;
+    specifier: string;
+  }[] = [];
+
+  for (const file of untouched.values()) {
+    const sourceFile = program.getSourceFile(file);
+
+    if (!sourceFile) {
+      continue;
+    }
+
+    let hasReexport = false;
+
+    const visit = (node: ts.Node) => {
+      const match = getMatchingNode(node);
+
+      if (!match) {
+        node.forEachChild(visit);
+
+        return;
+      }
+
+      if (match.specifier) {
+        if (match.type === 'reexport') {
+          hasReexport = true;
+        }
+
+        const dest = getFileFromModuleSpecifierText({
+          specifier: match.specifier,
+          program,
+          fileName: sourceFile.fileName,
+          fileService,
+        });
+
+        if (match.type === 'reexport' && dest && match.whole) {
+          // we delay recording the whole reexport specifier until we have traversed the whole graph
+          // since we don't know if the vertex exists yet
+          wholeExportSpecifiersToBeRecorded.push({
+            file,
+            dest,
+            specifier: match.specifier,
+          });
+        }
+
+        if (dest && files.has(dest)) {
+          graph.addEdge(sourceFile.fileName, dest);
+          if (match.type === 'dynamicImport') {
+            graph.vertexes.get(dest)?.data.fromDynamic.add(file);
+          }
+        }
+
+        return;
+      }
+    };
+
+    sourceFile.forEachChild(visit);
+
+    const vertex = graph.vertexes.get(file);
+
+    if (vertex) {
+      vertex.data.hasReexport = hasReexport;
+      vertex.data.depth = Infinity;
+    }
+  }
+
+  for (const item of wholeExportSpecifiersToBeRecorded) {
+    graph.vertexes
+      .get(item.file)
+      ?.data.wholeReexportSpecifier.set(item.dest, item.specifier);
   }
 
   return graph;
