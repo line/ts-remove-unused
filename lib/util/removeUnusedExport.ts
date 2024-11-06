@@ -586,14 +586,9 @@ export const processFile = ({
 
   const usage = new Set(collectUsageRecursively(subgraph));
 
-  const languageService = createLanguageService({
-    options,
-    projectRoot,
-    fileService,
-  });
-
   let content = fileService.get(file);
   let isUsed = false;
+  let changeCount = 0;
 
   do {
     const result = getTextChanges(usage, file, fileService);
@@ -601,6 +596,7 @@ export const processFile = ({
 
     isUsed = result.isUsed;
 
+    changeCount += result.changes.length;
     content = applyTextChanges(content, result.changes);
 
     fileService.set(file, content);
@@ -619,7 +615,13 @@ export const processFile = ({
     return result;
   }
 
-  if (enableCodeFix) {
+  if (enableCodeFix && changeCount > 0) {
+    const languageService = createLanguageService({
+      options,
+      projectRoot,
+      fileService,
+    });
+
     while (true) {
       fileService.set(file, content);
 
