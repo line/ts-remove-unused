@@ -888,6 +888,37 @@ export const a2 = 'a2';`,
 
       assert.equal(fileService.get('/app/a.ts'), `export const a = 'a';`);
     });
+
+    // todo: implement fix for this test case
+    it.skip('should delete the whole re-export if the destination file was deleted', async () => {
+      const fileService = new MemoryFileService();
+      fileService.set('/app/main.ts', `import { b2 } from './b';`);
+      fileService.set(
+        '/app/b.ts',
+        `export { b } from './a_reexport'; export const b2 = 'b2';`,
+      );
+      fileService.set(
+        '/app/a_reexport.ts',
+        `export * from './a';
+export const b = 'b';`,
+      );
+      fileService.set('/app/a.ts', `export const a = 'a';`);
+
+      await removeUnusedExport({
+        fileService,
+        pool,
+        recursive,
+        entrypoints: ['/app/main.ts'],
+        deleteUnusedFile: true,
+      });
+
+      console.log(
+        fileService.getFileNames().map((f) => [f, fileService.get(f)]),
+      );
+
+      assert.equal(fileService.exists('/app/a_reexport.ts'), false);
+      assert.equal(fileService.exists('/app/a.ts'), false);
+    });
   });
 
   describe('namespace import', () => {
