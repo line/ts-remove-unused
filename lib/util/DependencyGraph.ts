@@ -12,4 +12,10 @@ export class DependencyGraph extends Graph<{
       wholeReexportSpecifier: new Map<string, string>(),
     }));
   }
+
+  eject() {
+    return this.vertexes;
+  }
 }
+
+export type Vertexes = ReturnType<DependencyGraph['eject']>;
