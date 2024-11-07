@@ -873,6 +873,21 @@ export const a2 = 'a2';`,
 
       assert.equal(fileService.get('/app/a.ts'), `const a = 'a';`);
     });
+
+    it('should detect the whole module as usage when there is an whole-reexport in the entrypoint', async () => {
+      const fileService = new MemoryFileService();
+      fileService.set('/app/main.ts', `export * from './a';`);
+      fileService.set('/app/a.ts', `export const a = 'a';`);
+
+      await removeUnusedExport({
+        fileService,
+        pool,
+        recursive,
+        entrypoints: ['/app/main.ts'],
+      });
+
+      assert.equal(fileService.get('/app/a.ts'), `export const a = 'a';`);
+    });
   });
 
   describe('namespace import', () => {
