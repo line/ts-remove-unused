@@ -889,6 +889,11 @@ export const a2 = 'a2';`,
       assert.equal(fileService.get('/app/a.ts'), `export const a = 'a';`);
     });
 
+    it.todo(
+      'should correctly handle when there is a circular dependency with whole-reexport',
+      () => {},
+    );
+
     // todo: implement fix for this test case
     it.skip('should delete the whole re-export if the destination file was deleted', async () => {
       const fileService = new MemoryFileService();
