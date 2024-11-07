@@ -853,6 +853,26 @@ a_namespace.a;`,
       );
       assert.equal(fileService.get('/app/a.ts'), `export default 'a';`);
     });
+
+    it('should correctly remove unused export when there is another export in the same file as the whole-reexport declaration', async () => {
+      const fileService = new MemoryFileService();
+      fileService.set('/app/main.ts', `import { a2 } from './a_reexport';`);
+      fileService.set(
+        '/app/a_reexport.ts',
+        `export * from './a';
+export const a2 = 'a2';`,
+      );
+      fileService.set('/app/a.ts', `export const a = 'a';`);
+
+      await removeUnusedExport({
+        fileService,
+        pool,
+        recursive,
+        entrypoints: ['/app/main.ts'],
+      });
+
+      assert.equal(fileService.get('/app/a.ts'), `const a = 'a';`);
+    });
   });
 
   describe('namespace import', () => {
