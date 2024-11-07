@@ -5,4 +5,5 @@ export interface FileService {
   getVersion(name: string): string;
   getFileNames(): string[];
   exists(name: string): boolean;
+  eject(): Map<string, string>;
 }

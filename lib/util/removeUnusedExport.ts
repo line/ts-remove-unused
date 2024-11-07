@@ -7,7 +7,7 @@ import {
   fixIdDeleteImports,
 } from './applyCodeFix.js';
 import { EditTracker } from './EditTracker.js';
-import { DependencyGraph } from './DependencyGraph.js';
+import { Vertexes } from './DependencyGraph.js';
 import { collectImports } from './collectImports.js';
 import { MemoryFileService } from './MemoryFileService.js';
 import { TaskManager } from './TaskManager.js';
@@ -418,57 +418,6 @@ const disabledEditTracker: EditTracker = {
   removeExport: () => {},
 };
 
-type SubgraphNode = {
-  file: string;
-  from: SubgraphNode[];
-  to: string[];
-  content: string;
-  isEntrypoint: boolean;
-};
-
-// todo: consider what happens when there is a circular dependency
-const getMinimalSubgraph = ({
-  targetFile,
-  dependencyGraph,
-  fileService,
-}: {
-  targetFile: string;
-  dependencyGraph: DependencyGraph;
-  fileService: FileService;
-}) => {
-  const createSubgraphNode = (file: string, parent: string | null) => {
-    const vertex = dependencyGraph.vertexes.get(file);
-
-    const result: SubgraphNode = {
-      file,
-      from: [] as SubgraphNode[],
-      // while from only includes nodes in the subgraph, to includes all connections to reuse results of collectUsage
-      to: vertex ? Array.from(vertex.to) : [],
-      content: fileService.get(file),
-      isEntrypoint: !!vertex && vertex.data.depth === 0,
-    };
-
-    if (!vertex) {
-      // this happens when
-      // - there are no imports in the entrypoint
-      // - the file is unreachable from the entrypoint and has no connections between other unreachable files
-      return result;
-    }
-
-    if (parent && vertex.data.wholeReexportSpecifier.size === 0) {
-      return result;
-    }
-
-    for (const from of vertex.from) {
-      result.from.push(createSubgraphNode(from, file));
-    }
-
-    return result;
-  };
-
-  return createSubgraphNode(targetFile, null);
-};
-
 const createLanguageService = ({
   options,
   projectRoot,
@@ -510,51 +459,50 @@ const createLanguageService = ({
 
 const cache = new Map<string, ReturnType<typeof collectUsage>>();
 
+const createFallbackVertex = () => ({
+  from: new Set<string>(),
+  to: new Set<string>(),
+  data: {
+    depth: Infinity,
+    wholeReexportSpecifier: new Map<string, string>(),
+  },
+});
+
 // for use in worker
 export const processFile = ({
-  subgraph,
+  targetFile,
+  files,
+  vertexes,
   deleteUnusedFile,
   enableCodeFix,
   options,
   projectRoot,
 }: {
-  subgraph: SubgraphNode;
+  targetFile: string;
+  vertexes: Vertexes;
+  files: Map<string, string>;
   deleteUnusedFile: boolean;
   enableCodeFix: boolean;
   options: ts.CompilerOptions;
   projectRoot: string;
 }) => {
-  const { file } = subgraph;
   const removedExports: RemovedExport[] = [];
-  const fileService = new MemoryFileService();
-  const nodeMap = new Map<string, SubgraphNode>();
 
-  const stack = [subgraph];
-
-  while (stack.length > 0) {
-    const node = stack.pop();
-
-    if (!node) {
-      break;
-    }
-
-    nodeMap.set(node.file, node);
-
-    for (const f of node.from) {
-      stack.push(f);
-    }
-
-    fileService.set(node.file, node.content);
-  }
-
-  const collectUsageRecursively = (node: SubgraphNode) => {
+  const collectUsageRecursively = (file: string) => {
     const result: string[] = [];
 
-    for (const item of node.from) {
+    // vertex doesn't exist when
+    // - there are no imports in the entrypoint
+    // - the file is unreachable from the entrypoint and has no connections between other unreachable files
+    const vertex = vertexes.get(file) || createFallbackVertex();
+
+    for (const fromFile of vertex.from) {
+      const v = vertexes.get(fromFile) || createFallbackVertex();
+
       const key = JSON.stringify({
-        file: item.file,
-        content: item.content,
-        destFiles: [...item.to].sort(),
+        file: fromFile,
+        content: files.get(fromFile) || '',
+        destFiles: [...v.to].sort(),
         options,
       });
 
@@ -564,53 +512,57 @@ export const processFile = ({
         collected = cache.get(key)!;
       } else {
         collected = collectUsage({
-          file: item.file,
-          content: item.content,
-          destFiles: new Set(item.to),
+          file: fromFile,
+          content: files.get(fromFile) || '',
+          destFiles: new Set(v.to),
           options,
         });
 
         cache.set(key, collected);
       }
 
-      const list = collected[node.file];
+      const list = collected[file];
 
       if (!list) {
         continue;
       }
 
-      for (const v of list) {
-        if (typeof v === 'string') {
-          result.push(v);
+      for (const item of list) {
+        if (typeof item === 'string') {
+          result.push(item);
           continue;
         }
 
-        const n = nodeMap.get(v.file);
+        const n = vertexes.get(item.file);
 
         if (!n) {
           continue;
         }
 
-        if (n.isEntrypoint) {
+        // is entrypoint
+        if (n.data.depth === 0) {
           result.push('*');
           continue;
         }
 
-        result.push(...collectUsageRecursively(n));
+        result.push(...collectUsageRecursively(item.file));
       }
     }
 
     return result;
   };
 
-  const usage = new Set(collectUsageRecursively(subgraph));
+  const usage = new Set(collectUsageRecursively(targetFile));
 
-  let content = fileService.get(file);
+  const fileService = new MemoryFileService();
+  fileService.set(targetFile, files.get(targetFile) || '');
+
+  let content = fileService.get(targetFile);
   let isUsed = false;
   let changeCount = 0;
 
   do {
-    const result = getTextChanges(usage, file, fileService);
+    const result = getTextChanges(usage, targetFile, fileService);
     removedExports.push(...result.removedExports);
 
     isUsed = result.isUsed;
@@ -618,7 +570,7 @@ export const processFile = ({
     changeCount += result.changes.length;
     content = applyTextChanges(content, result.changes);
 
-    fileService.set(file, content);
+    fileService.set(targetFile, content);
 
     if (result.done) {
       break;
@@ -642,11 +594,11 @@ export const processFile = ({
     });
 
     while (true) {
-      fileService.set(file, content);
+      fileService.set(targetFile, content);
 
       const result = applyCodeFix({
         fixId: fixIdDelete,
-        fileName: file,
+        fileName: targetFile,
         languageService,
       });
 
@@ -657,20 +609,20 @@ export const processFile = ({
       content = result;
     }
 
-    fileService.set(file, content);
+    fileService.set(targetFile, content);
 
     content = applyCodeFix({
       fixId: fixIdDeleteImports,
-      fileName: file,
+      fileName: targetFile,
       languageService,
     });
   }
 
-  fileService.set(file, content);
+  fileService.set(targetFile, content);
 
   const result = {
     operation: 'edit' as const,
-    content: fileService.get(file),
+    content: fileService.get(targetFile),
     removedExports,
   };
 
@@ -853,12 +805,6 @@ export const removeUnusedExport = async ({
 
     const vertex = dependencyGraph.vertexes.get(c.file);
 
-    const subgraph = getMinimalSubgraph({
-      targetFile: c.file,
-      dependencyGraph,
-      fileService,
-    });
-
     await Promise.resolve();
 
     if (c.signal.aborted) {
@@ -868,7 +814,9 @@ export const removeUnusedExport = async ({
     const fn = pool ? pool.run.bind(pool) : processFile;
 
     const result = await fn({
-      subgraph,
+      targetFile: c.file,
+      vertexes: dependencyGraph.eject(),
+      files: fileService.eject(),
       deleteUnusedFile,
       enableCodeFix,
       options,
