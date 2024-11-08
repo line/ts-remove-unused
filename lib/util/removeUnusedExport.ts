@@ -12,8 +12,7 @@ import { collectImports } from './collectImports.js';
 import { MemoryFileService } from './MemoryFileService.js';
 import { TaskManager } from './TaskManager.js';
 import { WorkerPool } from './WorkerPool.js';
-import { collectUsage } from './collectUsage.js';
-import { collectUsageRecursively } from './findFileUsage.js';
+import { findFileUsage } from './findFileUsage.js';
 
 const findFirstNodeOfKind = (root: ts.Node, kind: ts.SyntaxKind) => {
   let result: ts.Node | undefined;
@@ -479,7 +478,7 @@ export const processFile = ({
   const removedExports: RemovedExport[] = [];
 
   const usage = new Set(
-    collectUsageRecursively({
+    findFileUsage({
       targetFile,
       vertexes,
       files,

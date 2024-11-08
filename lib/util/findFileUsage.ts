@@ -13,7 +13,7 @@ const createFallbackVertex = () => ({
   },
 });
 
-export const collectUsageRecursively = ({
+export const findFileUsage = ({
   targetFile,
   options,
   vertexes,
@@ -81,7 +81,7 @@ export const collectUsageRecursively = ({
       }
 
       result.push(
-        ...collectUsageRecursively({
+        ...findFileUsage({
           targetFile: item.file,
           vertexes,
           files,
