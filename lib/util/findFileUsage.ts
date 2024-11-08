@@ -24,7 +24,7 @@ export const findFileUsage = ({
   files: Map<string, string>;
   options: ts.CompilerOptions;
 }) => {
-  const result: string[] = [];
+  const result = new Set<string>();
 
   // vertex doesn't exist when
   // - there are no imports in the entrypoint
@@ -64,7 +64,7 @@ export const findFileUsage = ({
 
     for (const item of list) {
       if (typeof item === 'string') {
-        result.push(item);
+        result.add(item);
         continue;
       }
 
@@ -76,18 +76,16 @@ export const findFileUsage = ({
 
       // is entrypoint
       if (n.data.depth === 0) {
-        result.push('*');
+        result.add('*');
         continue;
       }
 
-      result.push(
-        ...findFileUsage({
-          targetFile: item.file,
-          vertexes,
-          files,
-          options,
-        }),
-      );
+      findFileUsage({
+        targetFile: item.file,
+        vertexes,
+        files,
+        options,
+      }).forEach((it) => result.add(it));
     }
   }
 

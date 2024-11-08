@@ -478,14 +478,12 @@ export const processFile = ({
 }) => {
   const removedExports: RemovedExport[] = [];
 
-  const usage = new Set(
-    findFileUsage({
-      targetFile,
-      vertexes,
-      files,
-      options,
-    }),
-  );
+  const usage = findFileUsage({
+    targetFile,
+    vertexes,
+    files,
+    options,
+  });
 
   const fileService = new MemoryFileService();
   fileService.set(targetFile, files.get(targetFile) || '');
