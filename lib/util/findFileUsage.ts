@@ -63,7 +63,7 @@ export const findFileUsage = ({
       options,
     });
 
-    const list = collected[targetFile];
+    const list = collected.imports[targetFile];
 
     if (!list) {
       continue;

@@ -32,7 +32,7 @@ export const getFileInfo = ({
   destFiles: Set<string>;
   options?: ts.CompilerOptions;
 }) => {
-  const result: {
+  const imports: {
     [file: string]: Set<string | { type: 'wholeReexport'; file: string }>;
   } = {};
 
@@ -57,8 +57,8 @@ export const getFileInfo = ({
       if (
         node.importClause?.namedBindings?.kind === ts.SyntaxKind.NamespaceImport
       ) {
-        result[resolved] ||= new Set();
-        result[resolved]?.add('*');
+        imports[resolved] ||= new Set();
+        imports[resolved]?.add('*');
 
         return;
       }
@@ -69,8 +69,8 @@ export const getFileInfo = ({
         const namedImports = node.importClause?.namedBindings;
 
         namedImports.elements.forEach((element) => {
-          result[resolved] ||= new Set();
-          result[resolved]?.add(
+          imports[resolved] ||= new Set();
+          imports[resolved]?.add(
             element.propertyName?.text || element.name.text,
           );
         });
@@ -78,8 +78,8 @@ export const getFileInfo = ({
 
       // we have a default import; i.e. `import foo from './foo';`
       if (node.importClause?.name) {
-        result[resolved] ||= new Set();
-        result[resolved]?.add('default');
+        imports[resolved] ||= new Set();
+        imports[resolved]?.add('default');
       }
 
       return;
@@ -103,8 +103,8 @@ export const getFileInfo = ({
 
       // export * as foo from './foo';
       if (node.exportClause?.kind === ts.SyntaxKind.NamespaceExport) {
-        result[resolved] ||= new Set();
-        result[resolved]?.add('*');
+        imports[resolved] ||= new Set();
+        imports[resolved]?.add('*');
 
         return;
       }
@@ -114,8 +114,8 @@ export const getFileInfo = ({
         const namedExports = node.exportClause;
 
         namedExports.elements.forEach((element) => {
-          result[resolved] ||= new Set();
-          result[resolved]?.add(
+          imports[resolved] ||= new Set();
+          imports[resolved]?.add(
             element.propertyName?.text || element.name.text,
           );
         });
@@ -125,8 +125,8 @@ export const getFileInfo = ({
 
       // export * from './foo';
       if (typeof node.exportClause === 'undefined') {
-        result[resolved] ||= new Set();
-        result[resolved]?.add({ type: 'wholeReexport', file });
+        imports[resolved] ||= new Set();
+        imports[resolved]?.add({ type: 'wholeReexport', file });
 
         return;
       }
@@ -151,8 +151,8 @@ export const getFileInfo = ({
         return;
       }
 
-      result[resolved] ||= new Set();
-      result[resolved]?.add('*');
+      imports[resolved] ||= new Set();
+      imports[resolved]?.add('*');
 
       return;
     }
@@ -162,5 +162,5 @@ export const getFileInfo = ({
 
   sourceFile.forEachChild(visit);
 
-  return result;
+  return { imports };
 };
