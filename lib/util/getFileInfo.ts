@@ -21,7 +21,7 @@ const resolve = ({
     },
   }).resolvedModule?.resolvedFileName;
 
-export const collectUsage = ({
+export const getFileInfo = ({
   file,
   content,
   destFiles,

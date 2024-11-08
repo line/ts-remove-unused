@@ -1,10 +1,10 @@
 import ts from 'typescript';
 import { Vertexes } from './DependencyGraph.js';
-import { collectUsage } from './collectUsage.js';
+import { getFileInfo } from './getFileInfo.js';
 
-const cache = new Map<string, ReturnType<typeof collectUsage>>();
+const cache = new Map<string, ReturnType<typeof getFileInfo>>();
 
-const memoizedCollectUsage: typeof collectUsage = ({
+const memoizedGetFileInfo: typeof getFileInfo = ({
   file,
   content,
   destFiles,
@@ -21,7 +21,7 @@ const memoizedCollectUsage: typeof collectUsage = ({
     return cache.get(key)!;
   }
 
-  const result = collectUsage({ file, content, destFiles, options });
+  const result = getFileInfo({ file, content, destFiles, options });
   cache.set(key, result);
   return result;
 };
@@ -56,7 +56,7 @@ export const findFileUsage = ({
   for (const fromFile of vertex.from) {
     const v = vertexes.get(fromFile) || createFallbackVertex();
 
-    const collected = memoizedCollectUsage({
+    const collected = memoizedGetFileInfo({
       file: fromFile,
       content: files.get(fromFile) || '',
       destFiles: new Set(v.to),
