@@ -92,4 +92,33 @@ describe('findFileUsage', () => {
 
     assert.deepEqual(result, new Set(['a', 'b']));
   });
+
+  it('should not include identifiers that are not exported from the target file', () => {
+    const fileService = new MemoryFileService();
+    fileService.set('/app/main.ts', `import { a, b } from './reexport';`);
+    fileService.set(
+      '/app/reexport.ts',
+      `export * from './a'; export * from './b';`,
+    );
+    fileService.set('/app/a.ts', `export const a = 'a';`);
+    fileService.set('/app/b.ts', `export const b = 'b';`);
+    const program = createProgram({
+      fileService,
+      options: {},
+      projectRoot: '/app',
+    });
+    const graph = collectImports({
+      fileService,
+      program,
+      entrypoints: ['/app/main.ts'],
+    });
+    const result = findFileUsage({
+      targetFile: '/app/a.ts',
+      vertexes: graph.eject(),
+      files: fileService.eject(),
+      options: {},
+    });
+
+    assert.deepEqual(result, new Set(['a']));
+  });
 });
