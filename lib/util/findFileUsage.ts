@@ -4,6 +4,28 @@ import { collectUsage } from './collectUsage.js';
 
 const cache = new Map<string, ReturnType<typeof collectUsage>>();
 
+const memoizedCollectUsage: typeof collectUsage = ({
+  file,
+  content,
+  destFiles,
+  options,
+}) => {
+  const key = JSON.stringify({
+    file,
+    content,
+    destFiles: Array.from(destFiles).sort(),
+    options,
+  });
+
+  if (cache.has(key)) {
+    return cache.get(key)!;
+  }
+
+  const result = collectUsage({ file, content, destFiles, options });
+  cache.set(key, result);
+  return result;
+};
+
 const createFallbackVertex = () => ({
   from: new Set<string>(),
   to: new Set<string>(),
@@ -34,27 +56,12 @@ export const findFileUsage = ({
   for (const fromFile of vertex.from) {
     const v = vertexes.get(fromFile) || createFallbackVertex();
 
-    const key = JSON.stringify({
+    const collected = memoizedCollectUsage({
       file: fromFile,
       content: files.get(fromFile) || '',
-      destFiles: [...v.to].sort(),
+      destFiles: new Set(v.to),
       options,
     });
-
-    let collected: ReturnType<typeof collectUsage>;
-
-    if (cache.has(key)) {
-      collected = cache.get(key)!;
-    } else {
-      collected = collectUsage({
-        file: fromFile,
-        content: files.get(fromFile) || '',
-        destFiles: new Set(v.to),
-        options,
-      });
-
-      cache.set(key, collected);
-    }
 
     const list = collected[targetFile];
 
