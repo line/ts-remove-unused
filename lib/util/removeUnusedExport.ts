@@ -13,6 +13,7 @@ import { MemoryFileService } from './MemoryFileService.js';
 import { TaskManager } from './TaskManager.js';
 import { WorkerPool } from './WorkerPool.js';
 import { collectUsage } from './collectUsage.js';
+import { collectUsageRecursively } from './findFileUsage.js';
 
 const findFirstNodeOfKind = (root: ts.Node, kind: ts.SyntaxKind) => {
   let result: ts.Node | undefined;
@@ -457,17 +458,6 @@ const createLanguageService = ({
   return languageService;
 };
 
-const cache = new Map<string, ReturnType<typeof collectUsage>>();
-
-const createFallbackVertex = () => ({
-  from: new Set<string>(),
-  to: new Set<string>(),
-  data: {
-    depth: Infinity,
-    wholeReexportSpecifier: new Map<string, string>(),
-  },
-});
-
 // for use in worker
 export const processFile = ({
   targetFile,
@@ -488,71 +478,14 @@ export const processFile = ({
 }) => {
   const removedExports: RemovedExport[] = [];
 
-  const collectUsageRecursively = (file: string) => {
-    const result: string[] = [];
-
-    // vertex doesn't exist when
-    // - there are no imports in the entrypoint
-    // - the file is unreachable from the entrypoint and has no connections between other unreachable files
-    const vertex = vertexes.get(file) || createFallbackVertex();
-
-    for (const fromFile of vertex.from) {
-      const v = vertexes.get(fromFile) || createFallbackVertex();
-
-      const key = JSON.stringify({
-        file: fromFile,
-        content: files.get(fromFile) || '',
-        destFiles: [...v.to].sort(),
-        options,
-      });
-
-      let collected: ReturnType<typeof collectUsage>;
-
-      if (cache.has(key)) {
-        collected = cache.get(key)!;
-      } else {
-        collected = collectUsage({
-          file: fromFile,
-          content: files.get(fromFile) || '',
-          destFiles: new Set(v.to),
-          options,
-        });
-
-        cache.set(key, collected);
-      }
-
-      const list = collected[file];
-
-      if (!list) {
-        continue;
-      }
-
-      for (const item of list) {
-        if (typeof item === 'string') {
-          result.push(item);
-          continue;
-        }
-
-        const n = vertexes.get(item.file);
-
-        if (!n) {
-          continue;
-        }
-
-        // is entrypoint
-        if (n.data.depth === 0) {
-          result.push('*');
-          continue;
-        }
-
-        result.push(...collectUsageRecursively(item.file));
-      }
-    }
-
-    return result;
-  };
-
-  const usage = new Set(collectUsageRecursively(targetFile));
+  const usage = new Set(
+    collectUsageRecursively({
+      targetFile,
+      vertexes,
+      files,
+      options,
+    }),
+  );
 
   const fileService = new MemoryFileService();
   fileService.set(targetFile, files.get(targetFile) || '');
