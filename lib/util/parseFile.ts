@@ -21,7 +21,7 @@ const resolve = ({
     },
   }).resolvedModule?.resolvedFileName;
 
-export const getFileInfo = ({
+export const parseFile = ({
   file,
   content,
   destFiles,
