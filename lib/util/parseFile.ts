@@ -1,4 +1,5 @@
 import ts from 'typescript';
+import { memoize } from './memoize.js';
 
 const resolve = ({
   specifier,
@@ -21,7 +22,7 @@ const resolve = ({
     },
   }).resolvedModule?.resolvedFileName;
 
-export const parseFile = ({
+const fn = ({
   file,
   content,
   destFiles,
@@ -164,3 +165,13 @@ export const parseFile = ({
 
   return { imports };
 };
+
+export const parseFile = memoize(fn, {
+  key: (arg) =>
+    JSON.stringify({
+      file: arg.file,
+      content: arg.content,
+      destFiles: Array.from(arg.destFiles).sort(),
+      options: arg.options,
+    }),
+});
