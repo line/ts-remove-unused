@@ -211,7 +211,7 @@ describe('parseFile', () => {
     });
   });
 
-  it('should collect variable declaration exports', () => {
+  it('should collect variable statement exports', () => {
     const { exports } = parseFile({
       file: '/app/a.ts',
       content: `export const a = 'a';`,
@@ -222,6 +222,21 @@ describe('parseFile', () => {
       {
         kind: ts.SyntaxKind.VariableStatement,
         name: ['a'],
+      },
+    ]);
+  });
+
+  it('should collect variable statement exports with multiple variables', () => {
+    const { exports } = parseFile({
+      file: '/app/a.ts',
+      content: `export const a = 'a', b = 'b';`,
+      destFiles: new Set(),
+    });
+
+    assert.deepEqual(exports, [
+      {
+        kind: ts.SyntaxKind.VariableStatement,
+        name: ['a', 'b'],
       },
     ]);
   });
