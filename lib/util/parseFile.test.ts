@@ -211,7 +211,7 @@ describe('parseFile', () => {
     });
   });
 
-  it('should collect variable statement exports', () => {
+  it('should collect variable statement export', () => {
     const { exports } = parseFile({
       file: '/app/a.ts',
       content: `export const a = 'a';`,
@@ -226,7 +226,7 @@ describe('parseFile', () => {
     ]);
   });
 
-  it('should collect variable statement exports with multiple variables', () => {
+  it('should collect variable statement export with multiple variables', () => {
     const { exports } = parseFile({
       file: '/app/a.ts',
       content: `export const a = 'a', b = 'b';`,
@@ -241,7 +241,7 @@ describe('parseFile', () => {
     ]);
   });
 
-  it('should collect function declaration exports', () => {
+  it('should collect function declaration export', () => {
     const { exports } = parseFile({
       file: '/app/a.ts',
       content: `export function a() {}`,
@@ -286,7 +286,7 @@ describe('parseFile', () => {
     ]);
   });
 
-  it('should collect interface declaration exports', () => {
+  it('should collect interface declaration export', () => {
     const { exports } = parseFile({
       file: '/app/a.ts',
       content: `export interface A {}`,
@@ -312,6 +312,21 @@ describe('parseFile', () => {
       {
         kind: ts.SyntaxKind.InterfaceDeclaration,
         name: 'default',
+      },
+    ]);
+  });
+
+  it('should collect type alias declaration export', () => {
+    const { exports } = parseFile({
+      file: '/app/a.ts',
+      content: `export type A = string;`,
+      destFiles: new Set(),
+    });
+
+    assert.deepEqual(exports, [
+      {
+        kind: ts.SyntaxKind.TypeAliasDeclaration,
+        name: 'A',
       },
     ]);
   });

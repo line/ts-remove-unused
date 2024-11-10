@@ -34,6 +34,10 @@ type Export =
   | {
       kind: ts.SyntaxKind.InterfaceDeclaration;
       name: string;
+    }
+  | {
+      kind: ts.SyntaxKind.TypeAliasDeclaration;
+      name: string;
     };
 
 const fn = ({
@@ -99,6 +103,22 @@ const fn = ({
             name: node.name?.getText() || '',
           });
         }
+      }
+
+      ts.forEachChild(node, visit);
+      return;
+    }
+
+    if (ts.isTypeAliasDeclaration(node)) {
+      const isExported = node.modifiers?.some(
+        (m) => m.kind === ts.SyntaxKind.ExportKeyword,
+      );
+
+      if (isExported) {
+        exports.push({
+          kind: node.kind,
+          name: node.name.getText(),
+        });
       }
 
       ts.forEachChild(node, visit);
