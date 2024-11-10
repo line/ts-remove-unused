@@ -430,6 +430,22 @@ describe('parseFile', () => {
     const { exports } = parseFile({
       file: '/app/a.ts',
       content: `export * from './b';`,
+      destFiles: new Set(['/app/b.ts']),
+    });
+
+    assert.deepEqual(exports, [
+      {
+        kind: ts.SyntaxKind.ExportDeclaration,
+        type: 'whole',
+        file: '/app/b.ts',
+      },
+    ]);
+  });
+
+  it('should return null for file if the whole re-export is not part of the project', () => {
+    const { exports } = parseFile({
+      file: '/app/a.ts',
+      content: `export * from 'node:fs`,
       destFiles: new Set(),
     });
 
@@ -437,7 +453,7 @@ describe('parseFile', () => {
       {
         kind: ts.SyntaxKind.ExportDeclaration,
         type: 'whole',
-        fileSpecifier: './b',
+        file: null,
       },
     ]);
   });

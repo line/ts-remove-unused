@@ -56,7 +56,8 @@ type Export =
   | {
       kind: ts.SyntaxKind.ExportDeclaration;
       type: 'whole';
-      fileSpecifier: string;
+      // will be null if the file is not found within the destFiles, i.e. the file is not part of the project
+      file: string | null;
     }
   | {
       kind: ts.SyntaxKind.ClassDeclaration;
@@ -247,17 +248,17 @@ const fn = ({
       node.moduleSpecifier &&
       ts.isStringLiteral(node.moduleSpecifier)
     ) {
-      exports.push({
-        kind: ts.SyntaxKind.ExportDeclaration,
-        type: 'whole',
-        fileSpecifier: node.moduleSpecifier.text,
-      });
-
       const resolved = resolve({
         specifier: node.moduleSpecifier.text,
         destFiles,
         file,
         options,
+      });
+
+      exports.push({
+        kind: ts.SyntaxKind.ExportDeclaration,
+        type: 'whole',
+        file: resolved || null,
       });
 
       if (resolved) {
