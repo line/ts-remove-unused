@@ -139,6 +139,10 @@ export const findFileUsage = ({
     });
   }
 
+  if (exportsOfTargetFile.has(ALL_EXPORTS_OF_UNKNOWN_FILE)) {
+    return new Set(result);
+  }
+
   return new Set(
     result.filter((it) => exportsOfTargetFile.has(it) || it === '*'),
   );

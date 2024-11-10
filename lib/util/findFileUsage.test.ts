@@ -121,4 +121,58 @@ describe('findFileUsage', () => {
 
     assert.deepEqual(result, new Set(['a']));
   });
+
+  it('should handle case where whole reexport for file outside of project is used', () => {
+    const fileService = new MemoryFileService();
+    fileService.set('/app/main.ts', `import { glob } from './a';`);
+    fileService.set('/app/a.ts', `export * from 'node:fs';`);
+    const program = createProgram({
+      fileService,
+      options: {},
+      projectRoot: '/app',
+    });
+    const graph = collectImports({
+      fileService,
+      program,
+      entrypoints: ['/app/main.ts'],
+    });
+    const result = findFileUsage({
+      targetFile: '/app/a.ts',
+      vertexes: graph.eject(),
+      files: fileService.eject(),
+      options: {},
+    });
+
+    assert.deepEqual(result, new Set(['glob']));
+  });
+
+  it('should return false positive if reexport of file outside of project is used', () => {
+    const fileService = new MemoryFileService();
+    fileService.set('/app/main.ts', `import { cwd, glob } from './a';`);
+    fileService.set(
+      '/app/a_reexport.ts',
+      `export * from 'node:process'; export * from './a';`,
+    );
+    fileService.set('/app/a.ts', `export * from 'node:fs';`);
+    const program = createProgram({
+      fileService,
+      options: {},
+      projectRoot: '/app',
+    });
+    const graph = collectImports({
+      fileService,
+      program,
+      entrypoints: ['/app/main.ts'],
+    });
+    const result = findFileUsage({
+      targetFile: '/app/a.ts',
+      vertexes: graph.eject(),
+      files: fileService.eject(),
+      options: {},
+    });
+
+    // cwd is not exported from a.ts so it should not be included in the result
+    // but for now this is the expected behavior
+    assert.deepEqual(result, new Set(['glob', 'cwd']));
+  });
 });
