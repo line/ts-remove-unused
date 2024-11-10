@@ -240,4 +240,19 @@ describe('parseFile', () => {
       },
     ]);
   });
+
+  it('should collect function declaration exports', () => {
+    const { exports } = parseFile({
+      file: '/app/a.ts',
+      content: `export function a() {}`,
+      destFiles: new Set(),
+    });
+
+    assert.deepEqual(exports, [
+      {
+        kind: ts.SyntaxKind.FunctionDeclaration,
+        name: 'a',
+      },
+    ]);
+  });
 });

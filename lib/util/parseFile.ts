@@ -22,10 +22,15 @@ const resolve = ({
     },
   }).resolvedModule?.resolvedFileName;
 
-type Export = {
-  kind: ts.SyntaxKind.VariableStatement;
-  name: string[];
-};
+type Export =
+  | {
+      kind: ts.SyntaxKind.VariableStatement;
+      name: string[];
+    }
+  | {
+      kind: ts.SyntaxKind.FunctionDeclaration;
+      name: string;
+    };
 
 const fn = ({
   file,
@@ -66,6 +71,25 @@ const fn = ({
           name,
         });
       }
+
+      ts.forEachChild(node, visit);
+      return;
+    }
+
+    if (ts.isFunctionDeclaration(node)) {
+      const isExported = node.modifiers?.some(
+        (m) => m.kind === ts.SyntaxKind.ExportKeyword,
+      );
+
+      if (isExported) {
+        exports.push({
+          kind: ts.SyntaxKind.FunctionDeclaration,
+          name: node.name?.getText() || '',
+        });
+      }
+
+      ts.forEachChild(node, visit);
+      return;
     }
 
     if (
