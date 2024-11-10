@@ -82,10 +82,19 @@ const fn = ({
       );
 
       if (isExported) {
-        exports.push({
-          kind: ts.SyntaxKind.FunctionDeclaration,
-          name: node.name?.getText() || '',
-        });
+        if (
+          node.modifiers?.some((m) => m.kind === ts.SyntaxKind.DefaultKeyword)
+        ) {
+          exports.push({
+            kind: ts.SyntaxKind.FunctionDeclaration,
+            name: 'default',
+          });
+        } else {
+          exports.push({
+            kind: ts.SyntaxKind.FunctionDeclaration,
+            name: node.name?.getText() || '',
+          });
+        }
       }
 
       ts.forEachChild(node, visit);

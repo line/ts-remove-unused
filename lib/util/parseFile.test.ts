@@ -255,4 +255,19 @@ describe('parseFile', () => {
       },
     ]);
   });
+
+  it('should collect function declaration with default export', () => {
+    const { exports } = parseFile({
+      file: '/app/a.ts',
+      content: `export default function a() {}`,
+      destFiles: new Set(),
+    });
+
+    assert.deepEqual(exports, [
+      {
+        kind: ts.SyntaxKind.FunctionDeclaration,
+        name: 'default',
+      },
+    ]);
+  });
 });
