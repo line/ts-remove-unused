@@ -22,6 +22,11 @@ const resolve = ({
     },
   }).resolvedModule?.resolvedFileName;
 
+type Export = {
+  kind: ts.SyntaxKind.VariableStatement;
+  name: string[];
+};
+
 const fn = ({
   file,
   content,
@@ -36,11 +41,33 @@ const fn = ({
   const imports: {
     [file: string]: Set<string | { type: 'wholeReexport'; file: string }>;
   } = {};
-  const exports = new Set<string>();
+  const exports: Export[] = [];
 
-  const sourceFile = ts.createSourceFile(file, content, ts.ScriptTarget.ESNext);
+  const sourceFile = ts.createSourceFile(
+    file,
+    content,
+    ts.ScriptTarget.ESNext,
+    true,
+  );
 
   const visit = (node: ts.Node) => {
+    if (ts.isVariableStatement(node)) {
+      const isExported = node.modifiers?.some(
+        (m) => m.kind === ts.SyntaxKind.ExportKeyword,
+      );
+
+      if (isExported) {
+        const name = node.declarationList.declarations.map((d) =>
+          d.name.getText(),
+        );
+
+        exports.push({
+          kind: ts.SyntaxKind.VariableStatement,
+          name,
+        });
+      }
+    }
+
     if (
       ts.isImportDeclaration(node) &&
       ts.isStringLiteral(node.moduleSpecifier)

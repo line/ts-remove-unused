@@ -1,6 +1,7 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import { parseFile } from './parseFile.js';
+import ts from 'typescript';
 
 describe('parseFile', () => {
   it('should collect a single named import', () => {
@@ -213,10 +214,15 @@ describe('parseFile', () => {
   it('should collect variable declaration exports', () => {
     const { exports } = parseFile({
       file: '/app/a.ts',
-      content: 'export const b = 1;',
+      content: `export const a = 'a';`,
       destFiles: new Set(),
     });
 
-    assert.deepEqual(exports, ['b']);
+    assert.deepEqual(exports, [
+      {
+        kind: ts.SyntaxKind.VariableStatement,
+        name: ['a'],
+      },
+    ]);
   });
 });
