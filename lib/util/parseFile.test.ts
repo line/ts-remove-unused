@@ -330,4 +330,19 @@ describe('parseFile', () => {
       },
     ]);
   });
+
+  it('should collect default export assignment', () => {
+    const { exports } = parseFile({
+      file: '/app/a.ts',
+      content: `export default 'a';`,
+      destFiles: new Set(),
+    });
+
+    assert.deepEqual(exports, [
+      {
+        kind: ts.SyntaxKind.ExportAssignment,
+        name: 'default',
+      },
+    ]);
+  });
 });

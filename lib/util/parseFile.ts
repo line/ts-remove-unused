@@ -38,6 +38,10 @@ type Export =
   | {
       kind: ts.SyntaxKind.TypeAliasDeclaration;
       name: string;
+    }
+  | {
+      kind: ts.SyntaxKind.ExportAssignment;
+      name: 'default';
     };
 
 const fn = ({
@@ -120,6 +124,16 @@ const fn = ({
           name: node.name.getText(),
         });
       }
+
+      ts.forEachChild(node, visit);
+      return;
+    }
+
+    if (ts.isExportAssignment(node) && !node.isExportEquals) {
+      exports.push({
+        kind: ts.SyntaxKind.ExportAssignment,
+        name: 'default',
+      });
 
       ts.forEachChild(node, visit);
       return;
