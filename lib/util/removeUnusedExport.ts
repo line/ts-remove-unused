@@ -145,17 +145,13 @@ const getUnusedExports = (
     fileName,
     fileService.get(fileName),
     ts.ScriptTarget.Latest,
+    true,
   );
 
-  const visit = (node: ts.Node, parent: ts.Node) => {
-    // when we manually create a sourceFile, we have to set the parent manually
-    (node as { parent: ts.Node }).parent = parent;
-
+  const visit = (node: ts.Node) => {
     if (ts.isExportDeclaration(node) && !node.exportClause) {
       // special case for `export * from './foo';`
       isUsed = true;
-
-      node.forEachChild((child) => visit(child, node));
       return;
     }
 
@@ -163,7 +159,6 @@ const getUnusedExports = (
       if (getLeadingComment(node, sourceFile).includes(IGNORE_COMMENT)) {
         isUsed = true;
 
-        node.forEachChild((child) => visit(child, node));
         return;
       }
 
@@ -174,15 +169,13 @@ const getUnusedExports = (
       } else {
         nodes.push(node);
       }
-
-      node.forEachChild((child) => visit(child, node));
       return;
     }
 
-    node.forEachChild((child) => visit(child, node));
+    node.forEachChild(visit);
   };
 
-  sourceFile.forEachChild((child) => visit(child, sourceFile));
+  sourceFile.forEachChild(visit);
 
   return { nodes, isUsed };
 };
