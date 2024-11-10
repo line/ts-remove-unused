@@ -152,66 +152,107 @@ const fn = ({
       return;
     }
 
-    if (ts.isExportDeclaration(node)) {
-      if (node.exportClause?.kind === ts.SyntaxKind.NamedExports) {
-        exports.push({
-          kind: ts.SyntaxKind.ExportDeclaration,
-          type: 'named',
-          // we always collect the name not the propertyName because its for exports
-          name: node.exportClause.elements.map((element) => element.name.text),
+    // export { foo };
+    if (
+      ts.isExportDeclaration(node) &&
+      node.exportClause?.kind === ts.SyntaxKind.NamedExports &&
+      !node.moduleSpecifier
+    ) {
+      exports.push({
+        kind: ts.SyntaxKind.ExportDeclaration,
+        type: 'named',
+        // we always collect the name not the propertyName because its for exports
+        name: node.exportClause.elements.map((element) => element.name.text),
+      });
+
+      return;
+    }
+
+    // export { foo } from './foo';
+    if (
+      ts.isExportDeclaration(node) &&
+      node.exportClause?.kind === ts.SyntaxKind.NamedExports &&
+      node.moduleSpecifier &&
+      ts.isStringLiteral(node.moduleSpecifier)
+    ) {
+      exports.push({
+        kind: ts.SyntaxKind.ExportDeclaration,
+        type: 'named',
+        // we always collect the name not the propertyName because its for exports
+        name: node.exportClause.elements.map((element) => element.name.text),
+      });
+
+      const resolved = resolve({
+        specifier: node.moduleSpecifier.text,
+        destFiles,
+        file,
+        options,
+      });
+
+      if (resolved) {
+        imports[resolved] ||= [];
+        node.exportClause.elements.forEach((element) => {
+          imports[resolved] ||= [];
+          imports[resolved]?.push(
+            element.propertyName?.text || element.name.text,
+          );
         });
       }
 
-      if (node.exportClause?.kind === ts.SyntaxKind.NamespaceExport) {
-        exports.push({
-          kind: ts.SyntaxKind.ExportDeclaration,
-          type: 'namespace',
-          name: [node.exportClause.name.text],
-        });
+      return;
+    }
+
+    // export * as foo from './foo';
+    if (
+      ts.isExportDeclaration(node) &&
+      node.exportClause?.kind === ts.SyntaxKind.NamespaceExport &&
+      node.moduleSpecifier &&
+      ts.isStringLiteral(node.moduleSpecifier)
+    ) {
+      exports.push({
+        kind: ts.SyntaxKind.ExportDeclaration,
+        type: 'namespace',
+        name: [node.exportClause.name.text],
+      });
+
+      const resolved = resolve({
+        specifier: node.moduleSpecifier.text,
+        destFiles,
+        file,
+        options,
+      });
+
+      if (resolved) {
+        imports[resolved] ||= [];
+        imports[resolved]?.push('*');
       }
 
-      // if it includes a module specifier, it's a re-export
-      if (node.moduleSpecifier && ts.isStringLiteral(node.moduleSpecifier)) {
-        const resolved = resolve({
-          specifier: node.moduleSpecifier.text,
-          destFiles,
-          file,
-          options,
-        });
+      return;
+    }
 
-        if (!resolved) {
-          return;
-        }
+    // export * from './foo';
+    if (
+      ts.isExportDeclaration(node) &&
+      !node.exportClause &&
+      node.moduleSpecifier &&
+      ts.isStringLiteral(node.moduleSpecifier)
+    ) {
+      exports.push({
+        kind: ts.SyntaxKind.ExportDeclaration,
+        type: 'whole',
+        name: ['*'],
+      });
 
-        // export * as foo from './foo';
-        if (node.exportClause?.kind === ts.SyntaxKind.NamespaceExport) {
-          imports[resolved] ||= [];
-          imports[resolved]?.push('*');
+      const resolved = resolve({
+        specifier: node.moduleSpecifier.text,
+        destFiles,
+        file,
+        options,
+      });
 
-          return;
-        }
-
-        // export { foo, bar } from './foo';
-        if (node.exportClause?.kind === ts.SyntaxKind.NamedExports) {
-          const namedExports = node.exportClause;
-
-          namedExports.elements.forEach((element) => {
-            imports[resolved] ||= [];
-            imports[resolved]?.push(
-              element.propertyName?.text || element.name.text,
-            );
-          });
-
-          return;
-        }
-
-        // export * from './foo';
-        if (typeof node.exportClause === 'undefined') {
-          imports[resolved] ||= [];
-          imports[resolved]?.push({ type: 'wholeReexport', file });
-
-          return;
-        }
+      if (resolved) {
+        imports[resolved] ||= [];
+        imports[resolved]?.push({ type: 'wholeReexport', file });
       }
 
       return;
