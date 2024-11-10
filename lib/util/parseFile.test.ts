@@ -285,4 +285,34 @@ describe('parseFile', () => {
       },
     ]);
   });
+
+  it('should collect interface declaration exports', () => {
+    const { exports } = parseFile({
+      file: '/app/a.ts',
+      content: `export interface A {}`,
+      destFiles: new Set(),
+    });
+
+    assert.deepEqual(exports, [
+      {
+        kind: ts.SyntaxKind.InterfaceDeclaration,
+        name: 'A',
+      },
+    ]);
+  });
+
+  it('should collect interface declaration with default export keyword', () => {
+    const { exports } = parseFile({
+      file: '/app/a.ts',
+      content: `export default interface A {}`,
+      destFiles: new Set(),
+    });
+
+    assert.deepEqual(exports, [
+      {
+        kind: ts.SyntaxKind.InterfaceDeclaration,
+        name: 'default',
+      },
+    ]);
+  });
 });

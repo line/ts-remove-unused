@@ -30,6 +30,10 @@ type Export =
   | {
       kind: ts.SyntaxKind.FunctionDeclaration;
       name: string;
+    }
+  | {
+      kind: ts.SyntaxKind.InterfaceDeclaration;
+      name: string;
     };
 
 const fn = ({
@@ -76,7 +80,7 @@ const fn = ({
       return;
     }
 
-    if (ts.isFunctionDeclaration(node)) {
+    if (ts.isFunctionDeclaration(node) || ts.isInterfaceDeclaration(node)) {
       const isExported = node.modifiers?.some(
         (m) => m.kind === ts.SyntaxKind.ExportKeyword,
       );
@@ -86,12 +90,12 @@ const fn = ({
           node.modifiers?.some((m) => m.kind === ts.SyntaxKind.DefaultKeyword)
         ) {
           exports.push({
-            kind: ts.SyntaxKind.FunctionDeclaration,
+            kind: node.kind,
             name: 'default',
           });
         } else {
           exports.push({
-            kind: ts.SyntaxKind.FunctionDeclaration,
+            kind: node.kind,
             name: node.name?.getText() || '',
           });
         }
