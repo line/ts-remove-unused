@@ -42,6 +42,10 @@ type Export =
   | {
       kind: ts.SyntaxKind.ExportAssignment;
       name: 'default';
+    }
+  | {
+      kind: ts.SyntaxKind.ExportDeclaration;
+      name: string[];
     };
 
 const fn = ({
@@ -139,6 +143,62 @@ const fn = ({
       return;
     }
 
+    if (ts.isExportDeclaration(node)) {
+      if (node.exportClause?.kind === ts.SyntaxKind.NamedExports) {
+        exports.push({
+          kind: ts.SyntaxKind.ExportDeclaration,
+          // we always collect the name not the propertyName because its for exports
+          name: node.exportClause.elements.map((element) => element.name.text),
+        });
+      }
+
+      // if it includes a module specifier, it's a re-export
+      if (node.moduleSpecifier && ts.isStringLiteral(node.moduleSpecifier)) {
+        const resolved = resolve({
+          specifier: node.moduleSpecifier.text,
+          destFiles,
+          file,
+          options,
+        });
+
+        if (!resolved) {
+          return;
+        }
+
+        // export * as foo from './foo';
+        if (node.exportClause?.kind === ts.SyntaxKind.NamespaceExport) {
+          imports[resolved] ||= new Set();
+          imports[resolved]?.add('*');
+
+          return;
+        }
+
+        // export { foo, bar } from './foo';
+        if (node.exportClause?.kind === ts.SyntaxKind.NamedExports) {
+          const namedExports = node.exportClause;
+
+          namedExports.elements.forEach((element) => {
+            imports[resolved] ||= new Set();
+            imports[resolved]?.add(
+              element.propertyName?.text || element.name.text,
+            );
+          });
+
+          return;
+        }
+
+        // export * from './foo';
+        if (typeof node.exportClause === 'undefined') {
+          imports[resolved] ||= new Set();
+          imports[resolved]?.add({ type: 'wholeReexport', file });
+
+          return;
+        }
+      }
+
+      return;
+    }
+
     if (
       ts.isImportDeclaration(node) &&
       ts.isStringLiteral(node.moduleSpecifier)
@@ -180,55 +240,6 @@ const fn = ({
       if (node.importClause?.name) {
         imports[resolved] ||= new Set();
         imports[resolved]?.add('default');
-      }
-
-      return;
-    }
-
-    if (
-      ts.isExportDeclaration(node) &&
-      node.moduleSpecifier &&
-      ts.isStringLiteral(node.moduleSpecifier)
-    ) {
-      const resolved = resolve({
-        specifier: node.moduleSpecifier.text,
-        destFiles,
-        file,
-        options,
-      });
-
-      if (!resolved) {
-        return;
-      }
-
-      // export * as foo from './foo';
-      if (node.exportClause?.kind === ts.SyntaxKind.NamespaceExport) {
-        imports[resolved] ||= new Set();
-        imports[resolved]?.add('*');
-
-        return;
-      }
-
-      // export { foo, bar } from './foo';
-      if (node.exportClause?.kind === ts.SyntaxKind.NamedExports) {
-        const namedExports = node.exportClause;
-
-        namedExports.elements.forEach((element) => {
-          imports[resolved] ||= new Set();
-          imports[resolved]?.add(
-            element.propertyName?.text || element.name.text,
-          );
-        });
-
-        return;
-      }
-
-      // export * from './foo';
-      if (typeof node.exportClause === 'undefined') {
-        imports[resolved] ||= new Set();
-        imports[resolved]?.add({ type: 'wholeReexport', file });
-
-        return;
       }
 
       return;

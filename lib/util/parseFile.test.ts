@@ -345,4 +345,64 @@ describe('parseFile', () => {
       },
     ]);
   });
+
+  it('should collect export declaration', () => {
+    const { exports } = parseFile({
+      file: '/app/a.ts',
+      content: `const a = 'a'; const b = 'b'; export { a, b };`,
+      destFiles: new Set(),
+    });
+
+    assert.deepEqual(exports, [
+      {
+        kind: ts.SyntaxKind.ExportDeclaration,
+        name: ['a', 'b'],
+      },
+    ]);
+  });
+
+  it('should collect renamed export declaration', () => {
+    const { exports } = parseFile({
+      file: '/app/a.ts',
+      content: `const a = 'a'; export { a as b };`,
+      destFiles: new Set(),
+    });
+
+    assert.deepEqual(exports, [
+      {
+        kind: ts.SyntaxKind.ExportDeclaration,
+        name: ['b'],
+      },
+    ]);
+  });
+
+  it('should include named re-export in exports', () => {
+    const { exports } = parseFile({
+      file: '/app/a.ts',
+      content: `export { a } from './b';`,
+      destFiles: new Set(),
+    });
+
+    assert.deepEqual(exports, [
+      {
+        kind: ts.SyntaxKind.ExportDeclaration,
+        name: ['a'],
+      },
+    ]);
+  });
+
+  it('should include renamed re-export in exports', () => {
+    const { exports } = parseFile({
+      file: '/app/a.ts',
+      content: `export { a as b } from './b';`,
+      destFiles: new Set(),
+    });
+
+    assert.deepEqual(exports, [
+      {
+        kind: ts.SyntaxKind.ExportDeclaration,
+        name: ['b'],
+      },
+    ]);
+  });
 });
