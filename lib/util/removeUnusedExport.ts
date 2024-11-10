@@ -36,8 +36,8 @@ const findFirstNodeOfKind = (root: ts.Node, kind: ts.SyntaxKind) => {
 
 const IGNORE_COMMENT = 'ts-remove-unused-skip';
 
-const getLeadingComment = (node: ts.Node, sourceFile: ts.SourceFile) => {
-  const fullText = sourceFile.getFullText(sourceFile);
+const getLeadingComment = (node: ts.Node) => {
+  const fullText = node.getSourceFile().getFullText();
   const ranges = ts.getLeadingCommentRanges(fullText, node.getFullStart());
 
   if (!ranges) {
@@ -83,7 +83,7 @@ const isTarget = (node: ts.Node): node is SupportedNode => {
   return false;
 };
 
-const getSpecifier = (node: SupportedNode, sourceFile: ts.SourceFile) => {
+const getSpecifier = (node: SupportedNode) => {
   switch (node.kind) {
     case ts.SyntaxKind.VariableStatement: {
       const declaration = node.declarationList.declarations[0];
@@ -92,7 +92,7 @@ const getSpecifier = (node: SupportedNode, sourceFile: ts.SourceFile) => {
         return null;
       }
 
-      return declaration.name.getText(sourceFile);
+      return declaration.name.getText();
     }
     case ts.SyntaxKind.FunctionDeclaration:
     case ts.SyntaxKind.InterfaceDeclaration: {
@@ -102,16 +102,16 @@ const getSpecifier = (node: SupportedNode, sourceFile: ts.SourceFile) => {
         return 'default';
       }
 
-      return node.name?.getText(sourceFile) || null;
+      return node.name?.getText() || null;
     }
     case ts.SyntaxKind.TypeAliasDeclaration: {
-      return node.name?.getText(sourceFile) || null;
+      return node.name?.getText() || null;
     }
     case ts.SyntaxKind.ExportAssignment: {
       return 'default';
     }
     case ts.SyntaxKind.ExportSpecifier: {
-      return node.name.getText(sourceFile);
+      return node.name.getText();
     }
     case ts.SyntaxKind.ClassDeclaration: {
       if (
@@ -120,7 +120,7 @@ const getSpecifier = (node: SupportedNode, sourceFile: ts.SourceFile) => {
         return 'default';
       }
 
-      return node.name?.getText(sourceFile) || null;
+      return node.name?.getText() || null;
     }
     default: {
       throw new Error(`unexpected node: ${node satisfies never}`);
@@ -156,13 +156,13 @@ const getUnusedExports = (
     }
 
     if (isTarget(node)) {
-      if (getLeadingComment(node, sourceFile).includes(IGNORE_COMMENT)) {
+      if (getLeadingComment(node).includes(IGNORE_COMMENT)) {
         isUsed = true;
 
         return;
       }
 
-      const text = getSpecifier(node, sourceFile);
+      const text = getSpecifier(node);
 
       if (!text || usage.has(text)) {
         isUsed = true;
