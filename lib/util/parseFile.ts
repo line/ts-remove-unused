@@ -45,8 +45,18 @@ type Export =
     }
   | {
       kind: ts.SyntaxKind.ExportDeclaration;
-      type: 'named' | 'namespace' | 'whole';
+      type: 'named';
       name: string[];
+    }
+  | {
+      kind: ts.SyntaxKind.ExportDeclaration;
+      type: 'namespace';
+      name: string;
+    }
+  | {
+      kind: ts.SyntaxKind.ExportDeclaration;
+      type: 'whole';
+      fileSpecifier: string;
     }
   | {
       kind: ts.SyntaxKind.ClassDeclaration;
@@ -212,7 +222,7 @@ const fn = ({
       exports.push({
         kind: ts.SyntaxKind.ExportDeclaration,
         type: 'namespace',
-        name: [node.exportClause.name.text],
+        name: node.exportClause.name.text,
       });
 
       const resolved = resolve({
@@ -240,7 +250,7 @@ const fn = ({
       exports.push({
         kind: ts.SyntaxKind.ExportDeclaration,
         type: 'whole',
-        name: ['*'],
+        fileSpecifier: node.moduleSpecifier.text,
       });
 
       const resolved = resolve({

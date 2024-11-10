@@ -421,7 +421,23 @@ describe('parseFile', () => {
       {
         kind: ts.SyntaxKind.ExportDeclaration,
         type: 'namespace',
-        name: ['b'],
+        name: 'b',
+      },
+    ]);
+  });
+
+  it('should include whole re-export in exports', () => {
+    const { exports } = parseFile({
+      file: '/app/a.ts',
+      content: `export * from './b';`,
+      destFiles: new Set(),
+    });
+
+    assert.deepEqual(exports, [
+      {
+        kind: ts.SyntaxKind.ExportDeclaration,
+        type: 'whole',
+        fileSpecifier: './b',
       },
     ]);
   });
