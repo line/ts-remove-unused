@@ -209,4 +209,14 @@ describe('parseFile', () => {
       '/app/b.ts': new Set(['*']),
     });
   });
+
+  it('should collect variable declaration exports', () => {
+    const { exports } = parseFile({
+      file: '/app/a.ts',
+      content: 'export const b = 1;',
+      destFiles: new Set(),
+    });
+
+    assert.deepEqual(exports, ['b']);
+  });
 });

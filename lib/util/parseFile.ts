@@ -36,6 +36,7 @@ const fn = ({
   const imports: {
     [file: string]: Set<string | { type: 'wholeReexport'; file: string }>;
   } = {};
+  const exports = new Set<string>();
 
   const sourceFile = ts.createSourceFile(file, content, ts.ScriptTarget.ESNext);
 
@@ -163,7 +164,7 @@ const fn = ({
 
   sourceFile.forEachChild(visit);
 
-  return { imports };
+  return { imports, exports };
 };
 
 export const parseFile = memoize(fn, {
