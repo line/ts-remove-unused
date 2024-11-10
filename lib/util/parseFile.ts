@@ -45,6 +45,7 @@ type Export =
     }
   | {
       kind: ts.SyntaxKind.ExportDeclaration;
+      type: 'named' | 'namespace' | 'whole';
       name: string[];
     }
   | {
@@ -155,8 +156,17 @@ const fn = ({
       if (node.exportClause?.kind === ts.SyntaxKind.NamedExports) {
         exports.push({
           kind: ts.SyntaxKind.ExportDeclaration,
+          type: 'named',
           // we always collect the name not the propertyName because its for exports
           name: node.exportClause.elements.map((element) => element.name.text),
+        });
+      }
+
+      if (node.exportClause?.kind === ts.SyntaxKind.NamespaceExport) {
+        exports.push({
+          kind: ts.SyntaxKind.ExportDeclaration,
+          type: 'namespace',
+          name: [node.exportClause.name.text],
         });
       }
 

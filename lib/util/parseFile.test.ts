@@ -356,6 +356,7 @@ describe('parseFile', () => {
     assert.deepEqual(exports, [
       {
         kind: ts.SyntaxKind.ExportDeclaration,
+        type: 'named',
         name: ['a', 'b'],
       },
     ]);
@@ -371,6 +372,7 @@ describe('parseFile', () => {
     assert.deepEqual(exports, [
       {
         kind: ts.SyntaxKind.ExportDeclaration,
+        type: 'named',
         name: ['b'],
       },
     ]);
@@ -386,6 +388,7 @@ describe('parseFile', () => {
     assert.deepEqual(exports, [
       {
         kind: ts.SyntaxKind.ExportDeclaration,
+        type: 'named',
         name: ['a'],
       },
     ]);
@@ -401,6 +404,23 @@ describe('parseFile', () => {
     assert.deepEqual(exports, [
       {
         kind: ts.SyntaxKind.ExportDeclaration,
+        type: 'named',
+        name: ['b'],
+      },
+    ]);
+  });
+
+  it('should include namespace re-export in exports', () => {
+    const { exports } = parseFile({
+      file: '/app/a.ts',
+      content: `export * as b from './b';`,
+      destFiles: new Set(),
+    });
+
+    assert.deepEqual(exports, [
+      {
+        kind: ts.SyntaxKind.ExportDeclaration,
+        type: 'namespace',
         name: ['b'],
       },
     ]);
