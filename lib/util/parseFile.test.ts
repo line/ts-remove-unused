@@ -12,7 +12,7 @@ describe('parseFile', () => {
     });
 
     assert.deepEqual(imports, {
-      '/app/b.ts': new Set(['b']),
+      '/app/b.ts': ['b'],
     });
   });
 
@@ -24,7 +24,7 @@ describe('parseFile', () => {
     });
 
     assert.deepEqual(imports, {
-      '/app/b.ts': new Set(['b', 'c']),
+      '/app/b.ts': ['b', 'c'],
     });
   });
 
@@ -36,7 +36,7 @@ describe('parseFile', () => {
     });
 
     assert.deepEqual(imports, {
-      '/app/b.ts': new Set(['b']),
+      '/app/b.ts': ['b'],
     });
   });
 
@@ -48,7 +48,7 @@ describe('parseFile', () => {
     });
 
     assert.deepEqual(imports, {
-      '/app/b.ts': new Set(['default']),
+      '/app/b.ts': ['default'],
     });
   });
 
@@ -60,7 +60,7 @@ describe('parseFile', () => {
     });
 
     assert.deepEqual(imports, {
-      '/app/b.ts': new Set(['default', 'c']),
+      '/app/b.ts': ['c', 'default'],
     });
   });
 
@@ -72,7 +72,7 @@ describe('parseFile', () => {
     });
 
     assert.deepEqual(imports, {
-      '/app/b.ts': new Set(['default']),
+      '/app/b.ts': ['default'],
     });
   });
 
@@ -84,8 +84,8 @@ describe('parseFile', () => {
     });
 
     assert.deepEqual(imports, {
-      '/app/b.ts': new Set(['b']),
-      '/app/c.ts': new Set(['c']),
+      '/app/b.ts': ['b'],
+      '/app/c.ts': ['c'],
     });
   });
 
@@ -97,7 +97,7 @@ describe('parseFile', () => {
     });
 
     assert.deepEqual(imports, {
-      '/app/b.ts': new Set(['b', 'c']),
+      '/app/b.ts': ['b', 'c'],
     });
   });
 
@@ -109,7 +109,7 @@ describe('parseFile', () => {
     });
 
     assert.deepEqual(imports, {
-      '/app/b.ts': new Set(['*']),
+      '/app/b.ts': ['*'],
     });
   });
 
@@ -121,7 +121,7 @@ describe('parseFile', () => {
     });
 
     assert.deepEqual(imports, {
-      '/app/b.ts': new Set(['b']),
+      '/app/b.ts': ['b'],
     });
   });
 
@@ -133,7 +133,7 @@ describe('parseFile', () => {
     });
 
     assert.deepEqual(imports, {
-      '/app/b.ts': new Set(['b', 'c']),
+      '/app/b.ts': ['b', 'c'],
     });
   });
 
@@ -145,7 +145,7 @@ describe('parseFile', () => {
     });
 
     assert.deepEqual(imports, {
-      '/app/b.ts': new Set(['b']),
+      '/app/b.ts': ['b'],
     });
   });
 
@@ -157,8 +157,8 @@ describe('parseFile', () => {
     });
 
     assert.deepEqual(imports, {
-      '/app/b.ts': new Set(['b']),
-      '/app/c.ts': new Set(['c']),
+      '/app/b.ts': ['b'],
+      '/app/c.ts': ['c'],
     });
   });
 
@@ -170,7 +170,7 @@ describe('parseFile', () => {
     });
 
     assert.deepEqual(imports, {
-      '/app/b.ts': new Set(['b', 'c']),
+      '/app/b.ts': ['b', 'c'],
     });
   });
 
@@ -182,7 +182,7 @@ describe('parseFile', () => {
     });
 
     assert.deepEqual(imports, {
-      '/app/b.ts': new Set(['*']),
+      '/app/b.ts': ['*'],
     });
   });
 
@@ -194,7 +194,7 @@ describe('parseFile', () => {
     });
 
     assert.deepEqual(imports, {
-      '/app/b.ts': new Set([{ type: 'wholeReexport', file: '/app/a.ts' }]),
+      '/app/b.ts': [{ type: 'wholeReexport', file: '/app/a.ts' }],
     });
   });
 
@@ -207,7 +207,7 @@ describe('parseFile', () => {
 
     assert.deepEqual(imports, {
       // for now, we don't know what's being imported so we just add a wildcard
-      '/app/b.ts': new Set(['*']),
+      '/app/b.ts': ['*'],
     });
   });
 

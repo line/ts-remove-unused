@@ -64,7 +64,7 @@ const fn = ({
   options?: ts.CompilerOptions;
 }) => {
   const imports: {
-    [file: string]: Set<string | { type: 'wholeReexport'; file: string }>;
+    [file: string]: (string | { type: 'wholeReexport'; file: string })[];
   } = {};
   const exports: Export[] = [];
 
@@ -175,8 +175,8 @@ const fn = ({
 
         // export * as foo from './foo';
         if (node.exportClause?.kind === ts.SyntaxKind.NamespaceExport) {
-          imports[resolved] ||= new Set();
-          imports[resolved]?.add('*');
+          imports[resolved] ||= [];
+          imports[resolved]?.push('*');
 
           return;
         }
@@ -186,8 +186,8 @@ const fn = ({
           const namedExports = node.exportClause;
 
           namedExports.elements.forEach((element) => {
-            imports[resolved] ||= new Set();
-            imports[resolved]?.add(
+            imports[resolved] ||= [];
+            imports[resolved]?.push(
               element.propertyName?.text || element.name.text,
             );
           });
@@ -197,8 +197,8 @@ const fn = ({
 
         // export * from './foo';
         if (typeof node.exportClause === 'undefined') {
-          imports[resolved] ||= new Set();
-          imports[resolved]?.add({ type: 'wholeReexport', file });
+          imports[resolved] ||= [];
+          imports[resolved]?.push({ type: 'wholeReexport', file });
 
           return;
         }
@@ -225,8 +225,8 @@ const fn = ({
       if (
         node.importClause?.namedBindings?.kind === ts.SyntaxKind.NamespaceImport
       ) {
-        imports[resolved] ||= new Set();
-        imports[resolved]?.add('*');
+        imports[resolved] ||= [];
+        imports[resolved]?.push('*');
 
         return;
       }
@@ -237,8 +237,8 @@ const fn = ({
         const namedImports = node.importClause?.namedBindings;
 
         namedImports.elements.forEach((element) => {
-          imports[resolved] ||= new Set();
-          imports[resolved]?.add(
+          imports[resolved] ||= [];
+          imports[resolved]?.push(
             element.propertyName?.text || element.name.text,
           );
         });
@@ -246,8 +246,8 @@ const fn = ({
 
       // we have a default import; i.e. `import foo from './foo';`
       if (node.importClause?.name) {
-        imports[resolved] ||= new Set();
-        imports[resolved]?.add('default');
+        imports[resolved] ||= [];
+        imports[resolved]?.push('default');
       }
 
       return;
@@ -270,8 +270,8 @@ const fn = ({
         return;
       }
 
-      imports[resolved] ||= new Set();
-      imports[resolved]?.add('*');
+      imports[resolved] ||= [];
+      imports[resolved]?.push('*');
 
       return;
     }
