@@ -46,6 +46,10 @@ type Export =
   | {
       kind: ts.SyntaxKind.ExportDeclaration;
       name: string[];
+    }
+  | {
+      kind: ts.SyntaxKind.ClassDeclaration;
+      name: string;
     };
 
 const fn = ({
@@ -92,7 +96,11 @@ const fn = ({
       return;
     }
 
-    if (ts.isFunctionDeclaration(node) || ts.isInterfaceDeclaration(node)) {
+    if (
+      ts.isFunctionDeclaration(node) ||
+      ts.isInterfaceDeclaration(node) ||
+      ts.isClassDeclaration(node)
+    ) {
       const isExported = node.modifiers?.some(
         (m) => m.kind === ts.SyntaxKind.ExportKeyword,
       );

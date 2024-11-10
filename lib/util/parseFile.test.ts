@@ -405,4 +405,49 @@ describe('parseFile', () => {
       },
     ]);
   });
+
+  it('should collect class declaration export', () => {
+    const { exports } = parseFile({
+      file: '/app/a.ts',
+      content: `export class A {}`,
+      destFiles: new Set(),
+    });
+
+    assert.deepEqual(exports, [
+      {
+        kind: ts.SyntaxKind.ClassDeclaration,
+        name: 'A',
+      },
+    ]);
+  });
+
+  it('should collect class declaration with default export keyword', () => {
+    const { exports } = parseFile({
+      file: '/app/a.ts',
+      content: `export default class A {}`,
+      destFiles: new Set(),
+    });
+
+    assert.deepEqual(exports, [
+      {
+        kind: ts.SyntaxKind.ClassDeclaration,
+        name: 'default',
+      },
+    ]);
+  });
+
+  it('should collect unnamed class declaration with default export keyword', () => {
+    const { exports } = parseFile({
+      file: '/app/a.ts',
+      content: `export default class {}`,
+      destFiles: new Set(),
+    });
+
+    assert.deepEqual(exports, [
+      {
+        kind: ts.SyntaxKind.ClassDeclaration,
+        name: 'default',
+      },
+    ]);
+  });
 });
