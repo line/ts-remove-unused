@@ -14,25 +14,7 @@ import { TaskManager } from './TaskManager.js';
 import { WorkerPool } from './WorkerPool.js';
 import { findFileUsage } from './findFileUsage.js';
 import { createProgram } from './createProgram.js';
-
-const findFirstNodeOfKind = (root: ts.Node, kind: ts.SyntaxKind) => {
-  let result: ts.Node | undefined;
-  const visitor = (node: ts.Node) => {
-    if (result) {
-      return;
-    }
-
-    if (node.kind === kind) {
-      result = node;
-      return;
-    }
-    ts.forEachChild(node, visitor);
-  };
-
-  ts.forEachChild(root, visitor);
-
-  return result;
-};
+import { findFirstNodeOfKind } from './findFirstNodeOfKind.js';
 
 const IGNORE_COMMENT = 'ts-remove-unused-skip';
 
