@@ -2,7 +2,7 @@ import ts from 'typescript';
 import { Vertexes } from './DependencyGraph.js';
 import { parseFile } from './parseFile.js';
 
-const createFallbackVertex = () => ({
+const fallback = () => ({
   from: new Set<string>(),
   to: new Set<string>(),
   data: {
@@ -27,10 +27,10 @@ export const findFileUsage = ({
   // vertex doesn't exist when
   // - there are no imports in the entrypoint
   // - the file is unreachable from the entrypoint and has no connections between other unreachable files
-  const vertex = vertexes.get(targetFile) || createFallbackVertex();
+  const vertex = vertexes.get(targetFile) || fallback();
 
   for (const fromFile of vertex.from) {
-    const v = vertexes.get(fromFile) || createFallbackVertex();
+    const v = vertexes.get(fromFile) || fallback();
 
     const collected = parseFile({
       file: fromFile,
