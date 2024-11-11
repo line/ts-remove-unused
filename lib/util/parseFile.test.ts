@@ -406,6 +406,12 @@ describe('parseFile', () => {
         kind: ts.SyntaxKind.ExportDeclaration,
         type: 'named',
         name: ['a', 'b'],
+        change: {
+          span: {
+            start: 29,
+            length: 17,
+          },
+        },
       },
     ]);
   });
@@ -422,6 +428,12 @@ describe('parseFile', () => {
         kind: ts.SyntaxKind.ExportDeclaration,
         type: 'named',
         name: ['b'],
+        change: {
+          span: {
+            start: 14,
+            length: 19,
+          },
+        },
       },
     ]);
   });
@@ -438,6 +450,12 @@ describe('parseFile', () => {
         kind: ts.SyntaxKind.ExportDeclaration,
         type: 'named',
         name: ['a'],
+        change: {
+          span: {
+            start: 0,
+            length: 24,
+          },
+        },
       },
     ]);
   });
@@ -454,6 +472,12 @@ describe('parseFile', () => {
         kind: ts.SyntaxKind.ExportDeclaration,
         type: 'named',
         name: ['b'],
+        change: {
+          span: {
+            start: 0,
+            length: 29,
+          },
+        },
       },
     ]);
   });

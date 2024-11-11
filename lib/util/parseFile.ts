@@ -28,8 +28,16 @@ const getTextSpan = (
     | ts.FunctionDeclaration
     | ts.InterfaceDeclaration
     | ts.ClassDeclaration
-    | ts.TypeAliasDeclaration,
+    | ts.TypeAliasDeclaration
+    | ts.ExportDeclaration,
 ) => {
+  if (ts.isExportDeclaration(node)) {
+    return {
+      start: node.getFullStart(),
+      length: node.getFullWidth(),
+    };
+  }
+
   if (
     (ts.isFunctionDeclaration(node) || ts.isClassDeclaration(node)) &&
     !node.name
@@ -110,6 +118,12 @@ type Export =
       kind: ts.SyntaxKind.ExportDeclaration;
       type: 'named';
       name: string[];
+      change: {
+        span: {
+          start: number;
+          length: number;
+        };
+      };
     }
   | {
       kind: ts.SyntaxKind.ExportDeclaration;
@@ -247,6 +261,7 @@ const fn = ({
         type: 'named',
         // we always collect the name not the propertyName because its for exports
         name: node.exportClause.elements.map((element) => element.name.text),
+        change: { span: getTextSpan(node) },
       });
 
       return;
@@ -264,6 +279,9 @@ const fn = ({
         type: 'named',
         // we always collect the name not the propertyName because its for exports
         name: node.exportClause.elements.map((element) => element.name.text),
+        change: {
+          span: getTextSpan(node),
+        },
       });
 
       const resolved = resolve({
