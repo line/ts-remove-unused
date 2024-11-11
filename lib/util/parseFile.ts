@@ -22,7 +22,7 @@ const resolve = ({
     },
   }).resolvedModule?.resolvedFileName;
 
-const getExportKeywordPosition = (
+const getDeleteSpan = (
   node:
     | ts.VariableStatement
     | ts.FunctionDeclaration
@@ -160,7 +160,7 @@ const fn = ({
         exports.push({
           kind: ts.SyntaxKind.VariableStatement,
           name,
-          deleteSpan: getExportKeywordPosition(node),
+          deleteSpan: getDeleteSpan(node),
         });
       }
 
@@ -184,13 +184,13 @@ const fn = ({
           exports.push({
             kind: node.kind,
             name: 'default',
-            deleteSpan: getExportKeywordPosition(node),
+            deleteSpan: getDeleteSpan(node),
           });
         } else {
           exports.push({
             kind: node.kind,
             name: node.name?.getText() || '',
-            deleteSpan: getExportKeywordPosition(node),
+            deleteSpan: getDeleteSpan(node),
           });
         }
       }
@@ -208,7 +208,7 @@ const fn = ({
         exports.push({
           kind: node.kind,
           name: node.name.getText(),
-          deleteSpan: getExportKeywordPosition(node),
+          deleteSpan: getDeleteSpan(node),
         });
       }
 
