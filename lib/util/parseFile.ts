@@ -35,7 +35,7 @@ const resolve = ({
     },
   }).resolvedModule?.resolvedFileName;
 
-const getTextSpan = (
+const getChange = (
   node:
     | ts.VariableStatement
     | ts.FunctionDeclaration
@@ -47,8 +47,11 @@ const getTextSpan = (
 ) => {
   if (ts.isExportDeclaration(node) || ts.isExportAssignment(node)) {
     return {
-      start: node.getFullStart(),
-      length: node.getFullWidth(),
+      code: node.getFullText(),
+      span: {
+        start: node.getFullStart(),
+        length: node.getFullWidth(),
+      },
     };
   }
 
@@ -59,8 +62,11 @@ const getTextSpan = (
     // when the name is not found, it's likely a default export of an unnamed function/class declaration.
     // in this case, we want to remove the whole declaration
     return {
-      start: node.getFullStart(),
-      length: node.getFullWidth(),
+      code: node.getFullText(),
+      span: {
+        start: node.getFullStart(),
+        length: node.getFullWidth(),
+      },
     };
   }
 
@@ -78,8 +84,14 @@ const getTextSpan = (
   }
 
   return {
-    start: syntaxList.getStart(),
-    length: nextSibling.getStart() - syntaxList.getStart(),
+    code: node
+      .getSourceFile()
+      .getFullText()
+      .slice(syntaxList.getStart(), nextSibling.getStart()),
+    span: {
+      start: syntaxList.getStart(),
+      length: nextSibling.getStart() - syntaxList.getStart(),
+    },
   };
 };
 
@@ -88,6 +100,7 @@ type Export =
       kind: ts.SyntaxKind.VariableStatement;
       name: string[];
       change: {
+        code: string;
         span: {
           start: number;
           length: number;
@@ -100,6 +113,7 @@ type Export =
       kind: ts.SyntaxKind.FunctionDeclaration;
       name: string;
       change: {
+        code: string;
         span: {
           start: number;
           length: number;
@@ -112,6 +126,7 @@ type Export =
       kind: ts.SyntaxKind.InterfaceDeclaration;
       name: string;
       change: {
+        code: string;
         span: {
           start: number;
           length: number;
@@ -124,6 +139,7 @@ type Export =
       kind: ts.SyntaxKind.TypeAliasDeclaration;
       name: string;
       change: {
+        code: string;
         span: {
           start: number;
           length: number;
@@ -136,6 +152,7 @@ type Export =
       kind: ts.SyntaxKind.ExportAssignment;
       name: 'default';
       change: {
+        code: string;
         span: {
           start: number;
           length: number;
@@ -175,6 +192,7 @@ type Export =
       kind: ts.SyntaxKind.ClassDeclaration;
       name: string;
       change: {
+        code: string;
         span: {
           start: number;
           length: number;
@@ -221,7 +239,7 @@ const fn = ({
         exports.push({
           kind: ts.SyntaxKind.VariableStatement,
           name,
-          change: { span: getTextSpan(node) },
+          change: getChange(node),
           skip: !!getLeadingComment(node).includes(IGNORE_COMMENT),
           start: node.getStart(),
         });
@@ -247,7 +265,7 @@ const fn = ({
           exports.push({
             kind: node.kind,
             name: 'default',
-            change: { span: getTextSpan(node) },
+            change: getChange(node),
             skip: !!getLeadingComment(node).includes(IGNORE_COMMENT),
             start: node.getStart(),
           });
@@ -255,7 +273,7 @@ const fn = ({
           exports.push({
             kind: node.kind,
             name: node.name?.getText() || '',
-            change: { span: getTextSpan(node) },
+            change: getChange(node),
             skip: !!getLeadingComment(node).includes(IGNORE_COMMENT),
             start: node.getStart(),
           });
@@ -275,7 +293,7 @@ const fn = ({
         exports.push({
           kind: node.kind,
           name: node.name.getText(),
-          change: { span: getTextSpan(node) },
+          change: getChange(node),
           skip: !!getLeadingComment(node).includes(IGNORE_COMMENT),
           start: node.getStart(),
         });
@@ -289,9 +307,7 @@ const fn = ({
       exports.push({
         kind: ts.SyntaxKind.ExportAssignment,
         name: 'default',
-        change: {
-          span: getTextSpan(node),
-        },
+        change: getChange(node),
         skip: !!getLeadingComment(node).includes(IGNORE_COMMENT),
         start: node.getStart(),
       });
@@ -311,7 +327,7 @@ const fn = ({
         type: 'named',
         // we always collect the name not the propertyName because its for exports
         name: node.exportClause.elements.map((element) => element.name.text),
-        change: { code: node.getFullText(), span: getTextSpan(node) },
+        change: getChange(node),
         skip: !!getLeadingComment(node).includes(IGNORE_COMMENT),
         start: node.getStart(),
       });
@@ -331,10 +347,7 @@ const fn = ({
         type: 'named',
         // we always collect the name not the propertyName because its for exports
         name: node.exportClause.elements.map((element) => element.name.text),
-        change: {
-          code: node.getFullText(),
-          span: getTextSpan(node),
-        },
+        change: getChange(node),
         skip: false,
         start: node.getStart(),
       });

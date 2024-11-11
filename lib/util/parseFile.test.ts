@@ -223,6 +223,7 @@ describe('parseFile', () => {
         kind: ts.SyntaxKind.VariableStatement,
         name: ['a'],
         change: {
+          code: 'export ',
           span: {
             start: 0,
             length: 7,
@@ -246,6 +247,7 @@ describe('parseFile', () => {
         kind: ts.SyntaxKind.VariableStatement,
         name: ['a', 'b'],
         change: {
+          code: 'export ',
           span: {
             start: 0,
             length: 7,
@@ -285,6 +287,7 @@ export const a = 'a';`,
         kind: ts.SyntaxKind.FunctionDeclaration,
         name: 'a',
         change: {
+          code: 'export ',
           span: {
             start: 0,
             length: 7,
@@ -308,6 +311,7 @@ export const a = 'a';`,
         kind: ts.SyntaxKind.FunctionDeclaration,
         name: 'default',
         change: {
+          code: 'export default ',
           span: {
             start: 0,
             length: 15,
@@ -331,6 +335,7 @@ export const a = 'a';`,
         kind: ts.SyntaxKind.FunctionDeclaration,
         name: 'default',
         change: {
+          code: 'export default function() {}',
           span: {
             start: 0,
             length: 28,
@@ -370,6 +375,7 @@ export function a() {}`,
         kind: ts.SyntaxKind.InterfaceDeclaration,
         name: 'A',
         change: {
+          code: 'export ',
           span: {
             start: 0,
             length: 7,
@@ -393,6 +399,7 @@ export function a() {}`,
         kind: ts.SyntaxKind.InterfaceDeclaration,
         name: 'default',
         change: {
+          code: 'export default ',
           span: {
             start: 0,
             length: 15,
@@ -432,6 +439,7 @@ export interface A {}`,
         kind: ts.SyntaxKind.TypeAliasDeclaration,
         name: 'A',
         change: {
+          code: 'export ',
           span: {
             start: 0,
             length: 7,
@@ -471,6 +479,7 @@ export type A = string;`,
         kind: ts.SyntaxKind.ExportAssignment,
         name: 'default',
         change: {
+          code: `export default 'a';`,
           span: {
             start: 0,
             length: 19,
@@ -679,6 +688,7 @@ export { a, b };`,
         kind: ts.SyntaxKind.ClassDeclaration,
         name: 'A',
         change: {
+          code: 'export ',
           span: {
             start: 0,
             length: 7,
@@ -702,6 +712,7 @@ export { a, b };`,
         kind: ts.SyntaxKind.ClassDeclaration,
         name: 'default',
         change: {
+          code: 'export default ',
           span: {
             start: 0,
             length: 15,
@@ -725,6 +736,7 @@ export { a, b };`,
         kind: ts.SyntaxKind.ClassDeclaration,
         name: 'default',
         change: {
+          code: 'export default class {}',
           span: {
             start: 0,
             length: 23,
