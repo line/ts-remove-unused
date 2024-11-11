@@ -336,6 +336,7 @@ export const a = 'a';`,
         name: 'default',
         change: {
           code: 'export default function() {}',
+          isUnnamedDefaultExport: true,
           span: {
             start: 0,
             length: 28,
@@ -737,6 +738,7 @@ export { a, b };`,
         name: 'default',
         change: {
           code: 'export default class {}',
+          isUnnamedDefaultExport: true,
           span: {
             start: 0,
             length: 23,

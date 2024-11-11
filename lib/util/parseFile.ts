@@ -63,6 +63,7 @@ const getChange = (
     // in this case, we want to remove the whole declaration
     return {
       code: node.getFullText(),
+      isUnnamedDefaultExport: true,
       span: {
         start: node.getFullStart(),
         length: node.getFullWidth(),
@@ -114,6 +115,7 @@ type Export =
       name: string;
       change: {
         code: string;
+        isUnnamedDefaultExport?: boolean;
         span: {
           start: number;
           length: number;
@@ -193,6 +195,7 @@ type Export =
       name: string;
       change: {
         code: string;
+        isUnnamedDefaultExport?: boolean;
         span: {
           start: number;
           length: number;
