@@ -390,6 +390,12 @@ describe('parseFile', () => {
       {
         kind: ts.SyntaxKind.ExportAssignment,
         name: 'default',
+        change: {
+          span: {
+            start: 0,
+            length: 19,
+          },
+        },
       },
     ]);
   });

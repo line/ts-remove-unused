@@ -29,9 +29,10 @@ const getTextSpan = (
     | ts.InterfaceDeclaration
     | ts.ClassDeclaration
     | ts.TypeAliasDeclaration
-    | ts.ExportDeclaration,
+    | ts.ExportDeclaration
+    | ts.ExportAssignment,
 ) => {
-  if (ts.isExportDeclaration(node)) {
+  if (ts.isExportDeclaration(node) || ts.isExportAssignment(node)) {
     return {
       start: node.getFullStart(),
       length: node.getFullWidth(),
@@ -113,6 +114,12 @@ type Export =
   | {
       kind: ts.SyntaxKind.ExportAssignment;
       name: 'default';
+      change: {
+        span: {
+          start: number;
+          length: number;
+        };
+      };
     }
   | {
       kind: ts.SyntaxKind.ExportDeclaration;
@@ -244,6 +251,9 @@ const fn = ({
       exports.push({
         kind: ts.SyntaxKind.ExportAssignment,
         name: 'default',
+        change: {
+          span: getTextSpan(node),
+        },
       });
 
       ts.forEachChild(node, visit);
