@@ -222,9 +222,11 @@ describe('parseFile', () => {
       {
         kind: ts.SyntaxKind.VariableStatement,
         name: ['a'],
-        deleteSpan: {
-          start: 0,
-          length: 7,
+        change: {
+          span: {
+            start: 0,
+            length: 7,
+          },
         },
       },
     ]);
@@ -241,9 +243,11 @@ describe('parseFile', () => {
       {
         kind: ts.SyntaxKind.VariableStatement,
         name: ['a', 'b'],
-        deleteSpan: {
-          start: 0,
-          length: 7,
+        change: {
+          span: {
+            start: 0,
+            length: 7,
+          },
         },
       },
     ]);
@@ -260,9 +264,11 @@ describe('parseFile', () => {
       {
         kind: ts.SyntaxKind.FunctionDeclaration,
         name: 'a',
-        deleteSpan: {
-          start: 0,
-          length: 7,
+        change: {
+          span: {
+            start: 0,
+            length: 7,
+          },
         },
       },
     ]);
@@ -279,9 +285,11 @@ describe('parseFile', () => {
       {
         kind: ts.SyntaxKind.FunctionDeclaration,
         name: 'default',
-        deleteSpan: {
-          start: 0,
-          length: 15,
+        change: {
+          span: {
+            start: 0,
+            length: 15,
+          },
         },
       },
     ]);
@@ -298,9 +306,11 @@ describe('parseFile', () => {
       {
         kind: ts.SyntaxKind.FunctionDeclaration,
         name: 'default',
-        deleteSpan: {
-          start: 0,
-          length: 28,
+        change: {
+          span: {
+            start: 0,
+            length: 28,
+          },
         },
       },
     ]);
@@ -317,9 +327,11 @@ describe('parseFile', () => {
       {
         kind: ts.SyntaxKind.InterfaceDeclaration,
         name: 'A',
-        deleteSpan: {
-          start: 0,
-          length: 7,
+        change: {
+          span: {
+            start: 0,
+            length: 7,
+          },
         },
       },
     ]);
@@ -336,9 +348,11 @@ describe('parseFile', () => {
       {
         kind: ts.SyntaxKind.InterfaceDeclaration,
         name: 'default',
-        deleteSpan: {
-          start: 0,
-          length: 15,
+        change: {
+          span: {
+            start: 0,
+            length: 15,
+          },
         },
       },
     ]);
@@ -355,9 +369,11 @@ describe('parseFile', () => {
       {
         kind: ts.SyntaxKind.TypeAliasDeclaration,
         name: 'A',
-        deleteSpan: {
-          start: 0,
-          length: 7,
+        change: {
+          span: {
+            start: 0,
+            length: 7,
+          },
         },
       },
     ]);
@@ -501,9 +517,11 @@ describe('parseFile', () => {
       {
         kind: ts.SyntaxKind.ClassDeclaration,
         name: 'A',
-        deleteSpan: {
-          start: 0,
-          length: 7,
+        change: {
+          span: {
+            start: 0,
+            length: 7,
+          },
         },
       },
     ]);
@@ -520,9 +538,11 @@ describe('parseFile', () => {
       {
         kind: ts.SyntaxKind.ClassDeclaration,
         name: 'default',
-        deleteSpan: {
-          start: 0,
-          length: 15,
+        change: {
+          span: {
+            start: 0,
+            length: 15,
+          },
         },
       },
     ]);
@@ -539,9 +559,11 @@ describe('parseFile', () => {
       {
         kind: ts.SyntaxKind.ClassDeclaration,
         name: 'default',
-        deleteSpan: {
-          start: 0,
-          length: 23,
+        change: {
+          span: {
+            start: 0,
+            length: 23,
+          },
         },
       },
     ]);

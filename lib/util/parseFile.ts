@@ -22,7 +22,7 @@ const resolve = ({
     },
   }).resolvedModule?.resolvedFileName;
 
-const getDeleteSpan = (
+const getTextSpan = (
   node:
     | ts.VariableStatement
     | ts.FunctionDeclaration
@@ -65,33 +65,41 @@ type Export =
   | {
       kind: ts.SyntaxKind.VariableStatement;
       name: string[];
-      deleteSpan: {
-        start: number;
-        length: number;
+      change: {
+        span: {
+          start: number;
+          length: number;
+        };
       };
     }
   | {
       kind: ts.SyntaxKind.FunctionDeclaration;
       name: string;
-      deleteSpan: {
-        start: number;
-        length: number;
+      change: {
+        span: {
+          start: number;
+          length: number;
+        };
       };
     }
   | {
       kind: ts.SyntaxKind.InterfaceDeclaration;
       name: string;
-      deleteSpan: {
-        start: number;
-        length: number;
+      change: {
+        span: {
+          start: number;
+          length: number;
+        };
       };
     }
   | {
       kind: ts.SyntaxKind.TypeAliasDeclaration;
       name: string;
-      deleteSpan: {
-        start: number;
-        length: number;
+      change: {
+        span: {
+          start: number;
+          length: number;
+        };
       };
     }
   | {
@@ -117,9 +125,11 @@ type Export =
   | {
       kind: ts.SyntaxKind.ClassDeclaration;
       name: string;
-      deleteSpan: {
-        start: number;
-        length: number;
+      change: {
+        span: {
+          start: number;
+          length: number;
+        };
       };
     };
 
@@ -160,7 +170,7 @@ const fn = ({
         exports.push({
           kind: ts.SyntaxKind.VariableStatement,
           name,
-          deleteSpan: getDeleteSpan(node),
+          change: { span: getTextSpan(node) },
         });
       }
 
@@ -184,13 +194,13 @@ const fn = ({
           exports.push({
             kind: node.kind,
             name: 'default',
-            deleteSpan: getDeleteSpan(node),
+            change: { span: getTextSpan(node) },
           });
         } else {
           exports.push({
             kind: node.kind,
             name: node.name?.getText() || '',
-            deleteSpan: getDeleteSpan(node),
+            change: { span: getTextSpan(node) },
           });
         }
       }
@@ -208,7 +218,7 @@ const fn = ({
         exports.push({
           kind: node.kind,
           name: node.name.getText(),
-          deleteSpan: getDeleteSpan(node),
+          change: { span: getTextSpan(node) },
         });
       }
 
