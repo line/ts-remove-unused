@@ -222,7 +222,7 @@ describe('parseFile', () => {
       {
         kind: ts.SyntaxKind.VariableStatement,
         name: ['a'],
-        exportKeyword: {
+        deleteRange: {
           start: 0,
           length: 7,
         },
@@ -241,7 +241,7 @@ describe('parseFile', () => {
       {
         kind: ts.SyntaxKind.VariableStatement,
         name: ['a', 'b'],
-        exportKeyword: {
+        deleteRange: {
           start: 0,
           length: 7,
         },
@@ -260,6 +260,10 @@ describe('parseFile', () => {
       {
         kind: ts.SyntaxKind.FunctionDeclaration,
         name: 'a',
+        deleteRange: {
+          start: 0,
+          length: 7,
+        },
       },
     ]);
   });
@@ -275,6 +279,10 @@ describe('parseFile', () => {
       {
         kind: ts.SyntaxKind.FunctionDeclaration,
         name: 'default',
+        deleteRange: {
+          start: 0,
+          length: 15,
+        },
       },
     ]);
   });
@@ -290,6 +298,10 @@ describe('parseFile', () => {
       {
         kind: ts.SyntaxKind.FunctionDeclaration,
         name: 'default',
+        deleteRange: {
+          start: 0,
+          length: 28,
+        },
       },
     ]);
   });
@@ -305,6 +317,10 @@ describe('parseFile', () => {
       {
         kind: ts.SyntaxKind.InterfaceDeclaration,
         name: 'A',
+        deleteRange: {
+          start: 0,
+          length: 7,
+        },
       },
     ]);
   });
@@ -320,6 +336,10 @@ describe('parseFile', () => {
       {
         kind: ts.SyntaxKind.InterfaceDeclaration,
         name: 'default',
+        deleteRange: {
+          start: 0,
+          length: 15,
+        },
       },
     ]);
   });
@@ -477,6 +497,10 @@ describe('parseFile', () => {
       {
         kind: ts.SyntaxKind.ClassDeclaration,
         name: 'A',
+        deleteRange: {
+          start: 0,
+          length: 7,
+        },
       },
     ]);
   });
@@ -492,6 +516,10 @@ describe('parseFile', () => {
       {
         kind: ts.SyntaxKind.ClassDeclaration,
         name: 'default',
+        deleteRange: {
+          start: 0,
+          length: 15,
+        },
       },
     ]);
   });
@@ -507,6 +535,10 @@ describe('parseFile', () => {
       {
         kind: ts.SyntaxKind.ClassDeclaration,
         name: 'default',
+        deleteRange: {
+          start: 0,
+          length: 23,
+        },
       },
     ]);
   });

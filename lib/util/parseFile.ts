@@ -22,7 +22,25 @@ const resolve = ({
     },
   }).resolvedModule?.resolvedFileName;
 
-const getExportKeywordPosition = (node: ts.VariableStatement) => {
+const getExportKeywordPosition = (
+  node:
+    | ts.VariableStatement
+    | ts.FunctionDeclaration
+    | ts.InterfaceDeclaration
+    | ts.ClassDeclaration,
+) => {
+  if (
+    (ts.isFunctionDeclaration(node) || ts.isClassDeclaration(node)) &&
+    !node.name
+  ) {
+    // when the name is not found, it's likely a default export of an unnamed function/class declaration.
+    // in this case, we want to remove the whole declaration
+    return {
+      start: node.getFullStart(),
+      length: node.getFullWidth(),
+    };
+  }
+
   // we want to correctly remove 'default' when its a default export so we get the syntaxList node instead of the exportKeyword node
   // note: the first syntaxList node should contain the export keyword
   const syntaxListIndex = node
@@ -46,7 +64,7 @@ type Export =
   | {
       kind: ts.SyntaxKind.VariableStatement;
       name: string[];
-      exportKeyword: {
+      deleteRange: {
         start: number;
         length: number;
       };
@@ -54,10 +72,18 @@ type Export =
   | {
       kind: ts.SyntaxKind.FunctionDeclaration;
       name: string;
+      deleteRange: {
+        start: number;
+        length: number;
+      };
     }
   | {
       kind: ts.SyntaxKind.InterfaceDeclaration;
       name: string;
+      deleteRange: {
+        start: number;
+        length: number;
+      };
     }
   | {
       kind: ts.SyntaxKind.TypeAliasDeclaration;
@@ -86,6 +112,10 @@ type Export =
   | {
       kind: ts.SyntaxKind.ClassDeclaration;
       name: string;
+      deleteRange: {
+        start: number;
+        length: number;
+      };
     };
 
 const fn = ({
@@ -125,7 +155,7 @@ const fn = ({
         exports.push({
           kind: ts.SyntaxKind.VariableStatement,
           name,
-          exportKeyword: getExportKeywordPosition(node),
+          deleteRange: getExportKeywordPosition(node),
         });
       }
 
@@ -149,11 +179,13 @@ const fn = ({
           exports.push({
             kind: node.kind,
             name: 'default',
+            deleteRange: getExportKeywordPosition(node),
           });
         } else {
           exports.push({
             kind: node.kind,
             name: node.name?.getText() || '',
+            deleteRange: getExportKeywordPosition(node),
           });
         }
       }
