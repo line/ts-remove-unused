@@ -22,10 +22,34 @@ const resolve = ({
     },
   }).resolvedModule?.resolvedFileName;
 
+const getExportKeywordPosition = (node: ts.VariableStatement) => {
+  // we want to correctly remove 'default' when its a default export so we get the syntaxList node instead of the exportKeyword node
+  // note: the first syntaxList node should contain the export keyword
+  const syntaxListIndex = node
+    .getChildren()
+    .findIndex((n) => n.kind === ts.SyntaxKind.SyntaxList);
+
+  const syntaxList = node.getChildren()[syntaxListIndex];
+  const nextSibling = node.getChildren()[syntaxListIndex + 1];
+
+  if (!syntaxList || !nextSibling) {
+    throw new Error('Unexpected syntax');
+  }
+
+  return {
+    start: syntaxList.getStart(),
+    length: nextSibling.getStart() - syntaxList.getStart(),
+  };
+};
+
 type Export =
   | {
       kind: ts.SyntaxKind.VariableStatement;
       name: string[];
+      exportKeyword: {
+        start: number;
+        length: number;
+      };
     }
   | {
       kind: ts.SyntaxKind.FunctionDeclaration;
@@ -101,6 +125,7 @@ const fn = ({
         exports.push({
           kind: ts.SyntaxKind.VariableStatement,
           name,
+          exportKeyword: getExportKeywordPosition(node),
         });
       }
 

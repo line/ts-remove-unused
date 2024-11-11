@@ -222,6 +222,10 @@ describe('parseFile', () => {
       {
         kind: ts.SyntaxKind.VariableStatement,
         name: ['a'],
+        exportKeyword: {
+          start: 0,
+          length: 7,
+        },
       },
     ]);
   });
@@ -237,6 +241,10 @@ describe('parseFile', () => {
       {
         kind: ts.SyntaxKind.VariableStatement,
         name: ['a', 'b'],
+        exportKeyword: {
+          start: 0,
+          length: 7,
+        },
       },
     ]);
   });
