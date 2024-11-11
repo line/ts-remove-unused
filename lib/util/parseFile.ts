@@ -65,7 +65,7 @@ type Export =
   | {
       kind: ts.SyntaxKind.VariableStatement;
       name: string[];
-      deleteRange: {
+      deleteSpan: {
         start: number;
         length: number;
       };
@@ -73,7 +73,7 @@ type Export =
   | {
       kind: ts.SyntaxKind.FunctionDeclaration;
       name: string;
-      deleteRange: {
+      deleteSpan: {
         start: number;
         length: number;
       };
@@ -81,7 +81,7 @@ type Export =
   | {
       kind: ts.SyntaxKind.InterfaceDeclaration;
       name: string;
-      deleteRange: {
+      deleteSpan: {
         start: number;
         length: number;
       };
@@ -89,7 +89,7 @@ type Export =
   | {
       kind: ts.SyntaxKind.TypeAliasDeclaration;
       name: string;
-      deleteRange: {
+      deleteSpan: {
         start: number;
         length: number;
       };
@@ -117,7 +117,7 @@ type Export =
   | {
       kind: ts.SyntaxKind.ClassDeclaration;
       name: string;
-      deleteRange: {
+      deleteSpan: {
         start: number;
         length: number;
       };
@@ -160,7 +160,7 @@ const fn = ({
         exports.push({
           kind: ts.SyntaxKind.VariableStatement,
           name,
-          deleteRange: getExportKeywordPosition(node),
+          deleteSpan: getExportKeywordPosition(node),
         });
       }
 
@@ -184,13 +184,13 @@ const fn = ({
           exports.push({
             kind: node.kind,
             name: 'default',
-            deleteRange: getExportKeywordPosition(node),
+            deleteSpan: getExportKeywordPosition(node),
           });
         } else {
           exports.push({
             kind: node.kind,
             name: node.name?.getText() || '',
-            deleteRange: getExportKeywordPosition(node),
+            deleteSpan: getExportKeywordPosition(node),
           });
         }
       }
@@ -208,7 +208,7 @@ const fn = ({
         exports.push({
           kind: node.kind,
           name: node.name.getText(),
-          deleteRange: getExportKeywordPosition(node),
+          deleteSpan: getExportKeywordPosition(node),
         });
       }
 

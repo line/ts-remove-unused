@@ -222,7 +222,7 @@ describe('parseFile', () => {
       {
         kind: ts.SyntaxKind.VariableStatement,
         name: ['a'],
-        deleteRange: {
+        deleteSpan: {
           start: 0,
           length: 7,
         },
@@ -241,7 +241,7 @@ describe('parseFile', () => {
       {
         kind: ts.SyntaxKind.VariableStatement,
         name: ['a', 'b'],
-        deleteRange: {
+        deleteSpan: {
           start: 0,
           length: 7,
         },
@@ -260,7 +260,7 @@ describe('parseFile', () => {
       {
         kind: ts.SyntaxKind.FunctionDeclaration,
         name: 'a',
-        deleteRange: {
+        deleteSpan: {
           start: 0,
           length: 7,
         },
@@ -279,7 +279,7 @@ describe('parseFile', () => {
       {
         kind: ts.SyntaxKind.FunctionDeclaration,
         name: 'default',
-        deleteRange: {
+        deleteSpan: {
           start: 0,
           length: 15,
         },
@@ -298,7 +298,7 @@ describe('parseFile', () => {
       {
         kind: ts.SyntaxKind.FunctionDeclaration,
         name: 'default',
-        deleteRange: {
+        deleteSpan: {
           start: 0,
           length: 28,
         },
@@ -317,7 +317,7 @@ describe('parseFile', () => {
       {
         kind: ts.SyntaxKind.InterfaceDeclaration,
         name: 'A',
-        deleteRange: {
+        deleteSpan: {
           start: 0,
           length: 7,
         },
@@ -336,7 +336,7 @@ describe('parseFile', () => {
       {
         kind: ts.SyntaxKind.InterfaceDeclaration,
         name: 'default',
-        deleteRange: {
+        deleteSpan: {
           start: 0,
           length: 15,
         },
@@ -355,7 +355,7 @@ describe('parseFile', () => {
       {
         kind: ts.SyntaxKind.TypeAliasDeclaration,
         name: 'A',
-        deleteRange: {
+        deleteSpan: {
           start: 0,
           length: 7,
         },
@@ -501,7 +501,7 @@ describe('parseFile', () => {
       {
         kind: ts.SyntaxKind.ClassDeclaration,
         name: 'A',
-        deleteRange: {
+        deleteSpan: {
           start: 0,
           length: 7,
         },
@@ -520,7 +520,7 @@ describe('parseFile', () => {
       {
         kind: ts.SyntaxKind.ClassDeclaration,
         name: 'default',
-        deleteRange: {
+        deleteSpan: {
           start: 0,
           length: 15,
         },
@@ -539,7 +539,7 @@ describe('parseFile', () => {
       {
         kind: ts.SyntaxKind.ClassDeclaration,
         name: 'default',
-        deleteRange: {
+        deleteSpan: {
           start: 0,
           length: 23,
         },
