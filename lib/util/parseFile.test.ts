@@ -413,6 +413,7 @@ describe('parseFile', () => {
         type: 'named',
         name: ['a', 'b'],
         change: {
+          code: ' export { a, b };',
           span: {
             start: 29,
             length: 17,
@@ -435,6 +436,7 @@ describe('parseFile', () => {
         type: 'named',
         name: ['b'],
         change: {
+          code: ' export { a as b };',
           span: {
             start: 14,
             length: 19,
@@ -457,6 +459,7 @@ describe('parseFile', () => {
         type: 'named',
         name: ['a'],
         change: {
+          code: `export { a } from './b';`,
           span: {
             start: 0,
             length: 24,
@@ -479,6 +482,7 @@ describe('parseFile', () => {
         type: 'named',
         name: ['b'],
         change: {
+          code: `export { a as b } from './b';`,
           span: {
             start: 0,
             length: 29,

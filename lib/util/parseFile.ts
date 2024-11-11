@@ -126,6 +126,7 @@ type Export =
       type: 'named';
       name: string[];
       change: {
+        code: string;
         span: {
           start: number;
           length: number;
@@ -271,7 +272,7 @@ const fn = ({
         type: 'named',
         // we always collect the name not the propertyName because its for exports
         name: node.exportClause.elements.map((element) => element.name.text),
-        change: { span: getTextSpan(node) },
+        change: { code: node.getFullText(), span: getTextSpan(node) },
       });
 
       return;
@@ -290,6 +291,7 @@ const fn = ({
         // we always collect the name not the propertyName because its for exports
         name: node.exportClause.elements.map((element) => element.name.text),
         change: {
+          code: node.getFullText(),
           span: getTextSpan(node),
         },
       });
