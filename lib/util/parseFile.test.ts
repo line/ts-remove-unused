@@ -476,9 +476,26 @@ export type A = string;`,
             length: 19,
           },
         },
+        skip: false,
         start: 0,
       },
     ]);
+  });
+
+  it('should return skip: true for default export assignment with skip comment', () => {
+    const { exports } = parseFile({
+      file: '/app/a.ts',
+      content: `// ts-remove-unused-skip
+export default 'a';`,
+      destFiles: new Set(),
+    });
+
+    assert.equal(
+      exports[0] &&
+        exports[0].kind === ts.SyntaxKind.ExportAssignment &&
+        exports[0].skip,
+      true,
+    );
   });
 
   it('should collect export declaration', () => {

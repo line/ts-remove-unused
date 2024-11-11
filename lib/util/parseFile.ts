@@ -141,6 +141,7 @@ type Export =
           length: number;
         };
       };
+      skip: boolean;
       start: number;
     }
   | {
@@ -291,6 +292,7 @@ const fn = ({
         change: {
           span: getTextSpan(node),
         },
+        skip: !!getLeadingComment(node).includes(IGNORE_COMMENT),
         start: node.getStart(),
       });
 
