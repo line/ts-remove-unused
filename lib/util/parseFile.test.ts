@@ -228,6 +228,7 @@ describe('parseFile', () => {
             length: 7,
           },
         },
+        skip: false,
       },
     ]);
   });
@@ -249,8 +250,25 @@ describe('parseFile', () => {
             length: 7,
           },
         },
+        skip: false,
       },
     ]);
+  });
+
+  it('should return skip: true for variable statement export with skip comment', () => {
+    const { exports } = parseFile({
+      file: '/app/a.ts',
+      content: `// ts-remove-unused-skip
+export const a = 'a';`,
+      destFiles: new Set(),
+    });
+
+    assert.equal(
+      exports[0] &&
+        exports[0].kind === ts.SyntaxKind.VariableStatement &&
+        exports[0].skip,
+      true,
+    );
   });
 
   it('should collect function declaration export', () => {
@@ -270,6 +288,7 @@ describe('parseFile', () => {
             length: 7,
           },
         },
+        skip: false,
       },
     ]);
   });
@@ -291,6 +310,7 @@ describe('parseFile', () => {
             length: 15,
           },
         },
+        skip: false,
       },
     ]);
   });
@@ -312,8 +332,25 @@ describe('parseFile', () => {
             length: 28,
           },
         },
+        skip: false,
       },
     ]);
+  });
+
+  it('should return skip: true for function declaration export with skip comment', () => {
+    const { exports } = parseFile({
+      file: '/app/a.ts',
+      content: `// ts-remove-unused-skip
+export function a() {}`,
+      destFiles: new Set(),
+    });
+
+    assert.equal(
+      exports[0] &&
+        exports[0].kind === ts.SyntaxKind.FunctionDeclaration &&
+        exports[0].skip,
+      true,
+    );
   });
 
   it('should collect interface declaration export', () => {
@@ -333,6 +370,7 @@ describe('parseFile', () => {
             length: 7,
           },
         },
+        skip: false,
       },
     ]);
   });
@@ -354,8 +392,25 @@ describe('parseFile', () => {
             length: 15,
           },
         },
+        skip: false,
       },
     ]);
+  });
+
+  it('should return skip: true for interface declaration export with skip comment', () => {
+    const { exports } = parseFile({
+      file: '/app/a.ts',
+      content: `// ts-remove-unused-skip
+export interface A {}`,
+      destFiles: new Set(),
+    });
+
+    assert.equal(
+      exports[0] &&
+        exports[0].kind === ts.SyntaxKind.InterfaceDeclaration &&
+        exports[0].skip,
+      true,
+    );
   });
 
   it('should collect type alias declaration export', () => {
@@ -375,8 +430,25 @@ describe('parseFile', () => {
             length: 7,
           },
         },
+        skip: false,
       },
     ]);
+  });
+
+  it('should return skip: true for type alias declaration export with skip comment', () => {
+    const { exports } = parseFile({
+      file: '/app/a.ts',
+      content: `// ts-remove-unused-skip
+export type A = string;`,
+      destFiles: new Set(),
+    });
+
+    assert.equal(
+      exports[0] &&
+        exports[0].kind === ts.SyntaxKind.TypeAliasDeclaration &&
+        exports[0].skip,
+      true,
+    );
   });
 
   it('should collect default export assignment', () => {
@@ -579,6 +651,7 @@ export { a, b };`,
             length: 7,
           },
         },
+        skip: false,
       },
     ]);
   });
@@ -600,6 +673,7 @@ export { a, b };`,
             length: 15,
           },
         },
+        skip: false,
       },
     ]);
   });
@@ -621,7 +695,24 @@ export { a, b };`,
             length: 23,
           },
         },
+        skip: false,
       },
     ]);
+  });
+
+  it('should return skip: true for class declaration with skip comment', () => {
+    const { exports } = parseFile({
+      file: '/app/a.ts',
+      content: `// ts-remove-unused-skip
+export class A {}`,
+      destFiles: new Set(),
+    });
+
+    assert.equal(
+      exports[0] &&
+        exports[0].kind === ts.SyntaxKind.ClassDeclaration &&
+        exports[0].skip,
+      true,
+    );
   });
 });

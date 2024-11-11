@@ -93,6 +93,7 @@ type Export =
           length: number;
         };
       };
+      skip: boolean;
     }
   | {
       kind: ts.SyntaxKind.FunctionDeclaration;
@@ -103,6 +104,7 @@ type Export =
           length: number;
         };
       };
+      skip: boolean;
     }
   | {
       kind: ts.SyntaxKind.InterfaceDeclaration;
@@ -113,6 +115,7 @@ type Export =
           length: number;
         };
       };
+      skip: boolean;
     }
   | {
       kind: ts.SyntaxKind.TypeAliasDeclaration;
@@ -123,6 +126,7 @@ type Export =
           length: number;
         };
       };
+      skip: boolean;
     }
   | {
       kind: ts.SyntaxKind.ExportAssignment;
@@ -167,6 +171,7 @@ type Export =
           length: number;
         };
       };
+      skip: boolean;
     };
 
 const fn = ({
@@ -207,6 +212,7 @@ const fn = ({
           kind: ts.SyntaxKind.VariableStatement,
           name,
           change: { span: getTextSpan(node) },
+          skip: !!getLeadingComment(node).includes(IGNORE_COMMENT),
         });
       }
 
@@ -231,12 +237,14 @@ const fn = ({
             kind: node.kind,
             name: 'default',
             change: { span: getTextSpan(node) },
+            skip: !!getLeadingComment(node).includes(IGNORE_COMMENT),
           });
         } else {
           exports.push({
             kind: node.kind,
             name: node.name?.getText() || '',
             change: { span: getTextSpan(node) },
+            skip: !!getLeadingComment(node).includes(IGNORE_COMMENT),
           });
         }
       }
@@ -255,6 +263,7 @@ const fn = ({
           kind: node.kind,
           name: node.name.getText(),
           change: { span: getTextSpan(node) },
+          skip: !!getLeadingComment(node).includes(IGNORE_COMMENT),
         });
       }
 
