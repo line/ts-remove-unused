@@ -94,6 +94,7 @@ type Export =
         };
       };
       skip: boolean;
+      start: number;
     }
   | {
       kind: ts.SyntaxKind.FunctionDeclaration;
@@ -105,6 +106,7 @@ type Export =
         };
       };
       skip: boolean;
+      start: number;
     }
   | {
       kind: ts.SyntaxKind.InterfaceDeclaration;
@@ -116,6 +118,7 @@ type Export =
         };
       };
       skip: boolean;
+      start: number;
     }
   | {
       kind: ts.SyntaxKind.TypeAliasDeclaration;
@@ -127,6 +130,7 @@ type Export =
         };
       };
       skip: boolean;
+      start: number;
     }
   | {
       kind: ts.SyntaxKind.ExportAssignment;
@@ -137,6 +141,7 @@ type Export =
           length: number;
         };
       };
+      start: number;
     }
   | {
       kind: ts.SyntaxKind.ExportDeclaration;
@@ -150,17 +155,20 @@ type Export =
           length: number;
         };
       };
+      start: number;
     }
   | {
       kind: ts.SyntaxKind.ExportDeclaration;
       type: 'namespace';
       name: string;
+      start: number;
     }
   | {
       kind: ts.SyntaxKind.ExportDeclaration;
       type: 'whole';
       // will be null if the file is not found within the destFiles, i.e. the file is not part of the project
       file: string | null;
+      start: number;
     }
   | {
       kind: ts.SyntaxKind.ClassDeclaration;
@@ -172,6 +180,7 @@ type Export =
         };
       };
       skip: boolean;
+      start: number;
     };
 
 const fn = ({
@@ -213,6 +222,7 @@ const fn = ({
           name,
           change: { span: getTextSpan(node) },
           skip: !!getLeadingComment(node).includes(IGNORE_COMMENT),
+          start: node.getStart(),
         });
       }
 
@@ -238,6 +248,7 @@ const fn = ({
             name: 'default',
             change: { span: getTextSpan(node) },
             skip: !!getLeadingComment(node).includes(IGNORE_COMMENT),
+            start: node.getStart(),
           });
         } else {
           exports.push({
@@ -245,6 +256,7 @@ const fn = ({
             name: node.name?.getText() || '',
             change: { span: getTextSpan(node) },
             skip: !!getLeadingComment(node).includes(IGNORE_COMMENT),
+            start: node.getStart(),
           });
         }
       }
@@ -264,6 +276,7 @@ const fn = ({
           name: node.name.getText(),
           change: { span: getTextSpan(node) },
           skip: !!getLeadingComment(node).includes(IGNORE_COMMENT),
+          start: node.getStart(),
         });
       }
 
@@ -278,6 +291,7 @@ const fn = ({
         change: {
           span: getTextSpan(node),
         },
+        start: node.getStart(),
       });
 
       ts.forEachChild(node, visit);
@@ -297,6 +311,7 @@ const fn = ({
         name: node.exportClause.elements.map((element) => element.name.text),
         change: { code: node.getFullText(), span: getTextSpan(node) },
         skip: !!getLeadingComment(node).includes(IGNORE_COMMENT),
+        start: node.getStart(),
       });
 
       return;
@@ -319,6 +334,7 @@ const fn = ({
           span: getTextSpan(node),
         },
         skip: false,
+        start: node.getStart(),
       });
 
       const resolved = resolve({
@@ -352,6 +368,7 @@ const fn = ({
         kind: ts.SyntaxKind.ExportDeclaration,
         type: 'namespace',
         name: node.exportClause.name.text,
+        start: node.getStart(),
       });
 
       const resolved = resolve({
@@ -387,6 +404,7 @@ const fn = ({
         kind: ts.SyntaxKind.ExportDeclaration,
         type: 'whole',
         file: resolved || null,
+        start: node.getStart(),
       });
 
       if (resolved) {

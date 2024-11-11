@@ -229,6 +229,7 @@ describe('parseFile', () => {
           },
         },
         skip: false,
+        start: 0,
       },
     ]);
   });
@@ -251,6 +252,7 @@ describe('parseFile', () => {
           },
         },
         skip: false,
+        start: 0,
       },
     ]);
   });
@@ -289,6 +291,7 @@ export const a = 'a';`,
           },
         },
         skip: false,
+        start: 0,
       },
     ]);
   });
@@ -311,6 +314,7 @@ export const a = 'a';`,
           },
         },
         skip: false,
+        start: 0,
       },
     ]);
   });
@@ -333,6 +337,7 @@ export const a = 'a';`,
           },
         },
         skip: false,
+        start: 0,
       },
     ]);
   });
@@ -371,6 +376,7 @@ export function a() {}`,
           },
         },
         skip: false,
+        start: 0,
       },
     ]);
   });
@@ -393,6 +399,7 @@ export function a() {}`,
           },
         },
         skip: false,
+        start: 0,
       },
     ]);
   });
@@ -431,6 +438,7 @@ export interface A {}`,
           },
         },
         skip: false,
+        start: 0,
       },
     ]);
   });
@@ -468,6 +476,7 @@ export type A = string;`,
             length: 19,
           },
         },
+        start: 0,
       },
     ]);
   });
@@ -492,6 +501,7 @@ export type A = string;`,
           },
         },
         skip: false,
+        start: 30,
       },
     ]);
   });
@@ -534,6 +544,7 @@ export { a, b };`,
           },
         },
         skip: false,
+        start: 15,
       },
     ]);
   });
@@ -558,6 +569,7 @@ export { a, b };`,
           },
         },
         skip: false,
+        start: 0,
       },
     ]);
   });
@@ -582,6 +594,7 @@ export { a, b };`,
           },
         },
         skip: false,
+        start: 0,
       },
     ]);
   });
@@ -598,6 +611,7 @@ export { a, b };`,
         kind: ts.SyntaxKind.ExportDeclaration,
         type: 'namespace',
         name: 'b',
+        start: 0,
       },
     ]);
   });
@@ -614,6 +628,7 @@ export { a, b };`,
         kind: ts.SyntaxKind.ExportDeclaration,
         type: 'whole',
         file: '/app/b.ts',
+        start: 0,
       },
     ]);
   });
@@ -630,6 +645,7 @@ export { a, b };`,
         kind: ts.SyntaxKind.ExportDeclaration,
         type: 'whole',
         file: null,
+        start: 0,
       },
     ]);
   });
@@ -652,6 +668,7 @@ export { a, b };`,
           },
         },
         skip: false,
+        start: 0,
       },
     ]);
   });
@@ -674,6 +691,7 @@ export { a, b };`,
           },
         },
         skip: false,
+        start: 0,
       },
     ]);
   });
@@ -696,6 +714,7 @@ export { a, b };`,
           },
         },
         skip: false,
+        start: 0,
       },
     ]);
   });
