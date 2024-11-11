@@ -27,7 +27,8 @@ const getExportKeywordPosition = (
     | ts.VariableStatement
     | ts.FunctionDeclaration
     | ts.InterfaceDeclaration
-    | ts.ClassDeclaration,
+    | ts.ClassDeclaration
+    | ts.TypeAliasDeclaration,
 ) => {
   if (
     (ts.isFunctionDeclaration(node) || ts.isClassDeclaration(node)) &&
@@ -88,6 +89,10 @@ type Export =
   | {
       kind: ts.SyntaxKind.TypeAliasDeclaration;
       name: string;
+      deleteRange: {
+        start: number;
+        length: number;
+      };
     }
   | {
       kind: ts.SyntaxKind.ExportAssignment;
@@ -203,6 +208,7 @@ const fn = ({
         exports.push({
           kind: node.kind,
           name: node.name.getText(),
+          deleteRange: getExportKeywordPosition(node),
         });
       }
 

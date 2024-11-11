@@ -355,6 +355,10 @@ describe('parseFile', () => {
       {
         kind: ts.SyntaxKind.TypeAliasDeclaration,
         name: 'A',
+        deleteRange: {
+          start: 0,
+          length: 7,
+        },
       },
     ]);
   });
