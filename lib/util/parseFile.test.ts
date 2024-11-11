@@ -419,8 +419,27 @@ describe('parseFile', () => {
             length: 17,
           },
         },
+        skip: false,
       },
     ]);
+  });
+
+  it('should return skip: true for export declaration with skip comment', () => {
+    const { exports } = parseFile({
+      file: '/app/a.ts',
+      content: `const a = 'a'; const b = 'b';
+// ts-remove-unused-skip
+export { a, b };`,
+      destFiles: new Set(),
+    });
+
+    assert.equal(
+      exports[0] &&
+        exports[0].kind === ts.SyntaxKind.ExportDeclaration &&
+        exports[0].type === 'named' &&
+        exports[0].skip,
+      true,
+    );
   });
 
   it('should collect renamed export declaration', () => {
@@ -442,6 +461,7 @@ describe('parseFile', () => {
             length: 19,
           },
         },
+        skip: false,
       },
     ]);
   });
@@ -465,6 +485,7 @@ describe('parseFile', () => {
             length: 24,
           },
         },
+        skip: false,
       },
     ]);
   });
@@ -488,6 +509,7 @@ describe('parseFile', () => {
             length: 29,
           },
         },
+        skip: false,
       },
     ]);
   });

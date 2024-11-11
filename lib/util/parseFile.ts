@@ -1,6 +1,19 @@
 import ts from 'typescript';
 import { memoize } from './memoize.js';
 
+const IGNORE_COMMENT = 'ts-remove-unused-skip';
+
+const getLeadingComment = (node: ts.Node) => {
+  const fullText = node.getSourceFile().getFullText();
+  const ranges = ts.getLeadingCommentRanges(fullText, node.getFullStart());
+
+  if (!ranges) {
+    return '';
+  }
+
+  return ranges.map((range) => fullText.slice(range.pos, range.end)).join('');
+};
+
 const resolve = ({
   specifier,
   file,
@@ -125,6 +138,7 @@ type Export =
       kind: ts.SyntaxKind.ExportDeclaration;
       type: 'named';
       name: string[];
+      skip: boolean;
       change: {
         code: string;
         span: {
@@ -273,6 +287,7 @@ const fn = ({
         // we always collect the name not the propertyName because its for exports
         name: node.exportClause.elements.map((element) => element.name.text),
         change: { code: node.getFullText(), span: getTextSpan(node) },
+        skip: !!getLeadingComment(node).includes(IGNORE_COMMENT),
       });
 
       return;
@@ -294,6 +309,7 @@ const fn = ({
           code: node.getFullText(),
           span: getTextSpan(node),
         },
+        skip: false,
       });
 
       const resolved = resolve({
