@@ -1,6 +1,6 @@
 import { describe, it } from 'node:test';
 import { setup } from '../../test/helpers/setup.js';
-import { collectImports } from './collectImports.js';
+import { createDependencyGraph } from './createDependencyGraph.js';
 import ts from 'typescript';
 import assert from 'node:assert/strict';
 
@@ -14,7 +14,7 @@ const getProgram = (languageService: ts.LanguageService) => {
   return program;
 };
 
-describe('collectImports', () => {
+describe('createDependencyGraph', () => {
   it('should return a graph of imports', () => {
     const { languageService, fileService } = setup();
     fileService.set('/app/main.ts', `import { a } from './a.js';`);
@@ -29,7 +29,7 @@ export const a = () => ({ b, c });`,
 
     const program = getProgram(languageService);
 
-    const graph = collectImports({
+    const graph = createDependencyGraph({
       fileService,
       program,
       entrypoints: ['/app/main.ts'],
@@ -75,7 +75,7 @@ export const a = () => b;`,
     fileService.set('/app/b2.ts', `export const b = 'b';`);
 
     const program = getProgram(languageService);
-    const graph = collectImports({
+    const graph = createDependencyGraph({
       fileService,
       program,
       entrypoints: ['/app/main.ts'],
@@ -121,7 +121,7 @@ export const a = () => b;`,
     fileService.set('/app/b2.ts', `export const b = 'b';`);
 
     const program = getProgram(languageService);
-    const graph = collectImports({
+    const graph = createDependencyGraph({
       fileService,
       program,
       entrypoints: ['/app/main.ts'],
@@ -162,7 +162,7 @@ export const a = () => b;`,
     fileService.set('/app/b.ts', `export const b = 'b';`);
 
     const program = getProgram(languageService);
-    const graph = collectImports({
+    const graph = createDependencyGraph({
       fileService,
       program,
       entrypoints: ['/app/main.ts'],
@@ -208,7 +208,7 @@ export const c = () => d;`,
 
     const program = getProgram(languageService);
 
-    const graph = collectImports({
+    const graph = createDependencyGraph({
       fileService,
       program,
       entrypoints: ['/app/main.ts'],
@@ -250,7 +250,7 @@ export const c = () => d;`,
     const { languageService, fileService } = setup();
     fileService.set('/app/main.ts', 'console.log("hello world");');
     const program = getProgram(languageService);
-    const graph = collectImports({
+    const graph = createDependencyGraph({
       fileService,
       program,
       entrypoints: ['/app/main.ts'],
@@ -265,7 +265,7 @@ export const c = () => d;`,
     fileService.set('/app/b.ts', `export const b = 'b';`);
 
     const program = getProgram(languageService);
-    const graph = collectImports({
+    const graph = createDependencyGraph({
       fileService,
       program,
       entrypoints: ['/app/main.ts'],
@@ -303,7 +303,7 @@ export const c = () => a2;`,
 
     const program = getProgram(languageService);
 
-    const graph = collectImports({
+    const graph = createDependencyGraph({
       fileService,
       program,
       entrypoints: ['/app/main.ts'],
@@ -366,7 +366,7 @@ export const b = () => c;`,
 
     const program = getProgram(languageService);
 
-    const graph = collectImports({
+    const graph = createDependencyGraph({
       fileService,
       program,
       entrypoints: ['/app/main.ts', '/app/main2.ts'],

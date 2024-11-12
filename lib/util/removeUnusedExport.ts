@@ -8,7 +8,7 @@ import {
 } from './applyCodeFix.js';
 import { EditTracker } from './EditTracker.js';
 import { Vertexes } from './DependencyGraph.js';
-import { collectImports } from './collectImports.js';
+import { createDependencyGraph } from './createDependencyGraph.js';
 import { MemoryFileService } from './MemoryFileService.js';
 import { TaskManager } from './TaskManager.js';
 import { WorkerPool } from './WorkerPool.js';
@@ -495,7 +495,7 @@ export const removeUnusedExport = async ({
 }) => {
   const program = createProgram({ fileService, options, projectRoot });
 
-  const dependencyGraph = collectImports({
+  const dependencyGraph = createDependencyGraph({
     fileService,
     program,
     entrypoints,

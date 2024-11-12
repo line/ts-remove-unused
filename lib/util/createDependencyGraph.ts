@@ -53,7 +53,7 @@ const getMatchingNode = (node: ts.Node) => {
   return null;
 };
 
-export const collectImports = ({
+export const createDependencyGraph = ({
   fileService,
   program,
   entrypoints,

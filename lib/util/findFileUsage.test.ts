@@ -1,7 +1,7 @@
 import { describe, it } from 'node:test';
 import { MemoryFileService } from './MemoryFileService.js';
 import { createProgram } from './createProgram.js';
-import { collectImports } from './collectImports.js';
+import { createDependencyGraph } from './createDependencyGraph.js';
 import { findFileUsage } from './findFileUsage.js';
 import assert from 'node:assert/strict';
 
@@ -20,7 +20,7 @@ describe('findFileUsage', () => {
       projectRoot: '/app',
     });
 
-    const graph = collectImports({
+    const graph = createDependencyGraph({
       fileService,
       program,
       entrypoints: ['/app/main.ts'],
@@ -53,7 +53,7 @@ describe('findFileUsage', () => {
       options: {},
       projectRoot: '/app',
     });
-    const graph = collectImports({
+    const graph = createDependencyGraph({
       fileService,
       program,
       entrypoints: ['/app/main.ts'],
@@ -78,7 +78,7 @@ describe('findFileUsage', () => {
       options: {},
       projectRoot: '/app',
     });
-    const graph = collectImports({
+    const graph = createDependencyGraph({
       fileService,
       program,
       entrypoints: ['/app/main.ts'],
@@ -107,7 +107,7 @@ describe('findFileUsage', () => {
       options: {},
       projectRoot: '/app',
     });
-    const graph = collectImports({
+    const graph = createDependencyGraph({
       fileService,
       program,
       entrypoints: ['/app/main.ts'],
@@ -131,7 +131,7 @@ describe('findFileUsage', () => {
       options: {},
       projectRoot: '/app',
     });
-    const graph = collectImports({
+    const graph = createDependencyGraph({
       fileService,
       program,
       entrypoints: ['/app/main.ts'],
@@ -159,7 +159,7 @@ describe('findFileUsage', () => {
       options: {},
       projectRoot: '/app',
     });
-    const graph = collectImports({
+    const graph = createDependencyGraph({
       fileService,
       program,
       entrypoints: ['/app/main.ts'],
