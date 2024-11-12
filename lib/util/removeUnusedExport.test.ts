@@ -964,10 +964,6 @@ export const b = 'b';`,
         deleteUnusedFile: true,
       });
 
-      console.log(
-        fileService.getFileNames().map((f) => [f, fileService.get(f)]),
-      );
-
       assert.equal(fileService.exists('/app/a_reexport.ts'), false);
       assert.equal(fileService.exists('/app/a.ts'), false);
     });
