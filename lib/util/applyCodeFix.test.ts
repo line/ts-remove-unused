@@ -55,6 +55,30 @@ const b = 'b';`,
     assert.equal(result, `export const a = 'a';\n`);
   });
 
+  it('should only clean up unused identifiers once', () => {
+    const { languageService, fileService } = setup();
+
+    fileService.set(
+      '/app/a.ts',
+      `export const a = 'a';
+const b = () => a();
+const c = () => b();
+const d = () => c();`,
+    );
+
+    const result = applyCodeFix({
+      fixId: fixIdDelete,
+      languageService,
+      fileName: '/app/a.ts',
+    });
+    assert.equal(
+      result,
+      `export const a = 'a';
+const b = () => a();
+const c = () => b();\n`,
+    );
+  });
+
   it('should clean up unused imports', () => {
     const { languageService, fileService } = setup();
 
