@@ -339,6 +339,20 @@ export const processFile = ({
             break;
           }
           case 'namespace': {
+            if (usage.has(item.name)) {
+              break;
+            }
+
+            changes.push({
+              newText: '',
+              span: item.change.span,
+            });
+            logs.push({
+              fileName: targetFile,
+              position: item.start,
+              code: item.name,
+            });
+
             break;
           }
           case 'whole': {

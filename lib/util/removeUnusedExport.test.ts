@@ -1036,6 +1036,39 @@ export const b = 'b';`,
     });
   });
 
+  describe('namespace export declaration', () => {
+    it('should not remove namespace export declaration if its used in some other file', async () => {
+      const fileService = new MemoryFileService();
+      fileService.set('/app/main.ts', `import { a } from './a';`);
+      fileService.set('/app/a.ts', `export * as a from './b';`);
+      fileService.set('/app/b.ts', `export const b = 'b';`);
+
+      await removeUnusedExport({
+        fileService,
+        // pool,
+        recursive,
+        entrypoints: ['/app/main.ts'],
+      });
+
+      assert.equal(fileService.get('/app/a.ts'), `export * as a from './b';`);
+    });
+
+    it('should remove namespace export declaration if its not used in some other file', async () => {
+      const fileService = new MemoryFileService();
+      fileService.set('/app/a.ts', `export * as a from './b';`);
+      fileService.set('/app/b.ts', `export const b = 'b';`);
+
+      await removeUnusedExport({
+        fileService,
+        // pool,
+        recursive,
+        entrypoints: ['/app/main.ts'],
+      });
+
+      assert.equal(fileService.get('/app/a.ts'), '');
+    });
+  });
+
   describe('namespace import', () => {
     it('should not remove export for namespace import if its used in some other file', async () => {
       const fileService = new MemoryFileService();
