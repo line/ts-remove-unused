@@ -246,7 +246,6 @@ export const processFile = ({
         logs.push({
           fileName: targetFile,
           position: item.start,
-          // todo: we may want to handle `export default function () {}` properly
           code: item.name,
         });
 
@@ -327,7 +326,6 @@ export const processFile = ({
               ...unused.map((it) => ({
                 fileName: targetFile,
                 position: item.start + (position.get(it) || 0),
-                // todo: we may want to log as `export { ${it} } from './foo';` if it's a reexport
                 code: it,
               })),
             );
@@ -358,7 +356,6 @@ export const processFile = ({
         logs.push({
           fileName: targetFile,
           position: item.start,
-          // todo: we may want to handle `export default class {}` properly
           code: item.name,
         });
 
