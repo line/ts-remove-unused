@@ -182,6 +182,13 @@ type Export =
       type: 'namespace';
       name: string;
       start: number;
+      change: {
+        code: string;
+        span: {
+          start: number;
+          length: number;
+        };
+      };
     }
   | {
       kind: ts.SyntaxKind.ExportDeclaration;
@@ -387,6 +394,7 @@ const fn = ({
         type: 'namespace',
         name: node.exportClause.name.text,
         start: node.getStart(),
+        change: getChange(node),
       });
 
       const resolved = resolve({

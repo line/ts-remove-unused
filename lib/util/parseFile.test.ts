@@ -639,6 +639,13 @@ export { a, b };`,
         type: 'namespace',
         name: 'b',
         start: 0,
+        change: {
+          code: `export * as b from './b';`,
+          span: {
+            start: 0,
+            length: 25,
+          },
+        },
       },
     ]);
   });
