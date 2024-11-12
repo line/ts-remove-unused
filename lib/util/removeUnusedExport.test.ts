@@ -664,10 +664,10 @@ export { d };`,
       fileService.set(
         '/app/a.ts',
         `const a = 'a';
-  export { 
-    // ts-remove-unused-skip
-    a
-  };`,
+// ts-remove-unused-skip
+export { 
+  a
+};`,
       );
 
       await removeUnusedExport({
@@ -681,10 +681,10 @@ export { d };`,
       assert.equal(
         result,
         `const a = 'a';
-  export { 
-    // ts-remove-unused-skip
-    a
-  };`,
+// ts-remove-unused-skip
+export { 
+  a
+};`,
       );
     });
   });
