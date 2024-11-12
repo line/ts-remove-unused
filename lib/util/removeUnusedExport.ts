@@ -356,6 +356,36 @@ export const processFile = ({
             break;
           }
           case 'whole': {
+            if (!item.file) {
+              // whole export is directed towards a file that is not in the project
+              break;
+            }
+
+            const parsed = parseFile({
+              file: item.file,
+              content: files.get(item.file) || '',
+              options,
+              destFiles: vertexes.get(item.file)?.to || new Set([]),
+            });
+
+            const exported = parsed.exports.flatMap((v) =>
+              'name' in v ? v.name : [],
+            );
+
+            if (exported.some((v) => usage.has(v))) {
+              break;
+            }
+
+            changes.push({
+              newText: '',
+              span: item.change.span,
+            });
+            logs.push({
+              fileName: targetFile,
+              position: item.start,
+              code: `export * from '${item.specifier}';`,
+            });
+
             break;
           }
           default: {
