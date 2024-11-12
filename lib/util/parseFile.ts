@@ -196,6 +196,13 @@ type Export =
       // will be null if the file is not found within the destFiles, i.e. the file is not part of the project
       file: string | null;
       start: number;
+      change: {
+        code: string;
+        span: {
+          start: number;
+          length: number;
+        };
+      };
     }
   | {
       kind: ts.SyntaxKind.ClassDeclaration;
@@ -431,6 +438,7 @@ const fn = ({
         type: 'whole',
         file: resolved || null,
         start: node.getStart(),
+        change: getChange(node),
       });
 
       if (resolved) {

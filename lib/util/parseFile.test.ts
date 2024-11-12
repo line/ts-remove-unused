@@ -663,6 +663,13 @@ export { a, b };`,
         type: 'whole',
         file: '/app/b.ts',
         start: 0,
+        change: {
+          code: `export * from './b';`,
+          span: {
+            start: 0,
+            length: 20,
+          },
+        },
       },
     ]);
   });
@@ -680,6 +687,13 @@ export { a, b };`,
         type: 'whole',
         file: null,
         start: 0,
+        change: {
+          code: `export * from 'node:fs`,
+          span: {
+            start: 0,
+            length: 22,
+          },
+        },
       },
     ]);
   });
