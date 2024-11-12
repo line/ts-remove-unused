@@ -55,6 +55,25 @@ const b = 'b';`,
     assert.equal(result, `export const a = 'a';\n`);
   });
 
+  it('should clean up multiple unused identifiers', () => {
+    const { languageService, fileService } = setup();
+
+    fileService.set(
+      '/app/a.ts',
+      `export const a = 'a';
+const b = 'b';
+const c = 'c';`,
+    );
+
+    const result = applyCodeFix({
+      fixId: fixIdDelete,
+      languageService,
+      fileName: '/app/a.ts',
+    });
+
+    assert.equal(result, `export const a = 'a';\n`);
+  });
+
   it('should only clean up unused identifiers once', () => {
     const { languageService, fileService } = setup();
 
