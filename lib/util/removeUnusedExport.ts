@@ -127,6 +127,34 @@ const updateExportDeclaration = (code: string, unused: string[]) => {
   return result ? printer.printFile(result).trim() : '';
 };
 
+const getSpecifierPosition = (exportDeclaration: string) => {
+  const sourceFile = ts.createSourceFile(
+    'tmp.ts',
+    exportDeclaration,
+    ts.ScriptTarget.Latest,
+  );
+
+  const result = new Map<string, number>();
+
+  const visit = (node: ts.Node) => {
+    if (
+      ts.isExportDeclaration(node) &&
+      node.exportClause?.kind === ts.SyntaxKind.NamedExports
+    ) {
+      node.exportClause.elements.forEach((element) => {
+        result.set(
+          element.name.text,
+          element.getStart(sourceFile) - sourceFile.getStart(),
+        );
+      });
+    }
+  };
+
+  sourceFile.forEachChild(visit);
+
+  return result;
+};
+
 // for use in worker
 export const processFile = ({
   targetFile,
@@ -293,10 +321,12 @@ export const processFile = ({
               span: item.change.span,
             });
 
+            const position = getSpecifierPosition(item.change.code);
+
             logs.push(
               ...unused.map((it) => ({
                 fileName: targetFile,
-                position: item.start,
+                position: item.start + (position.get(it) || 0),
                 // todo: we may want to log as `export { ${it} } from './foo';` if it's a reexport
                 code: it,
               })),
