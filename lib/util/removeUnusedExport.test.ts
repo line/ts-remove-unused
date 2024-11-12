@@ -687,6 +687,116 @@ export {
 };`,
       );
     });
+
+    describe('preserving the format when editing a export declaration', () => {
+      it('should preserve the line break when there is a comment leading the export declaration', async () => {
+        const fileService = new MemoryFileService();
+        fileService.set('/app/main.ts', `import { a } from './a';`);
+        fileService.set(
+          '/app/a.ts',
+          `const a = 'a';
+const b = 'b';
+// comment
+export { a, b };`,
+        );
+
+        await removeUnusedExport({
+          fileService,
+          pool,
+          recursive,
+          entrypoints: ['/app/main.ts'],
+        });
+
+        assert.equal(
+          fileService.get('/app/a.ts'),
+          `const a = 'a';
+const b = 'b';
+// comment
+export { a };`,
+        );
+      });
+
+      it('should preserve line breaks leading the export declaration', async () => {
+        const fileService = new MemoryFileService();
+        fileService.set('/app/main.ts', `import { a } from './a';`);
+        fileService.set(
+          '/app/a.ts',
+          `const a = 'a';
+const b = 'b';
+
+export { a, b };`,
+        );
+
+        await removeUnusedExport({
+          fileService,
+          pool,
+          recursive,
+          entrypoints: ['/app/main.ts'],
+        });
+
+        assert.equal(
+          fileService.get('/app/a.ts'),
+          `const a = 'a';
+const b = 'b';
+
+export { a };`,
+        );
+      });
+
+      it('should preserve the trailing comment when editing a export declaration', async () => {
+        const fileService = new MemoryFileService();
+        fileService.set('/app/main.ts', `import { a } from './a';`);
+        fileService.set(
+          '/app/a.ts',
+          `const a = 'a';
+const b = 'b';
+export { a, b }; // comment`,
+        );
+
+        await removeUnusedExport({
+          fileService,
+          pool,
+          recursive,
+          entrypoints: ['/app/main.ts'],
+        });
+
+        assert.equal(
+          fileService.get('/app/a.ts'),
+          `const a = 'a';
+const b = 'b';
+export { a }; // comment`,
+        );
+      });
+
+      it('should preserve the trailing line break when editing a export declaration', async () => {
+        const fileService = new MemoryFileService();
+        fileService.set('/app/main.ts', `import { a } from './a';`);
+        fileService.set(
+          '/app/a.ts',
+          `const a = 'a';
+const b = 'b';
+export { a, b };
+
+const c = 'c';`,
+        );
+
+        await removeUnusedExport({
+          fileService,
+          pool,
+          recursive,
+          entrypoints: ['/app/main.ts'],
+        });
+
+        assert.equal(
+          fileService.get('/app/a.ts'),
+          `const a = 'a';
+const b = 'b';
+export { a };
+
+const c = 'c';`,
+        );
+      });
+    });
   });
 
   describe('re-exports', () => {

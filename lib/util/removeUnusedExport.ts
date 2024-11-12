@@ -103,14 +103,18 @@ const createLanguageService = ({
 };
 
 const updateExportDeclaration = (code: string, unused: string[]) => {
-  const tmpFile = ts.createSourceFile('tmp.ts', code, ts.ScriptTarget.Latest);
+  const sourceFile = ts.createSourceFile(
+    'tmp.ts',
+    code,
+    ts.ScriptTarget.Latest,
+  );
 
   const transformer: ts.TransformerFactory<ts.SourceFile> =
     (context: ts.TransformationContext) => (rootNode: ts.SourceFile) => {
       const visitor = (node: ts.Node): ts.Node | undefined => {
         if (
           ts.isExportSpecifier(node) &&
-          unused.includes(node.getText(tmpFile))
+          unused.includes(node.getText(sourceFile))
         ) {
           return undefined;
         }
@@ -120,11 +124,13 @@ const updateExportDeclaration = (code: string, unused: string[]) => {
       return ts.visitEachChild(rootNode, visitor, context);
     };
 
-  const result = ts.transform(tmpFile, [transformer]).transformed[0];
+  const result = ts.transform(sourceFile, [transformer]).transformed[0];
 
   const printer = ts.createPrinter();
+  const printed = result ? printer.printFile(result).replace(/\n$/, '') : '';
+  const leading = code.match(/^([\s]+)/)?.[0] || '';
 
-  return result ? printer.printFile(result).trim() : '';
+  return `${leading}${printed}`;
 };
 
 const getSpecifierPosition = (exportDeclaration: string) => {
