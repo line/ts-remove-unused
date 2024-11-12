@@ -36,13 +36,13 @@ describe('removeUnusedExport', () => {
       assert.equal(result, `export const a = 'a';`);
     });
 
-    it.only('should remove export for variable if its not used in some other file', async () => {
+    it('should remove export for variable if its not used in some other file', async () => {
       const fileService = new MemoryFileService();
       fileService.set('/app/b.ts', `export const b = 'b';`);
 
       await removeUnusedExport({
         fileService,
-        // pool,
+        pool,
         recursive,
         entrypoints: ['/app/main.ts'],
       });
