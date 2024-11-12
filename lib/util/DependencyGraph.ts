@@ -14,7 +14,19 @@ export class DependencyGraph extends Graph<{
   }
 
   eject() {
-    return this.vertexes;
+    const map: typeof this.vertexes = new Map();
+
+    for (const [k, v] of this.vertexes.entries()) {
+      map.set(k, {
+        from: new Set(v.from),
+        to: new Set(v.to),
+        data: {
+          depth: v.data.depth,
+        },
+      });
+    }
+
+    return map;
   }
 }
 
