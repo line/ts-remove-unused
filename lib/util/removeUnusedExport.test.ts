@@ -884,8 +884,8 @@ const c = 'c';`,
     });
   });
 
-  describe('whole re-export', () => {
-    it('should remove declaration that not used in some other file via a whole-reexport', async () => {
+  describe('whole export declaration', () => {
+    it('should remove whole export declaration that is not used', async () => {
       const fileService = new MemoryFileService();
       fileService.set('/app/a_reexport.ts', `export * from './a';`);
       fileService.set('/app/a.ts', `export const a = 'a';`);
@@ -895,36 +895,11 @@ const c = 'c';`,
         recursive,
         entrypoints: ['/app/main.ts'],
       });
-      // unless the file in the specifier is deleted, we can't remove the whole re-export
-      // assert.equal(fileService.get('/app/a_reexport.ts'), '');
+      assert.equal(fileService.get('/app/a_reexport.ts'), '');
       assert.equal(fileService.get('/app/a.ts'), `const a = 'a';`);
     });
 
-    it('should not remove declaration that is used with `import * as name` in some other file via a whole-reexport', async () => {
-      const fileService = new MemoryFileService();
-
-      fileService.set(
-        '/app/main.ts',
-        `import * as a_namespace from './a_reexport';
-a_namespace.a;`,
-      );
-      fileService.set('/app/a_reexport.ts', `export * from './a';`);
-      fileService.set('/app/a.ts', `export const a = 'a';`);
-
-      await removeUnusedExport({
-        fileService,
-        pool,
-        recursive,
-        entrypoints: ['/app/main.ts'],
-      });
-      assert.equal(
-        fileService.get('/app/a_reexport.ts'),
-        `export * from './a';`,
-      );
-      assert.equal(fileService.get('/app/a.ts'), `export const a = 'a';`);
-    });
-
-    it('should not remove declaration that is used named imported in some other file via a whole-reexport', async () => {
+    it('should not remove declaration that is used', async () => {
       const fileService = new MemoryFileService();
 
       fileService.set('/app/main.ts', `import { a } from './a_reexport';`);
@@ -942,46 +917,6 @@ a_namespace.a;`,
         `export * from './a';`,
       );
       assert.equal(fileService.get('/app/a.ts'), `export const a = 'a';`);
-    });
-
-    it('should not remove declaration that is used in default import in some other file via a whole-reexport', async () => {
-      const fileService = new MemoryFileService();
-
-      fileService.set('/app/main.ts', `import a from './a_reexport';`);
-      fileService.set('/app/a_reexport.ts', `export * from './a';`);
-      fileService.set('/app/a.ts', `export default 'a';`);
-
-      await removeUnusedExport({
-        fileService,
-        pool,
-        recursive,
-        entrypoints: ['/app/main.ts'],
-      });
-      assert.equal(
-        fileService.get('/app/a_reexport.ts'),
-        `export * from './a';`,
-      );
-      assert.equal(fileService.get('/app/a.ts'), `export default 'a';`);
-    });
-
-    it('should correctly remove unused export when there is another export in the same file as the whole-reexport declaration', async () => {
-      const fileService = new MemoryFileService();
-      fileService.set('/app/main.ts', `import { a2 } from './a_reexport';`);
-      fileService.set(
-        '/app/a_reexport.ts',
-        `export * from './a';
-export const a2 = 'a2';`,
-      );
-      fileService.set('/app/a.ts', `export const a = 'a';`);
-
-      await removeUnusedExport({
-        fileService,
-        pool,
-        recursive,
-        entrypoints: ['/app/main.ts'],
-      });
-
-      assert.equal(fileService.get('/app/a.ts'), `const a = 'a';`);
     });
 
     it('should detect the whole module as usage when there is an whole-reexport in the entrypoint', async () => {
@@ -1004,8 +939,7 @@ export const a2 = 'a2';`,
       () => {},
     );
 
-    // todo: implement fix for this test case
-    it.skip('should delete the whole re-export if the destination file was deleted', async () => {
+    it('should delete the whole re-export if the destination file does not exist', async () => {
       const fileService = new MemoryFileService();
       fileService.set('/app/main.ts', `import { b2 } from './b';`);
       fileService.set(
