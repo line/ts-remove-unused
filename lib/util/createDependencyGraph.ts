@@ -1,7 +1,26 @@
 import ts from 'typescript';
 import { FileService } from './FileService.js';
-import { getFileFromModuleSpecifierText } from './getFileFromModuleSpecifierText.js';
 import { DependencyGraph } from './DependencyGraph.js';
+
+const getFileFromModuleSpecifierText = ({
+  specifier,
+  fileName,
+  program,
+  fileService,
+}: {
+  specifier: string;
+  fileName: string;
+  program: ts.Program;
+  fileService: FileService;
+}) =>
+  ts.resolveModuleName(specifier, fileName, program.getCompilerOptions(), {
+    fileExists(f) {
+      return fileService.exists(f);
+    },
+    readFile(f) {
+      return fileService.get(f);
+    },
+  }).resolvedModule?.resolvedFileName;
 
 const getMatchingNode = (node: ts.Node) => {
   if (ts.isImportDeclaration(node)) {
