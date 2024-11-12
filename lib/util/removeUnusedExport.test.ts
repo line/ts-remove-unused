@@ -560,8 +560,8 @@ export default B;`,
     });
   });
 
-  describe('export specifier', () => {
-    it('should not remove export specifier for an identifier if its used in some other file', async () => {
+  describe('export declaration', () => {
+    it('should not remove specifier of export declaration if its used in some other file', async () => {
       const fileService = new MemoryFileService();
 
       fileService.set(
@@ -600,7 +600,7 @@ export { B };`,
       );
     });
 
-    it('should remove export specifier for an identifier if its not used in some other file', async () => {
+    it('should remove specifier for export declaration if its not used in some other file', async () => {
       const fileService = new MemoryFileService();
       fileService.set(
         '/app/main.ts',
@@ -658,7 +658,7 @@ export { d };`,
       );
     });
 
-    it('should not remove export specifier for an identifier if it has a comment to ignore', async () => {
+    it('should not remove specifier for export declaration if it has a comment to ignore', async () => {
       const fileService = new MemoryFileService();
 
       fileService.set(
