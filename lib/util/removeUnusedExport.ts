@@ -14,191 +14,15 @@ import { TaskManager } from './TaskManager.js';
 import { WorkerPool } from './WorkerPool.js';
 import { findFileUsage } from './findFileUsage.js';
 import { createProgram } from './createProgram.js';
-import { findFirstNodeOfKind } from './findFirstNodeOfKind.js';
+import { parseFile } from './parseFile.js';
 
 const IGNORE_COMMENT = 'ts-remove-unused-skip';
 
-const getLeadingComment = (node: ts.Node) => {
-  const fullText = node.getSourceFile().getFullText();
-  const ranges = ts.getLeadingCommentRanges(fullText, node.getFullStart());
-
-  if (!ranges) {
-    return '';
-  }
-
-  return ranges.map((range) => fullText.slice(range.pos, range.end)).join('');
-};
-
-type SupportedNode =
-  | ts.VariableStatement
-  | ts.FunctionDeclaration
-  | ts.InterfaceDeclaration
-  | ts.TypeAliasDeclaration
-  | ts.ExportAssignment
-  | ts.ExportSpecifier
-  | ts.ClassDeclaration;
-
-const isTarget = (node: ts.Node): node is SupportedNode => {
-  if (ts.isExportAssignment(node) || ts.isExportSpecifier(node)) {
-    return true;
-  }
-
-  if (
-    ts.isVariableStatement(node) ||
-    ts.isFunctionDeclaration(node) ||
-    ts.isInterfaceDeclaration(node) ||
-    ts.isTypeAliasDeclaration(node) ||
-    ts.isClassDeclaration(node)
-  ) {
-    const hasExportKeyword = !!findFirstNodeOfKind(
-      node,
-      ts.SyntaxKind.ExportKeyword,
-    );
-
-    if (!hasExportKeyword) {
-      return false;
-    }
-
-    return true;
-  }
-
-  return false;
-};
-
-const getSpecifier = (node: SupportedNode) => {
-  switch (node.kind) {
-    case ts.SyntaxKind.VariableStatement: {
-      const declaration = node.declarationList.declarations[0];
-
-      if (!declaration) {
-        return null;
-      }
-
-      return declaration.name.getText();
-    }
-    case ts.SyntaxKind.FunctionDeclaration:
-    case ts.SyntaxKind.InterfaceDeclaration: {
-      if (
-        node.modifiers?.some((v) => v.kind === ts.SyntaxKind.DefaultKeyword)
-      ) {
-        return 'default';
-      }
-
-      return node.name?.getText() || null;
-    }
-    case ts.SyntaxKind.TypeAliasDeclaration: {
-      return node.name?.getText() || null;
-    }
-    case ts.SyntaxKind.ExportAssignment: {
-      return 'default';
-    }
-    case ts.SyntaxKind.ExportSpecifier: {
-      return node.name.getText();
-    }
-    case ts.SyntaxKind.ClassDeclaration: {
-      if (
-        node.modifiers?.some((v) => v.kind === ts.SyntaxKind.DefaultKeyword)
-      ) {
-        return 'default';
-      }
-
-      return node.name?.getText() || null;
-    }
-    default: {
-      throw new Error(`unexpected node: ${node satisfies never}`);
-    }
-  }
-};
-
-const getUnusedExports = (
-  usage: Set<string>,
-  fileName: string,
-  fileService: FileService,
-) => {
-  const nodes: SupportedNode[] = [];
-  let isUsed = false;
-
-  if (usage.has('*')) {
-    isUsed = true;
-    return { nodes, isUsed };
-  }
-
-  const sourceFile = ts.createSourceFile(
-    fileName,
-    fileService.get(fileName),
-    ts.ScriptTarget.Latest,
-    true,
-  );
-
-  const visit = (node: ts.Node) => {
-    if (ts.isExportDeclaration(node) && !node.exportClause) {
-      // special case for `export * from './foo';`
-      isUsed = true;
-      return;
-    }
-
-    if (isTarget(node)) {
-      if (getLeadingComment(node).includes(IGNORE_COMMENT)) {
-        isUsed = true;
-
-        return;
-      }
-
-      const text = getSpecifier(node);
-
-      if (!text || usage.has(text)) {
-        isUsed = true;
-      } else {
-        nodes.push(node);
-      }
-      return;
-    }
-
-    node.forEachChild(visit);
-  };
-
-  sourceFile.forEachChild(visit);
-
-  return { nodes, isUsed };
-};
-
-const getUpdatedExportDeclaration = (
-  exportDeclaration: ts.ExportDeclaration,
-  removeTarget: ts.ExportSpecifier,
-) => {
-  const tmpFile = ts.createSourceFile(
-    'tmp.ts',
-    exportDeclaration.getText(),
-    exportDeclaration.getSourceFile().languageVersion,
-  );
-
-  const transformer: ts.TransformerFactory<ts.SourceFile> =
-    (context: ts.TransformationContext) => (rootNode: ts.SourceFile) => {
-      const visitor = (node: ts.Node): ts.Node | undefined => {
-        if (
-          ts.isExportSpecifier(node) &&
-          node.getText(tmpFile) === removeTarget.getText()
-        ) {
-          return undefined;
-        }
-        return ts.visitEachChild(node, visitor, context);
-      };
-
-      return ts.visitEachChild(rootNode, visitor, context);
-    };
-
-  const result = ts.transform(tmpFile, [transformer]).transformed[0];
-
-  const printer = ts.createPrinter();
-
-  return result ? printer.printFile(result).trim() : '';
-};
-
-const stripExportKeyword = (syntaxList: ts.Node) => {
+const stripExportKeyword = (syntaxList: string) => {
   const file = ts.createSourceFile(
     'tmp.ts',
-    `${syntaxList.getText()} function f() {}`,
-    syntaxList.getSourceFile().languageVersion,
+    `${syntaxList} function f() {}`,
+    ts.ScriptTarget.Latest,
   );
 
   const transformer: ts.TransformerFactory<ts.SourceFile> =
@@ -230,161 +54,6 @@ const stripExportKeyword = (syntaxList: ts.Node) => {
   const code = result ? printer.printFile(result).trim() : '';
   const pos = code.indexOf('function');
   return code.slice(0, pos);
-};
-
-type RemovedExport = {
-  fileName: string;
-  position: number;
-  code: string;
-};
-
-const getTextChanges = (
-  usage: Set<string>,
-  fileName: string,
-  fileService: FileService,
-) => {
-  const removedExports: RemovedExport[] = [];
-  const changes: ts.TextChange[] = [];
-  // usually we want to remove all unused exports in one pass, but there are some cases where we need to do multiple passes
-  // for example, when we have multiple export specifiers in one export declaration, we want to remove them one by one because the text change range will conflict
-  let aborted = false;
-
-  const { nodes, isUsed } = getUnusedExports(usage, fileName, fileService);
-
-  for (const node of nodes) {
-    if (aborted === true) {
-      break;
-    }
-
-    if (ts.isExportSpecifier(node)) {
-      const specifierCount = Array.from(node.parent.elements || []).length;
-
-      if (specifierCount === 1) {
-        // special case: if the export specifier is the only specifier in the export declaration, we want to remove the whole export declaration
-        changes.push({
-          newText: '',
-          span: {
-            start: node.parent.parent.getFullStart(),
-            length: node.parent.parent.getFullWidth(),
-          },
-        });
-        removedExports.push({
-          fileName,
-          position: node.parent.parent.getStart(),
-          code: node.parent.parent.getText(),
-        });
-
-        continue;
-      }
-
-      aborted = true;
-      changes.push({
-        newText: getUpdatedExportDeclaration(node.parent.parent, node),
-        span: {
-          start: node.parent.parent.getStart(),
-          length: node.parent.parent.getWidth(),
-        },
-      });
-
-      const from = node.parent.parent.moduleSpecifier
-        ? ` from ${node.parent.parent.moduleSpecifier.getText()}`
-        : '';
-
-      removedExports.push({
-        fileName,
-        position: node.getStart(),
-        code: `export { ${node.getText()} }${from};`,
-      });
-
-      continue;
-    }
-
-    if (ts.isExportAssignment(node)) {
-      changes.push({
-        newText: '',
-        span: {
-          start: node.getFullStart(),
-          length: node.getFullWidth(),
-        },
-      });
-
-      removedExports.push({
-        fileName,
-        position: node.getStart(),
-        code: node.getText(),
-      });
-      continue;
-    }
-
-    if (ts.isFunctionDeclaration(node) || ts.isClassDeclaration(node)) {
-      const identifier = node
-        .getChildren()
-        .find((n) => n.kind === ts.SyntaxKind.Identifier);
-
-      // when the identifier is not found, it's likely a default export of an unnamed function/class declaration.
-      // in this case, we want to remove the whole declaration
-      if (!identifier) {
-        changes.push({
-          newText: '',
-          span: {
-            start: node.getFullStart(),
-            length: node.getFullWidth(),
-          },
-        });
-
-        // there's no identifier so we try to get something like `export default function()` or `export default class`
-        const code = node
-          .getText()
-          .slice(
-            0,
-            ts.isFunctionDeclaration(node)
-              ? node.getText().indexOf(')') + 1
-              : node.getText().indexOf('{') - 1,
-          );
-
-        removedExports.push({
-          fileName,
-          position: node.getStart(),
-          code,
-        });
-
-        continue;
-      }
-    }
-
-    // we want to correctly remove 'default' when its a default export so we get the syntaxList node instead of the exportKeyword node
-    // note: the first syntaxList node should contain the export keyword
-    const syntaxListIndex = node
-      .getChildren()
-      .findIndex((n) => n.kind === ts.SyntaxKind.SyntaxList);
-
-    const syntaxList = node.getChildren()[syntaxListIndex];
-
-    const syntaxListNextSibling = node.getChildren()[syntaxListIndex + 1];
-
-    if (!syntaxList || !syntaxListNextSibling) {
-      throw new Error('syntax list not found');
-    }
-
-    changes.push({
-      newText: ts.isFunctionDeclaration(node)
-        ? stripExportKeyword(syntaxList)
-        : '',
-      span: {
-        start: syntaxList.getStart(),
-        length: syntaxListNextSibling.getStart() - syntaxList.getStart(),
-      },
-    });
-
-    removedExports.push({
-      fileName,
-      position: node.getStart(),
-      code:
-        findFirstNodeOfKind(node, ts.SyntaxKind.Identifier)?.getText() || '',
-    });
-  }
-
-  return { changes, done: !aborted, isUsed, removedExports };
 };
 
 const disabledEditTracker: EditTracker = {
@@ -433,6 +102,31 @@ const createLanguageService = ({
   return languageService;
 };
 
+const updateExportDeclaration = (code: string, unused: string[]) => {
+  const tmpFile = ts.createSourceFile('tmp.ts', code, ts.ScriptTarget.Latest);
+
+  const transformer: ts.TransformerFactory<ts.SourceFile> =
+    (context: ts.TransformationContext) => (rootNode: ts.SourceFile) => {
+      const visitor = (node: ts.Node): ts.Node | undefined => {
+        if (
+          ts.isExportSpecifier(node) &&
+          unused.includes(node.getText(tmpFile))
+        ) {
+          return undefined;
+        }
+        return ts.visitEachChild(node, visitor, context);
+      };
+
+      return ts.visitEachChild(rootNode, visitor, context);
+    };
+
+  const result = ts.transform(tmpFile, [transformer]).transformed[0];
+
+  const printer = ts.createPrinter();
+
+  return result ? printer.printFile(result).trim() : '';
+};
+
 // for use in worker
 export const processFile = ({
   targetFile,
@@ -451,8 +145,6 @@ export const processFile = ({
   options: ts.CompilerOptions;
   projectRoot: string;
 }) => {
-  const removedExports: RemovedExport[] = [];
-
   const usage = findFileUsage({
     targetFile,
     vertexes,
@@ -460,39 +152,209 @@ export const processFile = ({
     options,
   });
 
-  const fileService = new MemoryFileService();
-  fileService.set(targetFile, files.get(targetFile) || '');
+  if (usage.has('*')) {
+    return {
+      operation: 'edit' as const,
+      content: files.get(targetFile) || '',
+      removedExports: [],
+    };
+  }
 
-  let content = fileService.get(targetFile);
-  let isUsed = false;
-  let changeCount = 0;
+  const { exports } = parseFile({
+    file: targetFile,
+    content: files.get(targetFile) || '',
+    options,
+    destFiles: vertexes.get(targetFile)?.to || new Set([]),
+  });
 
-  do {
-    const result = getTextChanges(usage, targetFile, fileService);
-    removedExports.push(...result.removedExports);
-
-    isUsed = result.isUsed;
-
-    changeCount += result.changes.length;
-    content = applyTextChanges(content, result.changes);
-
-    fileService.set(targetFile, content);
-
-    if (result.done) {
-      break;
-    }
-    // eslint-disable-next-line no-constant-condition
-  } while (true);
-
-  if (!isUsed && deleteUnusedFile) {
-    const result = {
+  if (
+    usage.size === 0 &&
+    deleteUnusedFile &&
+    !exports.some((v) => 'skip' in v && v.skip)
+  ) {
+    return {
       operation: 'delete' as const,
+    };
+  }
+
+  const changes: ts.TextChange[] = [];
+  const logs: {
+    fileName: string;
+    position: number;
+    code: string;
+  }[] = [];
+
+  exports.forEach((item) => {
+    switch (item.kind) {
+      case ts.SyntaxKind.VariableStatement: {
+        if (item.skip || item.name.every((it) => usage.has(it))) {
+          break;
+        }
+
+        changes.push({
+          newText: '',
+          span: item.change.span,
+        });
+        logs.push({
+          fileName: targetFile,
+          position: item.start,
+          // todo: handle variable statement with multiple declarations properly
+          code: item.name.join(', '),
+        });
+
+        break;
+      }
+      case ts.SyntaxKind.FunctionDeclaration: {
+        if (item.skip || usage.has(item.name)) {
+          break;
+        }
+
+        changes.push({
+          newText: item.change.isUnnamedDefaultExport
+            ? ''
+            : stripExportKeyword(item.change.code),
+          span: item.change.span,
+        });
+        logs.push({
+          fileName: targetFile,
+          position: item.start,
+          // todo: we may want to handle `export default function () {}` properly
+          code: item.name,
+        });
+
+        break;
+      }
+      case ts.SyntaxKind.InterfaceDeclaration: {
+        if (item.skip || usage.has(item.name)) {
+          break;
+        }
+
+        changes.push({
+          newText: '',
+          span: item.change.span,
+        });
+        logs.push({
+          fileName: targetFile,
+          position: item.start,
+          code: item.name,
+        });
+
+        break;
+      }
+      case ts.SyntaxKind.TypeAliasDeclaration: {
+        if (item.skip || usage.has(item.name)) {
+          break;
+        }
+
+        changes.push({
+          newText: '',
+          span: item.change.span,
+        });
+        logs.push({
+          fileName: targetFile,
+          position: item.start,
+          code: item.name,
+        });
+
+        break;
+      }
+      case ts.SyntaxKind.ExportAssignment: {
+        if (item.skip || usage.has('default')) {
+          break;
+        }
+
+        changes.push({
+          newText: '',
+          span: item.change.span,
+        });
+        logs.push({
+          fileName: targetFile,
+          position: item.start,
+          code: 'default',
+        });
+
+        break;
+      }
+      case ts.SyntaxKind.ExportDeclaration: {
+        switch (item.type) {
+          case 'named': {
+            if (item.skip || item.name.every((it) => usage.has(it))) {
+              break;
+            }
+
+            const unused = item.name.filter((it) => !usage.has(it));
+            const count = item.name.length - unused.length;
+
+            changes.push({
+              newText:
+                count > 0
+                  ? updateExportDeclaration(item.change.code, unused)
+                  : '',
+              span: item.change.span,
+            });
+
+            logs.push(
+              ...unused.map((it) => ({
+                fileName: targetFile,
+                position: item.start,
+                // todo: we may want to log as `export { ${it} } from './foo';` if it's a reexport
+                code: it,
+              })),
+            );
+
+            break;
+          }
+          case 'namespace': {
+            break;
+          }
+          case 'whole': {
+            break;
+          }
+          default: {
+            throw new Error(`unexpected: ${item satisfies never}`);
+          }
+        }
+        break;
+      }
+      case ts.SyntaxKind.ClassDeclaration: {
+        if (item.skip || usage.has(item.name)) {
+          break;
+        }
+
+        changes.push({
+          newText: '',
+          span: item.change.span,
+        });
+        logs.push({
+          fileName: targetFile,
+          position: item.start,
+          // todo: we may want to handle `export default class {}` properly
+          code: item.name,
+        });
+
+        break;
+      }
+      default: {
+        throw new Error(`unexpected: ${item satisfies never}`);
+      }
+    }
+  });
+
+  if (changes.length === 0) {
+    const result = {
+      operation: 'edit' as const,
+      content: files.get(targetFile) || '',
+      removedExports: logs,
     };
 
     return result;
   }
 
-  if (enableCodeFix && changeCount > 0) {
+  let content = applyTextChanges(files.get(targetFile) || '', changes);
+  const fileService = new MemoryFileService();
+  fileService.set(targetFile, content);
+
+  if (enableCodeFix && changes.length > 0) {
     const languageService = createLanguageService({
       options,
       projectRoot,
@@ -529,7 +391,7 @@ export const processFile = ({
   const result = {
     operation: 'edit' as const,
     content: fileService.get(targetFile),
-    removedExports,
+    removedExports: logs,
   };
 
   return result;
