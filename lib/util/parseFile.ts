@@ -195,6 +195,7 @@ type Export =
       type: 'whole';
       // will be null if the file is not found within the destFiles, i.e. the file is not part of the project
       file: string | null;
+      specifier: string;
       start: number;
       change: {
         code: string;
@@ -437,6 +438,7 @@ const fn = ({
         kind: ts.SyntaxKind.ExportDeclaration,
         type: 'whole',
         file: resolved || null,
+        specifier: node.moduleSpecifier.text,
         start: node.getStart(),
         change: getChange(node),
       });
