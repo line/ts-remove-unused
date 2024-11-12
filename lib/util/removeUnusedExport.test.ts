@@ -799,8 +799,8 @@ const c = 'c';`,
     });
   });
 
-  describe('re-exports', () => {
-    it('should not remove re-export if its used in some other file', async () => {
+  describe('named export declaration with module specifier', () => {
+    it('should not remove named export declaration if its used in some other file', async () => {
       const fileService = new MemoryFileService();
 
       fileService.set('/app/main.ts', `import { a } from './a_reexport';`);
@@ -821,7 +821,7 @@ const c = 'c';`,
       assert.equal(fileService.get('/app/a.ts'), `export const a = 'a';`);
     });
 
-    it('should remove re-export if its not used in some other file', async () => {
+    it('should remove named export declaration if its not used in some other file', async () => {
       const fileService = new MemoryFileService();
       fileService.set('/app/a_reexport.ts', `export { a } from './a';`);
       fileService.set('/app/a.ts', `export const a = 'a';`);
@@ -837,7 +837,7 @@ const c = 'c';`,
       assert.equal(fileService.get('/app/a_reexport.ts'), '');
     });
 
-    it('should remove specifier if some re-exported specifier is not used in any other file', async () => {
+    it('should remove specifiers in named export declaration that are not used in any other file', async () => {
       const fileService = new MemoryFileService();
       fileService.set('/app/main.ts', `import { b1 } from './b_reexport'`);
       fileService.set('/app/b_reexport.ts', `export { b1, b2 } from './b';`);
@@ -860,7 +860,7 @@ const c = 'c';`,
       );
     });
 
-    it('should remove nth re-export if its not used in any other file', async () => {
+    it('should remove nth named export declaration if its not used in any other file', async () => {
       const fileService = new MemoryFileService();
       fileService.set(
         '/app/a_reexport_1.ts',
@@ -881,6 +881,9 @@ const c = 'c';`,
       });
 
       assert.equal(fileService.get('/app/a_reexport_1.ts'), '');
+      assert.equal(fileService.get('/app/a_reexport_2.ts'), '');
+      assert.equal(fileService.get('/app/a_reexport_3.ts'), '');
+      assert.equal(fileService.get('/app/a.ts'), `const a = 'a';`);
     });
   });
 
