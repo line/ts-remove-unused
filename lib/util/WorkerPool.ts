@@ -143,7 +143,6 @@ export class WorkerPool<T extends (arg: any) => any> {
 
     worker.on('exit', (code) => {
       if (code === 0) {
-        console.log('here');
         return;
       }
 
