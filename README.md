@@ -109,6 +109,8 @@ ts-remove-unused supports various types of exports including variable declaratio
 
 ### Options
 
+<!-- prettier-ignore-start -->
+
 ```
 Usage:
   $ ts-remove-unused 
@@ -129,6 +131,7 @@ Options:
   -v, --version             Display version number 
 
 ```
+<!-- prettier-ignore-end -->
 
 #### `--project`
 
