@@ -5,6 +5,7 @@ import { remove } from './remove.js';
 import { createRequire } from 'node:module';
 import { resolve } from 'node:path';
 import { cwd } from 'node:process';
+import { dts } from './util/regex.js';
 const cli = cac('ts-remove-unused');
 
 cli
@@ -34,7 +35,7 @@ cli
           : [];
 
     if (!options['includeD-ts']) {
-      skip.push(new RegExp('\\.d\\.ts'));
+      skip.push(dts);
     }
 
     remove({
