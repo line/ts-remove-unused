@@ -215,6 +215,10 @@ If you pass a `tsconfig.json` to the CLI that includes both the implementation a
 
 Kazushi Konosu (https://github.com/kazushisan)
 
+## Contributing
+
+Contributions are welcomed!
+
 ## License
 
 ```
