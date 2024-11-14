@@ -103,7 +103,7 @@ When `f()` and `exported` are not used within the project and when deleting `f()
 
 In addition to the behavior shown in the examples above, ts-remove-unused will delete files that have no used exports.
 
-ts-remove-unused supports various types of exports including variable declarations (`export const`, `export let`), function declarations, class declarations, interface declarations, type alias declarations, default exports and more...
+ts-remove-unused works with all kinds of code: variables, functions, interfaces, classes, type aliases and more!
 
 ## Usage
 
@@ -144,9 +144,6 @@ npx @line/ts-remove-unused --skip tsconfig.client.json
 #### `--skip`
 
 Skip files that match a given regex pattern. Note that you can pass multiple patterns.
-
-> [!NOTE]
-> You need to specify at least one pattern that matches at least one file or else every file will be detected as "unused". Make sure to specify a pattern that matches your entrypoint file.
 
 ```bash
 npx @line/ts-remove-unused --skip 'src/main\.ts' --skip '/pages/'
@@ -225,7 +222,7 @@ import { foo } from './foo';
 However, we can't detect unused exports. ESLint's architecture works in a file by file basis and was never intended to provide linting based on project-wide usage stats.
 
 ```typescript
-// a lint rule that detect if this export is used within the project is unlikely to be introduced
+// a lint rule that detects if this export is used within the project is unlikely to be introduced
 export const a = 'a';
 ```
 
