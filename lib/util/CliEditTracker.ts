@@ -2,6 +2,7 @@ import chalk from 'chalk';
 import { EditTracker } from './EditTracker.js';
 import { Logger } from './Logger.js';
 import { relative } from 'node:path';
+import { formatCount } from './formatCount.js';
 
 class EditTrackerError extends Error {}
 
@@ -176,8 +177,8 @@ export class CliEditTracker implements EditTracker {
 
     if (this.#mode === 'check') {
       const result = [
-        deleteCount > 0 ? `delete ${deleteCount} file(s)` : '',
-        editCount > 0 ? `remove ${editCount} export(s)` : '',
+        deleteCount > 0 ? `delete ${formatCount(deleteCount, 'file')}` : '',
+        editCount > 0 ? `remove ${formatCount(editCount, 'export')}` : '',
       ].filter((t) => !!t);
 
       if (result.length > 0) {
@@ -190,8 +191,8 @@ export class CliEditTracker implements EditTracker {
       return;
     } else {
       const result = [
-        deleteCount > 0 ? `deleted ${deleteCount} file(s)` : '',
-        editCount > 0 ? `removed ${editCount} export(s)` : '',
+        deleteCount > 0 ? `deleted ${formatCount(deleteCount, 'file')}` : '',
+        editCount > 0 ? `removed ${formatCount(editCount, 'export')}` : '',
       ].filter((t) => !!t);
 
       this.#logger.write(

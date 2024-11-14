@@ -8,6 +8,7 @@ import { CliEditTracker } from './util/CliEditTracker.js';
 import { relative } from 'node:path';
 import { WorkerPool } from './util/WorkerPool.js';
 import type { processFile } from './util/removeUnusedExport.js';
+import { formatCount } from './util/formatCount.js';
 
 const createNodeJsLogger = (): Logger =>
   'isTTY' in stdout && stdout.isTTY
@@ -79,9 +80,10 @@ export const remove = async ({
 
   logger.write(
     chalk.gray(
-      `Project has ${fileNames.length} file(s), skipping ${
-        entrypoints.length
-      } file(s)...\n`,
+      `Project has ${formatCount(fileNames.length, 'file')}, skipping ${formatCount(
+        entrypoints.length,
+        'file',
+      )}\n`,
     ),
   );
 
