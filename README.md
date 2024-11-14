@@ -112,7 +112,7 @@ TypeScript is a peer dependency so make sure that it's also installed.
 
 ```
 Usage:
-  $ ts-remove-unused
+  $ ts-remove-unused 
 
 Commands:
     There are no subcommands. Simply execute ts-remove-unused
@@ -121,12 +121,14 @@ For more info, run any command with the `--help` flag:
   $ ts-remove-unused --help
 
 Options:
-  --project <file>         Path to your tsconfig.json
-  --skip <regexp_pattern>  Specify the regexp pattern to match files that should be skipped from transforming
-  --include-d-ts           Include .d.ts files in target for transformation
-  --check                  Check if there are any unused exports without removing them
-  -h, --help               Display this message
-  -v, --version            Display version number
+  --project <file>          Path to your tsconfig.json 
+  --skip <regexp_pattern>   Specify the regexp pattern to match files that should be skipped from transforming 
+  --include-d-ts            Include .d.ts files in target for transformation 
+  --check                   Check if there are any unused exports without removing them 
+  --experimental-recursive  Recursively process files until there are no issue 
+  -h, --help                Display this message 
+  -v, --version             Display version number 
+
 ```
 
 ts-remove-unused's behavior heavily depends on your `tsconfig.json`. TypeScript's compiler internally holds the list of project files by parsing relevant rules such as `include` and `exclude`. ts-remove-unused scans through this list and searches for references to determine if an export/file is "unused". You may need to maintain/update your `tsconfig` (or you can create another file for `--project`) so that the set of covered files are right.
@@ -142,6 +144,29 @@ npx @line/ts-remove-unused --skip 'src/main\.ts'
 
 ### Options
 
+#### `--project`
+
+Specifies the `tsconfig.json` that is used to analyze your codebase. Defaults to `tsconfig.json` in your project root.
+
+```bash
+npx @line/ts-remove-unused --skip tsconfig.client.json
+```
+
+#### `--skip`
+
+Skip files that match a given regex pattern. Note that you can pass multiple patterns.
+
+> [!NOTE]
+> You need to specify at least one pattern that matches at least one file or else every file will be detected as "unused". Make sure to specify a pattern that matches your entrypoint file.
+
+```bash
+npx @line/ts-remove-unused --skip 'src/main\.ts' --skip '/pages/'
+```
+
+#### `--include-d-ts`
+
+By default, `.d.ts` files are skipped. If you want to include `.d.ts` files, use the `--include-d-ts` option.
+
 #### `--check`
 
 Use `--check` to check for unused files and exports without making changes to project files. The command will exit with exit code 1 if there are any unused files or exports discovered.
@@ -149,10 +174,6 @@ Use `--check` to check for unused files and exports without making changes to pr
 ```bash
 npx @line/ts-remove-unused --skip 'src/main\.ts' --check
 ```
-
-#### `--include-d-ts`
-
-By default, `.d.ts` files are skipped. If you want to include `.d.ts` files, use the `--include-d-ts` option.
 
 #### `--experimental-recursive`
 
@@ -182,12 +203,6 @@ When you add a comment `// ts-remove-unused-skip` to your export declaration, it
 ```ts
 // ts-remove-unused-skip
 export const hello = 'world';
-```
-
-The `--skip` option is also available to skip files that match a given regex pattern. Note that you can pass multiple patterns.
-
-```bash
-npx @line/ts-remove-unused --skip 'src/main\.ts' --skip '/pages/'
 ```
 
 ## How does ts-remove-unused handle test files?
