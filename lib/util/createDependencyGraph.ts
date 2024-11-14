@@ -1,7 +1,26 @@
 import ts from 'typescript';
 import { FileService } from './FileService.js';
-import { getFileFromModuleSpecifierText } from './getFileFromModuleSpecifierText.js';
 import { DependencyGraph } from './DependencyGraph.js';
+
+const getFileFromModuleSpecifierText = ({
+  specifier,
+  fileName,
+  program,
+  fileService,
+}: {
+  specifier: string;
+  fileName: string;
+  program: ts.Program;
+  fileService: FileService;
+}) =>
+  ts.resolveModuleName(specifier, fileName, program.getCompilerOptions(), {
+    fileExists(f) {
+      return fileService.exists(f);
+    },
+    readFile(f) {
+      return fileService.get(f);
+    },
+  }).resolvedModule?.resolvedFileName;
 
 const getMatchingNode = (node: ts.Node) => {
   if (ts.isImportDeclaration(node)) {
@@ -53,7 +72,7 @@ const getMatchingNode = (node: ts.Node) => {
   return null;
 };
 
-export const collectImports = ({
+export const createDependencyGraph = ({
   fileService,
   program,
   entrypoints,
@@ -66,7 +85,7 @@ export const collectImports = ({
   const files = new Set(fileService.getFileNames());
 
   const stack: { depth: number; file: string }[] = [];
-  const visited = new Set<string>();
+  const untouched = new Set(fileService.getFileNames());
 
   for (const entrypoint of entrypoints) {
     stack.push({ file: entrypoint, depth: 0 });
@@ -81,19 +100,17 @@ export const collectImports = ({
 
     const { file, depth } = item;
 
-    if (visited.has(file)) {
+    if (!untouched.has(file)) {
       continue;
     }
 
-    visited.add(file);
+    untouched.delete(file);
 
     const sourceFile = program.getSourceFile(file);
 
     if (!sourceFile) {
       continue;
     }
-
-    let hasReexport = false;
 
     const visit = (node: ts.Node) => {
       const match = getMatchingNode(node);
@@ -105,10 +122,6 @@ export const collectImports = ({
       }
 
       if (match.specifier) {
-        if (match.type === 'reexport') {
-          hasReexport = true;
-        }
-
         const dest = getFileFromModuleSpecifierText({
           specifier: match.specifier,
           program,
@@ -116,17 +129,8 @@ export const collectImports = ({
           fileService,
         });
 
-        if (match.type === 'reexport' && dest && match.whole) {
-          graph.vertexes
-            .get(file)
-            ?.data.wholeReexportSpecifier.set(dest, match.specifier);
-        }
-
         if (dest && files.has(dest)) {
           graph.addEdge(sourceFile.fileName, dest);
-          if (match.type === 'dynamicImport') {
-            graph.vertexes.get(dest)?.data.fromDynamic.add(file);
-          }
           stack.push({ file: dest, depth: depth + 1 });
         }
 
@@ -139,8 +143,48 @@ export const collectImports = ({
     const vertex = graph.vertexes.get(file);
 
     if (vertex) {
-      vertex.data.hasReexport = hasReexport;
       vertex.data.depth = depth;
+    }
+  }
+
+  for (const file of untouched.values()) {
+    const sourceFile = program.getSourceFile(file);
+
+    if (!sourceFile) {
+      continue;
+    }
+
+    const visit = (node: ts.Node) => {
+      const match = getMatchingNode(node);
+
+      if (!match) {
+        node.forEachChild(visit);
+
+        return;
+      }
+
+      if (match.specifier) {
+        const dest = getFileFromModuleSpecifierText({
+          specifier: match.specifier,
+          program,
+          fileName: sourceFile.fileName,
+          fileService,
+        });
+
+        if (dest && files.has(dest)) {
+          graph.addEdge(sourceFile.fileName, dest);
+        }
+
+        return;
+      }
+    };
+
+    sourceFile.forEachChild(visit);
+
+    const vertex = graph.vertexes.get(file);
+
+    if (vertex) {
+      vertex.data.depth = Infinity;
     }
   }
 

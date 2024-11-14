@@ -1,6 +1,6 @@
 import { describe, it } from 'node:test';
 import { setup } from '../../test/helpers/setup.js';
-import { collectImports } from './collectImports.js';
+import { createDependencyGraph } from './createDependencyGraph.js';
 import ts from 'typescript';
 import assert from 'node:assert/strict';
 
@@ -14,7 +14,7 @@ const getProgram = (languageService: ts.LanguageService) => {
   return program;
 };
 
-describe('collectImports', () => {
+describe('createDependencyGraph', () => {
   it('should return a graph of imports', () => {
     const { languageService, fileService } = setup();
     fileService.set('/app/main.ts', `import { a } from './a.js';`);
@@ -29,7 +29,7 @@ export const a = () => ({ b, c });`,
 
     const program = getProgram(languageService);
 
-    const graph = collectImports({
+    const graph = createDependencyGraph({
       fileService,
       program,
       entrypoints: ['/app/main.ts'],
@@ -61,10 +61,6 @@ export const a = () => ({ b, c });`,
     assert.equal(graph.vertexes.get('/app/a.ts')?.data.depth, 1);
     assert.equal(graph.vertexes.get('/app/b.ts')?.data.depth, 2);
     assert.equal(graph.vertexes.get('/app/c.ts')?.data.depth, 2);
-    assert.equal(graph.vertexes.get('/app/main.ts')?.data.hasReexport, false);
-    assert.equal(graph.vertexes.get('/app/a.ts')?.data.hasReexport, false);
-    assert.equal(graph.vertexes.get('/app/b.ts')?.data.hasReexport, false);
-    assert.equal(graph.vertexes.get('/app/c.ts')?.data.hasReexport, false);
   });
 
   it('should return a graph of imports when re-exports are used', () => {
@@ -79,7 +75,7 @@ export const a = () => b;`,
     fileService.set('/app/b2.ts', `export const b = 'b';`);
 
     const program = getProgram(languageService);
-    const graph = collectImports({
+    const graph = createDependencyGraph({
       fileService,
       program,
       entrypoints: ['/app/main.ts'],
@@ -111,10 +107,6 @@ export const a = () => b;`,
     assert.equal(graph.vertexes.get('/app/a.ts')?.data.depth, 1);
     assert.equal(graph.vertexes.get('/app/b.ts')?.data.depth, 2);
     assert.equal(graph.vertexes.get('/app/b2.ts')?.data.depth, 3);
-    assert.equal(graph.vertexes.get('/app/main.ts')?.data.hasReexport, false);
-    assert.equal(graph.vertexes.get('/app/a.ts')?.data.hasReexport, false);
-    assert.equal(graph.vertexes.get('/app/b.ts')?.data.hasReexport, true);
-    assert.equal(graph.vertexes.get('/app/b2.ts')?.data.hasReexport, false);
   });
 
   it('should return a graph of imports when whole re-exports are used', () => {
@@ -129,7 +121,7 @@ export const a = () => b;`,
     fileService.set('/app/b2.ts', `export const b = 'b';`);
 
     const program = getProgram(languageService);
-    const graph = collectImports({
+    const graph = createDependencyGraph({
       fileService,
       program,
       entrypoints: ['/app/main.ts'],
@@ -161,10 +153,6 @@ export const a = () => b;`,
     assert.equal(graph.vertexes.get('/app/a.ts')?.data.depth, 1);
     assert.equal(graph.vertexes.get('/app/b.ts')?.data.depth, 2);
     assert.equal(graph.vertexes.get('/app/b2.ts')?.data.depth, 3);
-    assert.equal(graph.vertexes.get('/app/main.ts')?.data.hasReexport, false);
-    assert.equal(graph.vertexes.get('/app/a.ts')?.data.hasReexport, false);
-    assert.equal(graph.vertexes.get('/app/b.ts')?.data.hasReexport, true);
-    assert.equal(graph.vertexes.get('/app/b2.ts')?.data.hasReexport, false);
   });
 
   it('should return a graph of imports when dynamic imports are used', () => {
@@ -174,7 +162,7 @@ export const a = () => b;`,
     fileService.set('/app/b.ts', `export const b = 'b';`);
 
     const program = getProgram(languageService);
-    const graph = collectImports({
+    const graph = createDependencyGraph({
       fileService,
       program,
       entrypoints: ['/app/main.ts'],
@@ -200,23 +188,9 @@ export const a = () => b;`,
     assert.equal(graph.vertexes.get('/app/main.ts')?.data.depth, 0);
     assert.equal(graph.vertexes.get('/app/a.ts')?.data.depth, 1);
     assert.equal(graph.vertexes.get('/app/b.ts')?.data.depth, 2);
-    assert.equal(graph.vertexes.get('/app/main.ts')?.data.hasReexport, false);
-    assert.equal(graph.vertexes.get('/app/a.ts')?.data.hasReexport, false);
-    assert.equal(graph.vertexes.get('/app/b.ts')?.data.hasReexport, false);
-    assert.equal(graph.vertexes.get('/app/main.ts')?.data.fromDynamic.size, 0);
-    assert.equal(graph.vertexes.get('/app/a.ts')?.data.fromDynamic.size, 1);
-    assert.equal(
-      graph.vertexes.get('/app/a.ts')?.data.fromDynamic.has('/app/main.ts'),
-      true,
-    );
-    assert.equal(graph.vertexes.get('/app/b.ts')?.data.fromDynamic.size, 1);
-    assert.equal(
-      graph.vertexes.get('/app/b.ts')?.data.fromDynamic.has('/app/a.ts'),
-      true,
-    );
   });
 
-  it('should not include files that are unreachable from the entry point', () => {
+  it('should handle files that are unreachable from the entry point', () => {
     const { languageService, fileService } = setup();
     fileService.set('/app/main.ts', `import { a } from './a.js';`);
     fileService.set(
@@ -234,13 +208,13 @@ export const c = () => d;`,
 
     const program = getProgram(languageService);
 
-    const graph = collectImports({
+    const graph = createDependencyGraph({
       fileService,
       program,
       entrypoints: ['/app/main.ts'],
     });
 
-    assert.equal(graph.vertexes.size, 3);
+    assert.equal(graph.vertexes.size, 5);
     assert.equal(graph.vertexes.has('/app/main.ts'), true);
     assert.equal(graph.vertexes.has('/app/a.ts'), true);
     assert.equal(graph.vertexes.has('/app/b.ts'), true);
@@ -257,14 +231,49 @@ export const c = () => d;`,
     assert.equal(graph.vertexes.get('/app/b.ts')?.to.size, 0);
     assert.equal(graph.vertexes.get('/app/b.ts')?.from.size, 1);
     assert.equal(graph.vertexes.get('/app/b.ts')?.from.has('/app/a.ts'), true);
-    assert.equal(graph.vertexes.has('/app/c.ts'), false);
-    assert.equal(graph.vertexes.has('/app/d.ts'), false);
+    assert.equal(graph.vertexes.has('/app/c.ts'), true);
+    assert.equal(graph.vertexes.has('/app/d.ts'), true);
+    assert.equal(graph.vertexes.get('/app/c.ts')?.to.size, 1);
+    assert.equal(graph.vertexes.get('/app/c.ts')?.to.has('/app/d.ts'), true);
+    assert.equal(graph.vertexes.get('/app/c.ts')?.from.size, 0);
+    assert.equal(graph.vertexes.get('/app/d.ts')?.to.size, 0);
+    assert.equal(graph.vertexes.get('/app/d.ts')?.from.size, 1);
+    assert.equal(graph.vertexes.get('/app/d.ts')?.from.has('/app/c.ts'), true);
     assert.equal(graph.vertexes.get('/app/main.ts')?.data.depth, 0);
     assert.equal(graph.vertexes.get('/app/a.ts')?.data.depth, 1);
     assert.equal(graph.vertexes.get('/app/b.ts')?.data.depth, 2);
-    assert.equal(graph.vertexes.get('/app/main.ts')?.data.hasReexport, false);
-    assert.equal(graph.vertexes.get('/app/a.ts')?.data.hasReexport, false);
-    assert.equal(graph.vertexes.get('/app/b.ts')?.data.hasReexport, false);
+    assert.equal(graph.vertexes.get('/app/c.ts')?.data.depth, Infinity);
+    assert.equal(graph.vertexes.get('/app/d.ts')?.data.depth, Infinity);
+  });
+
+  it('should not create a vertex if there are no imports', () => {
+    const { languageService, fileService } = setup();
+    fileService.set('/app/main.ts', 'console.log("hello world");');
+    const program = getProgram(languageService);
+    const graph = createDependencyGraph({
+      fileService,
+      program,
+      entrypoints: ['/app/main.ts'],
+    });
+    assert.equal(graph.vertexes.size, 0);
+  });
+
+  it('should not create a vertex for a file that is unreachable from the entry point if there are no imports from/exports to the file', () => {
+    const { languageService, fileService } = setup();
+    fileService.set('/app/main.ts', `import { a } from './a.js';`);
+    fileService.set('/app/a.ts', `export const a = () => 'a';`);
+    fileService.set('/app/b.ts', `export const b = 'b';`);
+
+    const program = getProgram(languageService);
+    const graph = createDependencyGraph({
+      fileService,
+      program,
+      entrypoints: ['/app/main.ts'],
+    });
+    assert.equal(graph.vertexes.size, 2);
+    assert.equal(graph.vertexes.has('/app/main.ts'), true);
+    assert.equal(graph.vertexes.has('/app/a.ts'), true);
+    assert.equal(graph.vertexes.has('/app/b.ts'), false);
   });
 
   it('should correctly collect circular dependencies', () => {
@@ -294,7 +303,7 @@ export const c = () => a2;`,
 
     const program = getProgram(languageService);
 
-    const graph = collectImports({
+    const graph = createDependencyGraph({
       fileService,
       program,
       entrypoints: ['/app/main.ts'],
@@ -328,10 +337,6 @@ export const c = () => a2;`,
     assert.equal(graph.vertexes.get('/app/a.ts')?.data.depth, 1);
     assert.equal(graph.vertexes.get('/app/b.ts')?.data.depth, 2);
     assert.equal(graph.vertexes.get('/app/c.ts')?.data.depth, 3);
-    assert.equal(graph.vertexes.get('/app/main.ts')?.data.hasReexport, false);
-    assert.equal(graph.vertexes.get('/app/a.ts')?.data.hasReexport, false);
-    assert.equal(graph.vertexes.get('/app/b.ts')?.data.hasReexport, false);
-    assert.equal(graph.vertexes.get('/app/c.ts')?.data.hasReexport, false);
   });
 
   it('should work when there are multiple entrypoints', () => {
@@ -361,7 +366,7 @@ export const b = () => c;`,
 
     const program = getProgram(languageService);
 
-    const graph = collectImports({
+    const graph = createDependencyGraph({
       fileService,
       program,
       entrypoints: ['/app/main.ts', '/app/main2.ts'],
@@ -405,9 +410,5 @@ export const b = () => c;`,
     assert.equal(graph.vertexes.get('/app/a.ts')?.data.depth, 1);
     assert.equal(graph.vertexes.get('/app/b.ts')?.data.depth, 1);
     assert.equal(graph.vertexes.get('/app/c.ts')?.data.depth, 2);
-    assert.equal(graph.vertexes.get('/app/main.ts')?.data.hasReexport, false);
-    assert.equal(graph.vertexes.get('/app/main2.ts')?.data.hasReexport, false);
-    assert.equal(graph.vertexes.get('/app/a.ts')?.data.hasReexport, false);
-    assert.equal(graph.vertexes.get('/app/b.ts')?.data.hasReexport, false);
   });
 });

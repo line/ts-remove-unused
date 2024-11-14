@@ -39,4 +39,14 @@ export class MemoryFileService implements FileService {
   exists(name: string) {
     return this.#files.has(name);
   }
+
+  eject() {
+    const res = new Map<string, string>();
+
+    for (const [name, { content }] of this.#files) {
+      res.set(name, content);
+    }
+
+    return res;
+  }
 }

@@ -2,10 +2,10 @@ import { dirname, resolve } from 'node:path';
 import { remove } from '../lib/remove.js';
 import { fileURLToPath } from 'node:url';
 import { before, test } from 'node:test';
-import assert from 'node:assert/strict';
 import { stdout } from 'node:process';
 import ts from 'typescript';
 import stripAnsi from 'strip-ansi';
+import { assertEqualOutput } from './helpers/assertEqualOutput.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -44,22 +44,19 @@ test('simple', async () => {
 
   const stripedOutput = stripAnsi(output);
 
-  assert.equal(
+  assertEqualOutput(
     stripedOutput,
-    `tsconfig using test/fixtures/simple/tsconfig.json
-
-Project has 5 file(s), skipping 1 file(s)...
-
+    `tsconfig test/fixtures/simple/tsconfig.json
+Project has 5 files, skipping 1 file
 file   b.ts
 export a.ts:1:0     'b'
-export a.ts:3:0     'export default defaultExportConst;'
-export d.ts:9:2     'export { unusedLong };'
-export d.ts:8:3     'export { unusedLongLong };'
-export d.ts:8:3     'export { unusedLongLongLong };'
-export d.ts:8:3     'export { unusedLongLongLongLong };'
-export d.ts:9:2     'export default function ()'
-
-✖ delete 1 file(s), remove 7 export(s)
+export a.ts:3:0     'default'
+export d.ts:9:2     'unusedLong'
+export d.ts:10:2    'unusedLongLong'
+export d.ts:11:2    'unusedLongLongLong'
+export d.ts:12:2    'unusedLongLongLongLong'
+export d.ts:15:0    'default'
+✖ delete 1 file, remove 7 exports
 `,
   );
 });

@@ -13,25 +13,32 @@
 - 🧹 Deletes TypeScript modules that have no referenced exports
 - 🕵️ `--check` mode — reports unused exports and deletable files without writing changes
 
-## Introduction
+## Install
 
-When TypeScript's `compilerOptions.noUnusedLocals` is enabled, it's possible to detect declarations that are not referenced in your file.
-
-```typescript
-// TypeScript will throw error: 'a' is declared but its value is never read.
-const a = 'a';
+```bash
+npm install @line/ts-remove-unused
 ```
 
-However when this declaration is exported and is not referenced by any file in the project, it's difficult to recognize this.
+TypeScript is a peer dependency.
 
-```typescript
-// no errors will be reported even if the declaration is not used across the entire project.
-export const a = 'a';
+## Quick Start
+
+1. 🔍 Check your `tsconfig.json` – Make sure `include` and `exclude` is configured thoroughly so that we can correctly detect what's "unused" in your project.
+
+2. 🔍 Check your entrypoint files – What's the file that is the starting point for your code? Without this information, all files will be recognized as unnecessary. Usually it is some file like `src/main.ts` or maybe a group of files like `src/pages/*`.
+
+3. 🚀 Execute – Set a regex pattern that matches your entry files for `--skip`. You can optionally set `--project` to a path to your custom `tsconfig.json` if necessary.
+
+```bash
+npx @line/ts-remove-unused --skip 'src/main\.ts$'
 ```
 
-This is when ts-remove-unused comes in handy. ts-remove-unused is a CLI tool built on top of TypeScript that finds unused exports and auto-fixes unused code.
+> [!WARNING]
+> THIS COMMAND WILL DELETE CODE FROM YOUR PROJECT. Using it in a git controlled environment is highly recommended. If you're just playing around use `--check`.
 
-Here are some examples of how ts-remove-unused auto-fixes unused code.
+## Examples
+
+Here are some examples of how this tool will auto-fixe unused code.
 
 <!-- prettier-ignore-start -->
 
@@ -96,23 +103,17 @@ When `f()` and `exported` are not used within the project and when deleting `f()
 
 In addition to the behavior shown in the examples above, ts-remove-unused will delete files that have no used exports.
 
-ts-remove-unused supports various types of exports including variable declarations (`export const`, `export let`), function declarations, class declarations, interface declarations, type alias declarations, default exports and more...
-
-Now you don't have to worry about removing unused code by yourself!
-
-## Install
-
-```bash
-npm install @line/ts-remove-unused
-```
-
-TypeScript is a peer dependency so make sure that it's also installed.
+ts-remove-unused works with all kinds of code: variables, functions, interfaces, classes, type aliases and more!
 
 ## Usage
 
+### Options
+
+<!-- prettier-ignore-start -->
+
 ```
 Usage:
-  $ ts-remove-unused
+  $ ts-remove-unused 
 
 Commands:
     There are no subcommands. Simply execute ts-remove-unused
@@ -121,26 +122,36 @@ For more info, run any command with the `--help` flag:
   $ ts-remove-unused --help
 
 Options:
-  --project <file>         Path to your tsconfig.json
-  --skip <regexp_pattern>  Specify the regexp pattern to match files that should be skipped from transforming
-  --include-d-ts           Include .d.ts files in target for transformation
-  --check                  Check if there are any unused exports without removing them
-  -h, --help               Display this message
-  -v, --version            Display version number
+  --project <file>          Path to your tsconfig.json 
+  --skip <regexp_pattern>   Specify the regexp pattern to match files that should be skipped from transforming 
+  --include-d-ts            Include .d.ts files in target for transformation 
+  --check                   Check if there are any unused exports without removing them 
+  --experimental-recursive  Recursively process files until there are no issue 
+  -h, --help                Display this message 
+  -v, --version             Display version number 
+
 ```
+<!-- prettier-ignore-end -->
 
-ts-remove-unused's behavior heavily depends on your `tsconfig.json`. TypeScript's compiler internally holds the list of project files by parsing relevant rules such as `include` and `exclude`. ts-remove-unused scans through this list and searches for references to determine if an export/file is "unused". You may need to maintain/update your `tsconfig` (or you can create another file for `--project`) so that the set of covered files are right.
+#### `--project`
 
-Here's an example of using the CLI. Your entry point file must be skipped or else every file will be removed.
+Specifies the `tsconfig.json` that is used to analyze your codebase. Defaults to `tsconfig.json` in your project root.
 
 ```bash
-npx @line/ts-remove-unused --skip 'src/main\.ts'
+npx @line/ts-remove-unused --skip tsconfig.client.json
 ```
 
-> [!WARNING]
-> THIS COMMAND WILL DELETE CODE FROM YOUR PROJECT. Using it in a git controlled environment is highly recommended. If you're just playing around use `--check`.
+#### `--skip`
 
-### Options
+Skip files that match a given regex pattern. Note that you can pass multiple patterns.
+
+```bash
+npx @line/ts-remove-unused --skip 'src/main\.ts' --skip '/pages/'
+```
+
+#### `--include-d-ts`
+
+By default, `.d.ts` files are skipped. If you want to include `.d.ts` files, use the `--include-d-ts` option.
 
 #### `--check`
 
@@ -149,10 +160,6 @@ Use `--check` to check for unused files and exports without making changes to pr
 ```bash
 npx @line/ts-remove-unused --skip 'src/main\.ts' --check
 ```
-
-#### `--include-d-ts`
-
-By default, `.d.ts` files are skipped. If you want to include `.d.ts` files, use the `--include-d-ts` option.
 
 #### `--experimental-recursive`
 
@@ -184,21 +191,50 @@ When you add a comment `// ts-remove-unused-skip` to your export declaration, it
 export const hello = 'world';
 ```
 
-The `--skip` option is also available to skip files that match a given regex pattern. Note that you can pass multiple patterns.
-
-```bash
-npx @line/ts-remove-unused --skip 'src/main\.ts' --skip '/pages/'
-```
-
-## How does ts-remove-unused handle test files?
+## Handling test files
 
 If you have a separate tsconfig for tests using [Project References](https://www.typescriptlang.org/docs/handbook/project-references.html), that would be great! ts-remove-unused will remove exports/files that exist for the sake of testing.
 
 If you pass a `tsconfig.json` to the CLI that includes both the implementation and the test files, ts-remove-unused will remove your test files since they are not referenced by your entry point file (which is specified in `--skip`). You can avoid tests being deleted by passing a pattern that matches your test files to `--skip` in the meantime, but the recommended way is to use project references to ensure your TypeScript config is more robust and strict (not just for using this tool).
 
+## Comparison
+
+### TypeScript
+
+If you enable `compilerOptions.noUnusedLocals`, declarations that are never read will be reported.
+
+```typescript
+// 'a' is declared but its value is never read.
+const a = 'a';
+```
+
+However, when you `export` it, no errors will be reported regardless of its usage within the project. ts-remove-unused's aim is to report/fix unused code while taking project wide usage into account.
+
+### ESLint
+
+ESLint will detect unused imports. Plugins such as `eslint-plugin-unused-imports` can also auto-fix this issue.
+
+```typescript
+// 'foo' is defined but never used.
+import { foo } from './foo';
+```
+
+However, we can't detect unused exports. ESLint's architecture works in a file by file basis and was never intended to provide linting based on project-wide usage stats.
+
+```typescript
+// a lint rule that detects if this export is used within the project is unlikely to be introduced
+export const a = 'a';
+```
+
+ts-remove-unused's main goal is to remove unused exports and delete unused modules, but it will also delete unused imports that are a result of removing an export declaration.
+
 ## Author
 
 Kazushi Konosu (https://github.com/kazushisan)
+
+## Contributing
+
+Contributions are welcomed!
 
 ## License
 

@@ -8,6 +8,8 @@ import { CliEditTracker } from './util/CliEditTracker.js';
 import { relative } from 'node:path';
 import { WorkerPool } from './util/WorkerPool.js';
 import type { processFile } from './util/removeUnusedExport.js';
+import { formatCount } from './util/formatCount.js';
+import { dts } from './util/regex.js';
 
 const createNodeJsLogger = (): Logger =>
   'isTTY' in stdout && stdout.isTTY
@@ -44,14 +46,6 @@ export const remove = async ({
   system?: ts.System;
   logger?: Logger;
 }) => {
-  const pool = new WorkerPool<typeof processFile>({
-    name: 'processFile',
-    url:
-      globalThis.__INTERNAL_WORKER_URL__ ||
-      new URL('./worker.js', import.meta.url).href,
-  });
-
-  const editTracker = new CliEditTracker(logger, mode, projectRoot);
   const { config, error } = ts.readConfigFile(configPath, system.readFile);
 
   const relativeToCwd = (fileName: string) =>
@@ -63,9 +57,7 @@ export const remove = async ({
   );
 
   if (!error) {
-    logger.write(
-      `${chalk.blue('tsconfig')} ${chalk.gray('using')} ${relativeToCwd(configPath)}\n\n`,
-    );
+    logger.write(`${chalk.blue('tsconfig')} ${relativeToCwd(configPath)}\n`);
   }
 
   const fileService = new MemoryFileService();
@@ -77,15 +69,42 @@ export const remove = async ({
     skip.some((regex) => regex.test(fileName)),
   );
 
+  if (skip.filter((it) => it !== dts).length === 0) {
+    logger.write(
+      chalk.bold.red(
+        'At least one pattern must be specified for the skip option\n',
+      ),
+    );
+
+    system.exit(1);
+    return;
+  }
+
+  if (entrypoints.length === 0) {
+    logger.write(chalk.bold.red('No files matched the skip pattern\n'));
+
+    system.exit(1);
+    return;
+  }
+
+  const editTracker = new CliEditTracker(logger, mode, projectRoot);
   editTracker.setTotal(fileNames.length - entrypoints.length);
 
   logger.write(
     chalk.gray(
-      `Project has ${fileNames.length} file(s), skipping ${
-        entrypoints.length
-      } file(s)...\n\n`,
+      `Project has ${formatCount(fileNames.length, 'file')}, skipping ${formatCount(
+        entrypoints.length,
+        'file',
+      )}\n`,
     ),
   );
+
+  const pool = new WorkerPool<typeof processFile>({
+    name: 'processFile',
+    url:
+      globalThis.__INTERNAL_WORKER_URL__ ||
+      new URL('./worker.js', import.meta.url).href,
+  });
 
   await removeUnusedExport({
     fileService,
