@@ -46,10 +46,8 @@ test('simple', async () => {
 
   assertEqualOutput(
     stripedOutput,
-    `tsconfig using test/fixtures/simple/tsconfig.json
-
-Project has 5 file(s), skipping 1 file(s)...
-
+    `tsconfig test/fixtures/simple/tsconfig.json
+Project has 5 files, skipping 1 file
 file   b.ts
 export a.ts:1:0     'b'
 export a.ts:3:0     'default'
@@ -58,8 +56,7 @@ export d.ts:10:2    'unusedLongLong'
 export d.ts:11:2    'unusedLongLongLong'
 export d.ts:12:2    'unusedLongLongLongLong'
 export d.ts:15:0    'default'
-
-✖ delete 1 file(s), remove 7 export(s)
+✖ delete 1 file, remove 7 exports
 `,
   );
 });

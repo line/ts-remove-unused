@@ -46,14 +46,11 @@ test('reexport_delete', async () => {
 
   assertEqualOutput(
     stripedOutput,
-    `tsconfig using test/fixtures/reexport_delete/tsconfig.json
-
-Project has 3 file(s), skipping 1 file(s)...
-
+    `tsconfig test/fixtures/reexport_delete/tsconfig.json
+Project has 3 files, skipping 1 file
 file   a.ts
 export b.ts:0:0     'export * from './a';'
-
-✖ delete 1 file(s), remove 1 export(s)
+✖ delete 1 file, remove 1 export
 `,
   );
 });
