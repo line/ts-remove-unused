@@ -191,7 +191,7 @@ When you add a comment `// ts-remove-unused-skip` to your export declaration, it
 export const hello = 'world';
 ```
 
-## How does ts-remove-unused handle test files?
+## Handling test files
 
 If you have a separate tsconfig for tests using [Project References](https://www.typescriptlang.org/docs/handbook/project-references.html), that would be great! ts-remove-unused will remove exports/files that exist for the sake of testing.
 
