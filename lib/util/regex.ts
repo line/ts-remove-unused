@@ -1,1 +1,1 @@
-export const dts = /\\.d\\.ts$/;
+export const dts = /\.d\.ts$/;
