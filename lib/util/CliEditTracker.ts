@@ -181,12 +181,12 @@ export class CliEditTracker implements EditTracker {
       ].filter((t) => !!t);
 
       if (result.length > 0) {
-        this.#logger.write(chalk.red.bold(`\n✖ ${result.join(', ')}\n`));
+        this.#logger.write(chalk.red.bold(`✖ ${result.join(', ')}\n`));
 
         return;
       }
 
-      this.#logger.write(chalk.green.bold('\n✔ all good!\n'));
+      this.#logger.write(chalk.green.bold('✔ all good!\n'));
       return;
     } else {
       const result = [
@@ -196,7 +196,7 @@ export class CliEditTracker implements EditTracker {
 
       this.#logger.write(
         chalk.green.bold(
-          `\n✔ ${result.length > 0 ? result.join(', ') : 'all good!'}\n`,
+          `✔ ${result.length > 0 ? result.join(', ') : 'all good!'}\n`,
         ),
       );
     }

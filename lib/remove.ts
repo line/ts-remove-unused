@@ -64,7 +64,7 @@ export const remove = async ({
 
   if (!error) {
     logger.write(
-      `${chalk.blue('tsconfig')} ${chalk.gray('using')} ${relativeToCwd(configPath)}\n\n`,
+      `${chalk.blue('tsconfig')} ${chalk.gray('using')} ${relativeToCwd(configPath)}\n`,
     );
   }
 
@@ -83,7 +83,7 @@ export const remove = async ({
     chalk.gray(
       `Project has ${fileNames.length} file(s), skipping ${
         entrypoints.length
-      } file(s)...\n\n`,
+      } file(s)...\n`,
     ),
   );
 
