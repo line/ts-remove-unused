@@ -63,9 +63,7 @@ export const remove = async ({
   );
 
   if (!error) {
-    logger.write(
-      `${chalk.blue('tsconfig')} ${chalk.gray('using')} ${relativeToCwd(configPath)}\n`,
-    );
+    logger.write(`${chalk.blue('tsconfig')} ${relativeToCwd(configPath)}\n`);
   }
 
   const fileService = new MemoryFileService();
