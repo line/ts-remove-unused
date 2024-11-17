@@ -1,7 +1,7 @@
 <h1 align="center">ts-remove-unused</h1>
 <div align="center">
   <img width="480" src="./media/screenshot.png" />
-  <p>Remove unused code from your TypeScript Project</p>
+  <p>Remove unused code from your TypeScript Project – It's like tree shaking, but for source files</p>
 </div>
 
 [![npm version](https://badge.fury.io/js/@line%2Fts-remove-unused.svg)](https://badge.fury.io/js/@line%2Fts-remove-unused)
