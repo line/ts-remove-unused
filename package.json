@@ -24,7 +24,7 @@
     "unused": "npm run build && node dist/cli.js --skip 'lib/[a-z]+\\.ts' --project tsconfig.lib.json"
   },
   "devDependencies": {
-    "@eslint/js": "^9.10.0",
+    "@eslint/js": "^9.15.0",
     "@types/node": "^22.5.5",
     "esbuild": "^0.23.1",
     "eslint-config-prettier": "^9.1.0",
@@ -32,7 +32,7 @@
     "prettier": "^3.3.3",
     "strip-ansi": "^7.1.0",
     "tsx": "^4.19.1",
-    "typescript-eslint": "^8.5.0"
+    "typescript-eslint": "^8.14.0"
   },
   "dependencies": {
     "cac": "^6.7.14",
