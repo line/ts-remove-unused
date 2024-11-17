@@ -7,9 +7,13 @@ const generateCode = (
   name: string,
 ) => `data:text/javascript,import { parentPort } from 'node:worker_threads';
 import { ${name} } from '${url}';
-parentPort.on('message', async (arg) => {
+parentPort.on('message', async (message) => {
+  if (!('arg' in message)) {
+    return;
+  }
+
   try {
-    const result = await ${name}(arg);
+    const result = await ${name}(message.arg);
     parentPort.postMessage({ result });
   } catch (error) {
     parentPort.postMessage({ error });
@@ -65,7 +69,7 @@ export class WorkerPool<T extends (arg: any) => any> {
         reject,
       };
       this.#working.push(worker);
-      worker.postMessage(arg);
+      worker.postMessage({ arg });
     });
   }
 
@@ -97,7 +101,7 @@ export class WorkerPool<T extends (arg: any) => any> {
       resolve,
       reject,
     };
-    worker.postMessage(arg);
+    worker.postMessage({ arg });
     this.#working.push(worker);
   }
 
@@ -121,14 +125,26 @@ export class WorkerPool<T extends (arg: any) => any> {
         return;
       }
 
-      if ('error' in message) {
-        worker.current.reject(message.error);
-      } else {
-        worker.current.resolve(message.result);
+      switch (true) {
+        case 'broadcast' in message: {
+          [...this.#working, ...this.#idle].forEach(
+            (w) => w !== worker && w.postMessage(message),
+          );
+          return;
+        }
+        case 'error' in message: {
+          worker.current.reject(message.error);
+          this.#free(worker);
+          this.#assignTask();
+          return;
+        }
+        case 'result' in message: {
+          worker.current.resolve(message.result);
+          this.#free(worker);
+          this.#assignTask();
+          return;
+        }
       }
-
-      this.#free(worker);
-      this.#assignTask();
     });
 
     worker.on('error', (error) => {
