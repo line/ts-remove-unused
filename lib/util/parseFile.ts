@@ -220,6 +220,24 @@ type Export =
       start: number;
     };
 
+const collectName = (node: ts.BindingName): string[] => {
+  if (ts.isIdentifier(node)) {
+    return [node.getText()];
+  }
+
+  if (ts.isObjectBindingPattern(node)) {
+    return node.elements.flatMap((element) => collectName(element.name));
+  }
+
+  if (ts.isArrayBindingPattern(node)) {
+    return node.elements.flatMap((element) =>
+      ts.isOmittedExpression(element) ? [] : collectName(element.name),
+    );
+  }
+
+  return [];
+};
+
 const fn = ({
   file,
   content,
@@ -250,8 +268,8 @@ const fn = ({
       );
 
       if (isExported) {
-        const name = node.declarationList.declarations.map((d) =>
-          d.name.getText(),
+        const name = node.declarationList.declarations.flatMap((d) =>
+          collectName(d.name),
         );
 
         exports.push({
