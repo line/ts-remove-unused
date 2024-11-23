@@ -219,7 +219,7 @@ export const processFile = ({
   exports.forEach((item) => {
     switch (item.kind) {
       case ts.SyntaxKind.VariableStatement: {
-        if (item.skip || item.name.every((it) => usage.has(it))) {
+        if (item.skip || item.name.some((it) => usage.has(it))) {
           break;
         }
 
