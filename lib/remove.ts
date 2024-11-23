@@ -1,13 +1,13 @@
 import ts from 'typescript';
 import { MemoryFileService } from './util/MemoryFileService.js';
-import { removeUnusedExport } from './util/removeUnusedExport.js';
+import { edit } from './util/edit.js';
 import chalk from 'chalk';
 import { Logger } from './util/Logger.js';
 import { cwd, stdout } from 'node:process';
 import { CliEditTracker } from './util/CliEditTracker.js';
 import { relative } from 'node:path';
 import { WorkerPool } from './util/WorkerPool.js';
-import type { processFile } from './util/removeUnusedExport.js';
+import type { processFile } from './util/edit.js';
 import { formatCount } from './util/formatCount.js';
 import { dts } from './util/regex.js';
 
@@ -106,7 +106,7 @@ export const remove = async ({
       new URL('./worker.js', import.meta.url).href,
   });
 
-  await removeUnusedExport({
+  await edit({
     fileService,
     entrypoints,
     deleteUnusedFile: true,
