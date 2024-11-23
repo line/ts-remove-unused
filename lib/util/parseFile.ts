@@ -222,11 +222,11 @@ type Export =
       };
       skip: boolean;
       start: number;
-    }
-  | {
-      kind: ts.SyntaxKind.ModuleDeclaration;
-      type: 'ambient';
     };
+
+type AmbientDeclaration = {
+  kind: ts.SyntaxKind.ModuleDeclaration;
+};
 
 const collectName = (node: ts.BindingName): string[] => {
   if (ts.isIdentifier(node)) {
@@ -261,6 +261,7 @@ const fn = ({
     [file: string]: (string | { type: 'wholeReexport'; file: string })[];
   } = {};
   const exports: Export[] = [];
+  const ambientDeclarations: AmbientDeclaration[] = [];
 
   const sourceFile = ts.createSourceFile(
     file,
@@ -553,9 +554,8 @@ const fn = ({
         node.name.kind === ts.SyntaxKind.StringLiteral ||
         isGlobalScopeAugmentation(node)
       ) {
-        exports.push({
+        ambientDeclarations.push({
           kind: ts.SyntaxKind.ModuleDeclaration,
-          type: 'ambient',
         });
 
         return;
@@ -569,7 +569,7 @@ const fn = ({
 
   sourceFile.forEachChild(visit);
 
-  return { imports, exports };
+  return { imports, exports, ambientDeclarations };
 };
 
 export const parseFile = memoize(fn, {
