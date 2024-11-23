@@ -475,7 +475,7 @@ export const processFile = ({
     }
   }
 
-  // at this moment, the equality means that the are really no more exports (including `export {};`) left
+  // at this moment, the equality means that there are really no more exports (including `export {};`) left
   if (
     changes.length === exports.length &&
     ambientDeclarations.length > 0 &&
