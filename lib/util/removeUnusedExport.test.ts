@@ -1206,9 +1206,10 @@ export {};`,
       assert.equal(fileService.get('/app/a.ts'), `export const a = 'a';`);
     });
 
-    it('should remove the export declaration if there are imports in the file', async () => {
+    it('should remove the multiple export declarations if there are other exports in the file', async () => {
       const fileService = new MemoryFileService();
-      fileService.set('/app/a.ts', `export {};import { b } from './b';`);
+      fileService.set('/app/main.ts', `import { a } from './a';`);
+      fileService.set('/app/a.ts', `export {};export const a = 'a';export {};`);
 
       await removeUnusedExport({
         fileService,
@@ -1218,12 +1219,27 @@ export {};`,
       });
 
       // even if we remove `export {};` the file is still an external module so it's unnecessary
-      assert.equal(fileService.get('/app/a.ts'), `import { b } from './b';`);
+      assert.equal(fileService.get('/app/a.ts'), `export const a ='a';`);
     });
 
     it('should not remove the export declaration if there are no other exports in the file', async () => {
       const fileService = new MemoryFileService();
       fileService.set('/app/a.ts', `export {};`);
+
+      await removeUnusedExport({
+        fileService,
+        pool,
+        recursive,
+        entrypoints: ['/app/main.ts'],
+      });
+
+      // if we remove `export {};` the file will become a script file so it's necessary
+      assert.equal(fileService.get('/app/a.ts'), `export {};`);
+    });
+
+    it('should preserve one export declaration if there are multiple export declarations and there are no other exports in the file', async () => {
+      const fileService = new MemoryFileService();
+      fileService.set('/app/a.ts', `export {};export {};`);
 
       await removeUnusedExport({
         fileService,
