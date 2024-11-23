@@ -21,8 +21,8 @@ cli
     'Check if there are any unused exports without removing them',
   )
   .option(
-    '--experimental-recursive',
-    'Recursively process files until there are no issue',
+    '-r, --recursive',
+    'Recursively look into files until the project is clean',
   )
   .action((options) => {
     const skipArg = options.skip;
