@@ -76,6 +76,56 @@ describe('removeUnusedExport', () => {
       );
     });
 
+    describe('multiple variables', () => {
+      it('should not remove export for multiple variables if its used in some other file', async () => {
+        const fileService = new MemoryFileService();
+        fileService.set('/app/main.ts', `import { a, a2 } from './a';`);
+        fileService.set('/app/a.ts', `export const a = 'a', a2 = 'a2';`);
+
+        await removeUnusedExport({
+          fileService,
+          pool,
+          recursive,
+          entrypoints: ['/app/main.ts'],
+        });
+
+        const result = fileService.get('/app/a.ts');
+        assert.equal(result, `export const a = 'a', a2 = 'a2';`);
+      });
+
+      it('should not remove export for multiple variables if some are used in some other file', async () => {
+        const fileService = new MemoryFileService();
+        fileService.set('/app/main.ts', `import { a } from './a';`);
+        fileService.set('/app/a.ts', `export const a = 'a', a2 = 'a2';`);
+
+        await removeUnusedExport({
+          fileService,
+          pool,
+          recursive,
+          entrypoints: ['/app/main.ts'],
+        });
+
+        const result = fileService.get('/app/a.ts');
+        assert.equal(result, `export const a = 'a', a2 = 'a2';`);
+      });
+
+      it('should remove export for multiple variables if all are not used in some other file', async () => {
+        const fileService = new MemoryFileService();
+        fileService.set('/app/b.ts', `export const b = 'b', b2 = 'b2';`);
+
+        await removeUnusedExport({
+          fileService,
+          pool,
+          recursive,
+          entrypoints: ['/app/main.ts'],
+        });
+
+        const result = fileService.get('/app/b.ts');
+
+        assert.equal(result, `const b = 'b', b2 = 'b2';`);
+      });
+    });
+
     describe('destructuring', () => {
       it('should not remove export for destructuring variable if its used in some other file', async () => {
         const fileService = new MemoryFileService();
