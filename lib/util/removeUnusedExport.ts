@@ -327,7 +327,7 @@ export const processFile = ({
       case ts.SyntaxKind.ExportDeclaration: {
         switch (item.type) {
           case 'named': {
-            if (item.skip || item.name.every((it) => usage.has(it))) {
+            if (item.skip) {
               break;
             }
 
@@ -335,6 +335,10 @@ export const processFile = ({
               // is `export {};`
               // we will come back to this later because we can't judge if it's necessary or not yet
               emptyExportDeclarations.push(item);
+              break;
+            }
+
+            if (item.name.every((it) => usage.has(it))) {
               break;
             }
 
@@ -440,16 +444,6 @@ export const processFile = ({
     }
   });
 
-  if (changes.length === 0) {
-    const result = {
-      operation: 'edit' as const,
-      content: files.get(targetFile) || '',
-      removedExports: logs,
-    };
-
-    return result;
-  }
-
   // special case: file has `export {};`
   if (emptyExportDeclarations.length > 0) {
     if (changes.length === exports.length - emptyExportDeclarations.length) {
@@ -479,6 +473,16 @@ export const processFile = ({
         });
       });
     }
+  }
+
+  if (changes.length === 0) {
+    const result = {
+      operation: 'edit' as const,
+      content: files.get(targetFile) || '',
+      removedExports: logs,
+    };
+
+    return result;
   }
 
   let content = applyTextChanges(files.get(targetFile) || '', changes);

@@ -1219,7 +1219,7 @@ export {};`,
       });
 
       // even if we remove `export {};` the file is still an external module so it's unnecessary
-      assert.equal(fileService.get('/app/a.ts'), `export const a ='a';`);
+      assert.equal(fileService.get('/app/a.ts'), `export const a = 'a';`);
     });
 
     it('should not remove the export declaration if there are no other exports in the file', async () => {
