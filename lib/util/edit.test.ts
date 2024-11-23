@@ -1,10 +1,10 @@
 import { after, before, describe, it } from 'node:test';
 import assert from 'node:assert/strict';
-import { processFile, removeUnusedExport } from './removeUnusedExport.js';
+import { processFile, edit } from './edit.js';
 import { MemoryFileService } from './MemoryFileService.js';
 import { WorkerPool } from './WorkerPool.js';
 
-describe('removeUnusedExport', () => {
+describe('edit', () => {
   let pool: WorkerPool<typeof processFile>;
   const recursive = true;
 
@@ -25,7 +25,7 @@ describe('removeUnusedExport', () => {
       fileService.set('/app/main.ts', `import { a } from './a';`);
       fileService.set('/app/a.ts', `export const a = 'a';`);
 
-      await removeUnusedExport({
+      await edit({
         fileService,
         pool,
         recursive,
@@ -40,7 +40,7 @@ describe('removeUnusedExport', () => {
       const fileService = new MemoryFileService();
       fileService.set('/app/b.ts', `export const b = 'b';`);
 
-      await removeUnusedExport({
+      await edit({
         fileService,
         pool,
         recursive,
@@ -60,7 +60,7 @@ describe('removeUnusedExport', () => {
   export const b = 'b';`,
       );
 
-      await removeUnusedExport({
+      await edit({
         fileService,
         pool,
         recursive,
@@ -82,7 +82,7 @@ describe('removeUnusedExport', () => {
         fileService.set('/app/main.ts', `import { a, a2 } from './a';`);
         fileService.set('/app/a.ts', `export const a = 'a', a2 = 'a2';`);
 
-        await removeUnusedExport({
+        await edit({
           fileService,
           pool,
           recursive,
@@ -98,7 +98,7 @@ describe('removeUnusedExport', () => {
         fileService.set('/app/main.ts', `import { a } from './a';`);
         fileService.set('/app/a.ts', `export const a = 'a', a2 = 'a2';`);
 
-        await removeUnusedExport({
+        await edit({
           fileService,
           pool,
           recursive,
@@ -113,7 +113,7 @@ describe('removeUnusedExport', () => {
         const fileService = new MemoryFileService();
         fileService.set('/app/b.ts', `export const b = 'b', b2 = 'b2';`);
 
-        await removeUnusedExport({
+        await edit({
           fileService,
           pool,
           recursive,
@@ -132,7 +132,7 @@ describe('removeUnusedExport', () => {
         fileService.set('/app/main.ts', `import { a } from './a';`);
         fileService.set('/app/a.ts', `export const { a } = { a: 'a' };`);
 
-        await removeUnusedExport({
+        await edit({
           fileService,
           pool,
           recursive,
@@ -151,7 +151,7 @@ describe('removeUnusedExport', () => {
           `export const { a, b } = { a: 'a', b: 'b' };`,
         );
 
-        await removeUnusedExport({
+        await edit({
           fileService,
           pool,
           recursive,
@@ -166,7 +166,7 @@ describe('removeUnusedExport', () => {
         const fileService = new MemoryFileService();
         fileService.set('/app/b.ts', `export const { b } = { b: 'b' };`);
 
-        await removeUnusedExport({
+        await edit({
           fileService,
           pool,
           recursive,
@@ -194,7 +194,7 @@ import c from './c';`,
       fileService.set('/app/b.ts', `export default function b() {}`);
       fileService.set('/app/c.ts', `export default function() {}`);
 
-      await removeUnusedExport({
+      await edit({
         fileService,
         pool,
         recursive,
@@ -218,7 +218,7 @@ import c from './c';`,
       fileService.set('/app/b.ts', `export default function b() {}`);
       fileService.set('/app/c.ts', `export default function() {}`);
 
-      await removeUnusedExport({
+      await edit({
         fileService,
         pool,
         recursive,
@@ -241,7 +241,7 @@ export function a2() {
 }`,
       );
 
-      await removeUnusedExport({
+      await edit({
         fileService,
         pool,
         recursive,
@@ -275,7 +275,7 @@ export default async function a2() {}`,
 export default async function() {}`,
       );
 
-      await removeUnusedExport({
+      await edit({
         fileService,
         pool,
         recursive,
@@ -298,7 +298,7 @@ async function a2() {}`,
   export function b() {}`,
       );
 
-      await removeUnusedExport({
+      await edit({
         fileService,
         pool,
         recursive,
@@ -329,7 +329,7 @@ import C from './c';`,
       fileService.set('/app/b.ts', `export default class B {}`);
       fileService.set('/app/c.ts', `export default class {}`);
 
-      await removeUnusedExport({
+      await edit({
         fileService,
         pool,
         recursive,
@@ -347,7 +347,7 @@ import C from './c';`,
       fileService.set('/app/b.ts', `export default class B {}`);
       fileService.set('/app/c.ts', `export default class {}`);
 
-      await removeUnusedExport({
+      await edit({
         fileService,
         pool,
         recursive,
@@ -367,7 +367,7 @@ import C from './c';`,
   export class A {}`,
       );
 
-      await removeUnusedExport({
+      await edit({
         fileService,
         pool,
         recursive,
@@ -395,7 +395,7 @@ import B from './b';`,
       fileService.set('/app/a.ts', `export interface A { a: 'a' }`);
       fileService.set('/app/b.ts', `export default interface B { b: 'b' }`);
 
-      await removeUnusedExport({
+      await edit({
         fileService,
         pool,
         recursive,
@@ -417,7 +417,7 @@ import B from './b';`,
       fileService.set('/app/a.ts', `export interface A { a: 'a' }`);
       fileService.set('/app/b.ts', `export default interface B { b: 'b' }`);
 
-      await removeUnusedExport({
+      await edit({
         fileService,
         pool,
         recursive,
@@ -436,7 +436,7 @@ import B from './b';`,
   export interface A { a: 'a' }`,
       );
 
-      await removeUnusedExport({
+      await edit({
         fileService,
         pool,
         recursive,
@@ -459,7 +459,7 @@ import B from './b';`,
       fileService.set('/app/main.ts', `import { A } from './a';`);
       fileService.set('/app/a.ts', `export type A = 'a';`);
 
-      await removeUnusedExport({
+      await edit({
         fileService,
         pool,
         recursive,
@@ -474,7 +474,7 @@ import B from './b';`,
       const fileService = new MemoryFileService();
       fileService.set('/app/b.ts', `export type B = 'b';`);
 
-      await removeUnusedExport({
+      await edit({
         fileService,
         pool,
         recursive,
@@ -494,7 +494,7 @@ import B from './b';`,
   export type B = 'b';`,
       );
 
-      await removeUnusedExport({
+      await edit({
         fileService,
         pool,
         recursive,
@@ -532,7 +532,7 @@ import B from './b';`,
 export default B;`,
       );
 
-      await removeUnusedExport({
+      await edit({
         fileService,
         pool,
         recursive,
@@ -565,7 +565,7 @@ export default B;`,
 export default B;`,
       );
 
-      await removeUnusedExport({
+      await edit({
         fileService,
         pool,
         recursive,
@@ -586,7 +586,7 @@ export default B;`,
   export default a;`,
       );
 
-      await removeUnusedExport({
+      await edit({
         fileService,
         pool,
         recursive,
@@ -611,7 +611,7 @@ export default B;`,
 
       fileService.set('/app/a.ts', `export default 'a';`);
 
-      await removeUnusedExport({
+      await edit({
         fileService,
         pool,
         recursive,
@@ -627,7 +627,7 @@ export default B;`,
 
       fileService.set('/app/a.ts', `export default a;`);
 
-      await removeUnusedExport({
+      await edit({
         fileService,
         pool,
         recursive,
@@ -647,7 +647,7 @@ export default B;`,
   export default 'a';`,
       );
 
-      await removeUnusedExport({
+      await edit({
         fileService,
         pool,
         recursive,
@@ -684,7 +684,7 @@ import { B } from './b';`,
 export { B };`,
       );
 
-      await removeUnusedExport({
+      await edit({
         fileService,
         pool,
         recursive,
@@ -736,7 +736,7 @@ const unused2 = 'unused2';
 export { d, unused, unused2 };`,
       );
 
-      await removeUnusedExport({
+      await edit({
         fileService,
         pool,
         recursive,
@@ -773,7 +773,7 @@ export {
 };`,
       );
 
-      await removeUnusedExport({
+      await edit({
         fileService,
         pool,
         recursive,
@@ -803,7 +803,7 @@ const b = 'b';
 export { a, b };`,
         );
 
-        await removeUnusedExport({
+        await edit({
           fileService,
           pool,
           recursive,
@@ -830,7 +830,7 @@ const b = 'b';
 export { a, b };`,
         );
 
-        await removeUnusedExport({
+        await edit({
           fileService,
           pool,
           recursive,
@@ -856,7 +856,7 @@ const b = 'b';
 export { a, b }; // comment`,
         );
 
-        await removeUnusedExport({
+        await edit({
           fileService,
           pool,
           recursive,
@@ -883,7 +883,7 @@ export { a, b };
 const c = 'c';`,
         );
 
-        await removeUnusedExport({
+        await edit({
           fileService,
           pool,
           recursive,
@@ -910,7 +910,7 @@ const c = 'c';`,
       fileService.set('/app/a_reexport.ts', `export { a } from './a';`);
       fileService.set('/app/a.ts', `export const a = 'a';`);
 
-      await removeUnusedExport({
+      await edit({
         fileService,
         pool,
         recursive,
@@ -929,7 +929,7 @@ const c = 'c';`,
       fileService.set('/app/a_reexport.ts', `export { a } from './a';`);
       fileService.set('/app/a.ts', `export const a = 'a';`);
 
-      await removeUnusedExport({
+      await edit({
         fileService,
         pool,
         recursive,
@@ -949,7 +949,7 @@ const c = 'c';`,
         `export const b1 = 'b1'; export const b2 = 'b2';`,
       );
 
-      await removeUnusedExport({
+      await edit({
         fileService,
         pool,
         recursive,
@@ -976,7 +976,7 @@ const c = 'c';`,
       fileService.set('/app/a_reexport_3.ts', `export { a } from './a';`);
       fileService.set('/app/a.ts', `export const a = 'a';`);
 
-      await removeUnusedExport({
+      await edit({
         fileService,
         pool,
         recursive,
@@ -995,7 +995,7 @@ const c = 'c';`,
       const fileService = new MemoryFileService();
       fileService.set('/app/a_reexport.ts', `export * from './a';`);
       fileService.set('/app/a.ts', `export const a = 'a';`);
-      await removeUnusedExport({
+      await edit({
         fileService,
         pool,
         recursive,
@@ -1012,7 +1012,7 @@ const c = 'c';`,
       fileService.set('/app/a_reexport.ts', `export * from './a';`);
       fileService.set('/app/a.ts', `export const a = 'a';`);
 
-      await removeUnusedExport({
+      await edit({
         fileService,
         pool,
         recursive,
@@ -1030,7 +1030,7 @@ const c = 'c';`,
       fileService.set('/app/main.ts', `export * from './a';`);
       fileService.set('/app/a.ts', `export const a = 'a';`);
 
-      await removeUnusedExport({
+      await edit({
         fileService,
         pool,
         recursive,
@@ -1059,7 +1059,7 @@ export const b = 'b';`,
       );
       fileService.set('/app/a.ts', `export const a = 'a';`);
 
-      await removeUnusedExport({
+      await edit({
         fileService,
         pool,
         recursive,
@@ -1079,7 +1079,7 @@ export const b = 'b';`,
       fileService.set('/app/a.ts', `export * as a from './b';`);
       fileService.set('/app/b.ts', `export const b = 'b';`);
 
-      await removeUnusedExport({
+      await edit({
         fileService,
         // pool,
         recursive,
@@ -1094,7 +1094,7 @@ export const b = 'b';`,
       fileService.set('/app/a.ts', `export * as a from './b';`);
       fileService.set('/app/b.ts', `export const b = 'b';`);
 
-      await removeUnusedExport({
+      await edit({
         fileService,
         // pool,
         recursive,
@@ -1110,7 +1110,7 @@ export const b = 'b';`,
       const fileService = new MemoryFileService();
       fileService.set('/app/a.ts', `declare module 'a' {}`);
 
-      await removeUnusedExport({
+      await edit({
         fileService,
         pool,
         recursive,
@@ -1125,7 +1125,7 @@ export const b = 'b';`,
       const fileService = new MemoryFileService();
       fileService.set('/app/a.ts', `declare global {}\nexport {};`);
 
-      await removeUnusedExport({
+      await edit({
         fileService,
         pool,
         recursive,
@@ -1143,7 +1143,7 @@ export const b = 'b';`,
       const fileService = new MemoryFileService();
       fileService.set('/app/a.ts', `declare module 'a' {}\nexport {};`);
 
-      await removeUnusedExport({
+      await edit({
         fileService,
         pool,
         recursive,
@@ -1166,7 +1166,7 @@ export const b = 'b';`,
         `declare module 'a' {}\nexport const a = 'a';`,
       );
 
-      await removeUnusedExport({
+      await edit({
         fileService,
         pool,
         recursive,
@@ -1193,7 +1193,7 @@ export {};\n`,
         `declare module 'a' {};export const a = 'a';export const b = 'b';`,
       );
 
-      await removeUnusedExport({
+      await edit({
         fileService,
         pool,
         recursive,
@@ -1215,7 +1215,7 @@ export {};\n`,
       fileService.set('/app/main.ts', `import { a } from './a';`);
       fileService.set('/app/a.ts', `export {};export const a = 'a';`);
 
-      await removeUnusedExport({
+      await edit({
         fileService,
         pool,
         recursive,
@@ -1231,7 +1231,7 @@ export {};\n`,
       fileService.set('/app/main.ts', `import { a } from './a';`);
       fileService.set('/app/a.ts', `export {};export const a = 'a';export {};`);
 
-      await removeUnusedExport({
+      await edit({
         fileService,
         pool,
         recursive,
@@ -1246,7 +1246,7 @@ export {};\n`,
       const fileService = new MemoryFileService();
       fileService.set('/app/a.ts', `export {};`);
 
-      await removeUnusedExport({
+      await edit({
         fileService,
         pool,
         recursive,
@@ -1261,7 +1261,7 @@ export {};\n`,
       const fileService = new MemoryFileService();
       fileService.set('/app/a.ts', `export {};export {};`);
 
-      await removeUnusedExport({
+      await edit({
         fileService,
         pool,
         recursive,
@@ -1279,7 +1279,7 @@ export {};\n`,
       fileService.set('/app/main.ts', `import * as a from './a';`);
       fileService.set('/app/a.ts', `export const a = 'a';`);
 
-      await removeUnusedExport({
+      await edit({
         fileService,
         pool,
         recursive,
@@ -1302,7 +1302,7 @@ export const b = 'b';
 console.log(b);`,
       );
 
-      await removeUnusedExport({
+      await edit({
         fileService,
         pool,
         recursive,
@@ -1328,7 +1328,7 @@ export class B {}
 console.log(B);`,
       );
 
-      await removeUnusedExport({
+      await edit({
         fileService,
         pool,
         recursive,
@@ -1354,7 +1354,7 @@ export interface B {}
 const b: B = {};`,
       );
 
-      await removeUnusedExport({
+      await edit({
         fileService,
         pool,
         recursive,
@@ -1381,7 +1381,7 @@ import('./b.js');`,
       fileService.set('/app/a.ts', `export const a = 'a';`);
       fileService.set('/app/b.ts', `export default 'b';`);
 
-      await removeUnusedExport({
+      await edit({
         fileService,
         pool,
         recursive,
@@ -1400,7 +1400,7 @@ import('./b.js');`,
         fileService.set('/app/a.ts', `export const a = 'a';`);
         fileService.set('/app/b.ts', `import { a } from './a';`);
 
-        await removeUnusedExport({
+        await edit({
           fileService,
           pool,
           recursive,
@@ -1414,7 +1414,7 @@ import('./b.js');`,
         const fileService = new MemoryFileService();
         fileService.set('/app/a.ts', `export const a = 'a';`);
 
-        await removeUnusedExport({
+        await edit({
           fileService,
           pool,
           recursive,
@@ -1431,7 +1431,7 @@ import('./b.js');`,
         fileService.set('/app/main.ts', `import { a } from './a';`);
         fileService.set('/app/a.ts', `export const a = 'a';`);
 
-        await removeUnusedExport({
+        await edit({
           fileService,
           pool,
           recursive,
@@ -1450,7 +1450,7 @@ import('./b.js');`,
 export const a2 = 'a2';`,
         );
 
-        await removeUnusedExport({
+        await edit({
           fileService,
           pool,
           recursive,
@@ -1518,7 +1518,7 @@ const a2 = 'a2';`,
   export interface E {}`,
       );
 
-      await removeUnusedExport({
+      await edit({
         fileService,
         pool,
         recursive,
@@ -1543,7 +1543,7 @@ const a2 = 'a2';`,
   export type D = 'd';
   export interface E {}`,
       );
-      await removeUnusedExport({
+      await edit({
         fileService,
         pool,
         recursive,
@@ -1560,7 +1560,7 @@ const a2 = 'a2';`,
       fileService.set('/app/a_reexport.ts', `export * from './a';`);
       fileService.set('/app/a.ts', `export const a = 'a';`);
 
-      await removeUnusedExport({
+      await edit({
         fileService,
         pool,
         recursive,
@@ -1576,7 +1576,7 @@ const a2 = 'a2';`,
       fileService.set('/app/a_reexport.ts', `export * from './a';`);
       fileService.set('/app/a.ts', `export const a = 'a';`);
 
-      await removeUnusedExport({
+      await edit({
         fileService,
         pool,
         recursive,
@@ -1635,7 +1635,7 @@ const a2 = 'a2';`,
   export interface E {}`,
       );
 
-      await removeUnusedExport({
+      await edit({
         fileService,
         pool,
         recursive,
@@ -1657,7 +1657,7 @@ const a2 = 'a2';`,
       fileService.set('/app/b.ts', `import { c } from './c';`);
       fileService.set('/app/c.ts', `export const c = 'c';`);
 
-      await removeUnusedExport({
+      await edit({
         fileService,
         pool,
         recursive,
@@ -1686,7 +1686,7 @@ export const c = () => b;`,
       );
       fileService.set('/app/d.ts', `import { c } from './c';`);
 
-      await removeUnusedExport({
+      await edit({
         fileService,
         pool,
         recursive,
@@ -1709,7 +1709,7 @@ export const c = () => b;`,
         fileService.set('/app/c.ts', `import { d } from './d';`);
         fileService.set('/app/d.ts', `export const d = 'd';`);
 
-        await removeUnusedExport({
+        await edit({
           fileService,
           pool,
           recursive,
@@ -1727,7 +1727,7 @@ export const c = () => b;`,
         const fileService = new MemoryFileService();
         fileService.set('/app/a.ts', `export const a = 'a';`);
 
-        await removeUnusedExport({
+        await edit({
           fileService,
           pool,
           recursive,
@@ -1746,7 +1746,7 @@ export const c = () => b;`,
 export const a = 'a';`,
         );
 
-        await removeUnusedExport({
+        await edit({
           fileService,
           pool,
           recursive,
@@ -1768,7 +1768,7 @@ export const a = 'a';`,
         fileService.set('/app/main.ts', `import { a } from './a';`);
         fileService.set('/app/a.ts', `export const a = 'a';`);
 
-        await removeUnusedExport({
+        await edit({
           fileService,
           pool,
           recursive,
@@ -1788,7 +1788,7 @@ export const a = 'a';`,
   export const a2 = 'a2';`,
         );
 
-        await removeUnusedExport({
+        await edit({
           fileService,
           pool,
           recursive,
@@ -1817,7 +1817,7 @@ export const a = () => dep;
 export const remain = 'remain';`,
       );
 
-      await removeUnusedExport({
+      await edit({
         fileService,
         pool,
         recursive,
@@ -1849,7 +1849,7 @@ export const b = () => c;`,
       );
       fileService.set('/app/c.ts', `export const c = 'c';`);
 
-      await removeUnusedExport({
+      await edit({
         fileService,
         pool,
         recursive,
@@ -1872,7 +1872,7 @@ export const a2 = 'a2';`,
       );
       fileService.set('/app/b.ts', `import { a2 } from './a';`);
 
-      await removeUnusedExport({
+      await edit({
         fileService,
         pool,
         recursive,
@@ -1895,7 +1895,7 @@ export const a = () => b;`,
       );
       fileService.set('/app/b.ts', `export const b = 'b';`);
 
-      await removeUnusedExport({
+      await edit({
         fileService,
         pool,
         recursive,
@@ -1928,7 +1928,7 @@ export const a = () => d;
 export const a2 = 'a2';`,
       );
 
-      await removeUnusedExport({
+      await edit({
         fileService,
         pool,
         recursive,
@@ -1955,7 +1955,7 @@ export const a = () => d;\n`,
       fileService.set('/app/main.ts', `import('./a');`);
       fileService.set('/app/a.ts', `export const a = 'a';`);
 
-      await removeUnusedExport({
+      await edit({
         fileService,
         pool,
         recursive,
@@ -1972,7 +1972,7 @@ export const a = () => d;\n`,
       fileService.set('/app/main.ts', `export { a } from './a';`);
       fileService.set('/app/a.ts', `export const a = 'a';`);
 
-      await removeUnusedExport({
+      await edit({
         fileService,
         pool,
         recursive,
@@ -1990,7 +1990,7 @@ export const a = () => d;\n`,
       fileService.set('/app/main.ts', `export * from './a';`);
       fileService.set('/app/a.ts', `export const a = 'a';`);
 
-      await removeUnusedExport({
+      await edit({
         fileService,
         pool,
         recursive,
@@ -2009,7 +2009,7 @@ export const a = () => d;\n`,
       fileService.set('/app/a_reexport.ts', `export * from './a';`);
       fileService.set('/app/a.ts', `export const a = 'a';`);
 
-      await removeUnusedExport({
+      await edit({
         fileService,
         pool,
         recursive,
@@ -2029,7 +2029,7 @@ export const a = () => d;\n`,
       fileService.set('/app/b.ts', `export * from './a';export const b = 'b';`);
       fileService.set('/app/a.ts', `export const a = 'a';`);
 
-      await removeUnusedExport({
+      await edit({
         fileService,
         pool,
         recursive,

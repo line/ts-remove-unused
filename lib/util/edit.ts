@@ -551,7 +551,7 @@ export {};\n`,
   return result;
 };
 
-export const removeUnusedExport = async ({
+export const edit = async ({
   entrypoints,
   fileService,
   deleteUnusedFile = false,
