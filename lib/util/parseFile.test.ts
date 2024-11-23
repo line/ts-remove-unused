@@ -259,6 +259,150 @@ describe('parseFile', () => {
     ]);
   });
 
+  it('should collect destructured variable statement export', () => {
+    const { exports } = parseFile({
+      file: '/app/a.ts',
+      content: `export const { a, b } = { a: 'a', b: 'b' };`,
+      destFiles: new Set(),
+    });
+
+    assert.deepEqual(exports, [
+      {
+        kind: ts.SyntaxKind.VariableStatement,
+        name: ['a', 'b'],
+        change: {
+          code: 'export ',
+          span: {
+            start: 0,
+            length: 7,
+          },
+        },
+        skip: false,
+        start: 0,
+      },
+    ]);
+  });
+
+  it('should collect destructured array variable statement export', () => {
+    const { exports } = parseFile({
+      file: '/app/a.ts',
+      content: "export const [a, b] = ['a', 'b'];",
+      destFiles: new Set(),
+    });
+
+    assert.deepEqual(exports, [
+      {
+        kind: ts.SyntaxKind.VariableStatement,
+        name: ['a', 'b'],
+        change: {
+          code: 'export ',
+          span: {
+            start: 0,
+            length: 7,
+          },
+        },
+        skip: false,
+        start: 0,
+      },
+    ]);
+  });
+
+  it('should collect destructured array variable statement export with rest element', () => {
+    const { exports } = parseFile({
+      file: '/app/a.ts',
+      content: "export const [a, ...b] = ['a', 'b'];",
+      destFiles: new Set(),
+    });
+
+    assert.deepEqual(exports, [
+      {
+        kind: ts.SyntaxKind.VariableStatement,
+        name: ['a', 'b'],
+        change: {
+          code: 'export ',
+          span: {
+            start: 0,
+            length: 7,
+          },
+        },
+        skip: false,
+        start: 0,
+      },
+    ]);
+  });
+
+  it('should collect destructured array variable statement export with omitted element', () => {
+    const { exports } = parseFile({
+      file: '/app/a.ts',
+      content: "export const [, b] = ['a', 'b'];",
+      destFiles: new Set(),
+    });
+
+    assert.deepEqual(exports, [
+      {
+        kind: ts.SyntaxKind.VariableStatement,
+        name: ['b'],
+        change: {
+          code: 'export ',
+          span: {
+            start: 0,
+            length: 7,
+          },
+        },
+        skip: false,
+        start: 0,
+      },
+    ]);
+  });
+
+  it('should collect nested destructured variable statement export', () => {
+    const { exports } = parseFile({
+      file: '/app/a.ts',
+      content: `export const { a: { b } } = { a: { b: 'b' } };`,
+      destFiles: new Set(),
+    });
+
+    assert.deepEqual(exports, [
+      {
+        kind: ts.SyntaxKind.VariableStatement,
+        name: ['b'],
+        change: {
+          code: 'export ',
+          span: {
+            start: 0,
+            length: 7,
+          },
+        },
+        skip: false,
+        start: 0,
+      },
+    ]);
+  });
+
+  it('should collect renamed destructured variable statement export', () => {
+    const { exports } = parseFile({
+      file: '/app/a.ts',
+      content: "export const { a: b } = { a: 'a' };",
+      destFiles: new Set(),
+    });
+
+    assert.deepEqual(exports, [
+      {
+        kind: ts.SyntaxKind.VariableStatement,
+        name: ['b'],
+        change: {
+          code: 'export ',
+          span: {
+            start: 0,
+            length: 7,
+          },
+        },
+        skip: false,
+        start: 0,
+      },
+    ]);
+  });
+
   it('should return skip: true for variable statement export with skip comment', () => {
     const { exports } = parseFile({
       file: '/app/a.ts',
