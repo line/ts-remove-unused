@@ -230,7 +230,9 @@ export const processFile = ({
         logs.push({
           fileName: targetFile,
           position: item.start,
-          // todo: handle variable statement with multiple declarations properly
+          // todo: consider a more aggressive approach to modify the declaration
+          // and only export the names that are actually used in other files
+          // for now, we remove the export keyword only if all names are unused
           code: item.name.join(', '),
         });
 
