@@ -217,6 +217,21 @@ export const processFile = ({
     code: string;
   }[] = [];
 
+  const emptyExportDeclarations: {
+    kind: ts.SyntaxKind.ExportDeclaration;
+    type: 'named';
+    name: string[];
+    skip: boolean;
+    change: {
+      code: string;
+      span: {
+        start: number;
+        length: number;
+      };
+    };
+    start: number;
+  }[] = [];
+
   exports.forEach((item) => {
     switch (item.kind) {
       case ts.SyntaxKind.VariableStatement: {
@@ -313,6 +328,13 @@ export const processFile = ({
         switch (item.type) {
           case 'named': {
             if (item.skip || item.name.every((it) => usage.has(it))) {
+              break;
+            }
+
+            if (item.name.length === 0) {
+              // is `export {};`
+              // we will come back to this later because we can't judge if it's necessary or not yet
+              emptyExportDeclarations.push(item);
               break;
             }
 
@@ -426,6 +448,37 @@ export const processFile = ({
     };
 
     return result;
+  }
+
+  // special case: file has `export {};`
+  if (emptyExportDeclarations.length > 0) {
+    if (changes.length === exports.length - emptyExportDeclarations.length) {
+      // there are no more "actual" exports left so we will preserve one empty export declaration
+      emptyExportDeclarations.slice(0, -1).forEach((item) => {
+        changes.push({
+          newText: '',
+          span: item.change.span,
+        });
+        logs.push({
+          fileName: targetFile,
+          position: item.start,
+          code: 'export {};',
+        });
+      });
+    } else {
+      // the empty export declaration is meaningless so we will remove all of them
+      emptyExportDeclarations.forEach((item) => {
+        changes.push({
+          newText: '',
+          span: item.change.span,
+        });
+        logs.push({
+          fileName: targetFile,
+          position: item.start,
+          code: 'export {};',
+        });
+      });
+    }
   }
 
   let content = applyTextChanges(files.get(targetFile) || '', changes);
