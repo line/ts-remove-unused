@@ -1189,6 +1189,54 @@ export {};`,
     });
   });
 
+  describe('named export declaration with no specifier', () => {
+    it('should remove the export declaration if there are other exports in the file', async () => {
+      const fileService = new MemoryFileService();
+      fileService.set('/app/main.ts', `import { a } from './a';`);
+      fileService.set('/app/a.ts', `export {};export const a = 'a';`);
+
+      await removeUnusedExport({
+        fileService,
+        pool,
+        recursive,
+        entrypoints: ['/app/main.ts'],
+      });
+
+      // even if we remove `export {};` the file is still an external module so it's unnecessary
+      assert.equal(fileService.get('/app/a.ts'), `export const a = 'a';`);
+    });
+
+    it('should remove the export declaration if there are imports in the file', async () => {
+      const fileService = new MemoryFileService();
+      fileService.set('/app/a.ts', `export {};import { b } from './b';`);
+
+      await removeUnusedExport({
+        fileService,
+        pool,
+        recursive,
+        entrypoints: ['/app/main.ts'],
+      });
+
+      // even if we remove `export {};` the file is still an external module so it's unnecessary
+      assert.equal(fileService.get('/app/a.ts'), `import { b } from './b';`);
+    });
+
+    it('should not remove the export declaration if there are no other exports in the file', async () => {
+      const fileService = new MemoryFileService();
+      fileService.set('/app/a.ts', `export {};`);
+
+      await removeUnusedExport({
+        fileService,
+        pool,
+        recursive,
+        entrypoints: ['/app/main.ts'],
+      });
+
+      // if we remove `export {};` the file will become a script file so it's necessary
+      assert.equal(fileService.get('/app/a.ts'), `export {};`);
+    });
+  });
+
   describe('namespace import', () => {
     it('should not remove export for namespace import if its used in some other file', async () => {
       const fileService = new MemoryFileService();
