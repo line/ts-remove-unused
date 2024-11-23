@@ -14,7 +14,7 @@ import { TaskManager } from './TaskManager.js';
 import { WorkerPool } from './WorkerPool.js';
 import { findFileUsage } from './findFileUsage.js';
 import { createProgram } from './createProgram.js';
-import { parseFile } from './parseFile.js';
+import { ExportedItem, parseFile } from './parseFile.js';
 
 const stripExportKeyword = (syntaxList: string) => {
   const file = ts.createSourceFile(
@@ -202,7 +202,13 @@ export const processFile = ({
   if (
     usage.size === 0 &&
     deleteUnusedFile &&
-    !exports.some((v) => 'skip' in v && v.skip)
+    !exports.some((v) => {
+      if (v.kind === ts.SyntaxKind.ModuleDeclaration && v.type === 'ambient') {
+        return true;
+      }
+
+      return 'skip' in v && v.skip;
+    })
   ) {
     return {
       operation: 'delete' as const,
