@@ -39,7 +39,7 @@ npx @line/ts-remove-unused --skip 'src/main\.ts$'
 
 ## Examples
 
-Here are some examples of how this tool will auto-fixe unused code.
+Here are some examples of how this tool will auto-fix unused code.
 
 <!-- prettier-ignore-start -->
 
