@@ -14,6 +14,10 @@ const getLeadingComment = (node: ts.Node) => {
   return ranges.map((range) => fullText.slice(range.pos, range.end)).join('');
 };
 
+// ref. https://github.com/microsoft/TypeScript/blob/d701d908d534e68cfab24b6df15539014ac348a3/src/compiler/utilities.ts#L2048
+const isGlobalScopeAugmentation = (module: ts.ModuleDeclaration) =>
+  !!(module.flags & ts.NodeFlags.GlobalAugmentation);
+
 const resolve = ({
   specifier,
   file,
@@ -220,6 +224,10 @@ type Export =
       start: number;
     };
 
+type AmbientDeclaration = {
+  kind: ts.SyntaxKind.ModuleDeclaration;
+};
+
 const collectName = (node: ts.BindingName): string[] => {
   if (ts.isIdentifier(node)) {
     return [node.getText()];
@@ -253,6 +261,7 @@ const fn = ({
     [file: string]: (string | { type: 'wholeReexport'; file: string })[];
   } = {};
   const exports: Export[] = [];
+  const ambientDeclarations: AmbientDeclaration[] = [];
 
   const sourceFile = ts.createSourceFile(
     file,
@@ -538,12 +547,29 @@ const fn = ({
       return;
     }
 
+    if (ts.isModuleDeclaration(node)) {
+      // is ambient module
+      // ref. https://github.com/microsoft/TypeScript/blob/d701d908d534e68cfab24b6df15539014ac348a3/src/compiler/utilities.ts#L2002
+      if (
+        node.name.kind === ts.SyntaxKind.StringLiteral ||
+        isGlobalScopeAugmentation(node)
+      ) {
+        ambientDeclarations.push({
+          kind: ts.SyntaxKind.ModuleDeclaration,
+        });
+
+        return;
+      }
+
+      return;
+    }
+
     node.forEachChild(visit);
   };
 
   sourceFile.forEachChild(visit);
 
-  return { imports, exports };
+  return { imports, exports, ambientDeclarations };
 };
 
 export const parseFile = memoize(fn, {

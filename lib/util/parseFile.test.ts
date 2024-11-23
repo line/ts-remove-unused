@@ -932,4 +932,42 @@ export class A {}`,
       true,
     );
   });
+
+  it('should return an empty array for ambientDeclaration if there are no ambient declarations', () => {
+    const { ambientDeclarations } = parseFile({
+      file: '/app/a.ts',
+      content: `export const a = 'a';`,
+      destFiles: new Set(),
+    });
+
+    assert.deepEqual(ambientDeclarations, []);
+  });
+
+  it('should collect ambient module declaration', () => {
+    const { ambientDeclarations } = parseFile({
+      file: '/app/a.ts',
+      content: `declare module 'a' {}`,
+      destFiles: new Set(),
+    });
+
+    assert.deepEqual(ambientDeclarations, [
+      {
+        kind: ts.SyntaxKind.ModuleDeclaration,
+      },
+    ]);
+  });
+
+  it('should collect global scope argumentation', () => {
+    const { ambientDeclarations } = parseFile({
+      file: '/app/a.ts',
+      content: `declare global { interface A {} }`,
+      destFiles: new Set(),
+    });
+
+    assert.deepEqual(ambientDeclarations, [
+      {
+        kind: ts.SyntaxKind.ModuleDeclaration,
+      },
+    ]);
+  });
 });
