@@ -1170,7 +1170,7 @@ export {};`,
       fileService.set('/app/main.ts', `import { a } from './a';`);
       fileService.set(
         '/app/a.ts',
-        `declare module 'a' {}; export const a = 'a'; export const b = 'b';`,
+        `declare module 'a' {};export const a = 'a';export const b = 'b';`,
       );
 
       await removeUnusedExport({
@@ -1184,7 +1184,7 @@ export {};`,
 
       assert.equal(
         fileService.get('/app/a.ts'),
-        `declare module 'a' {}; export const a = 'a';`,
+        `declare module 'a' {};export const a = 'a';`,
       );
     });
   });
