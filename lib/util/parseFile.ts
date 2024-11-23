@@ -14,6 +14,10 @@ const getLeadingComment = (node: ts.Node) => {
   return ranges.map((range) => fullText.slice(range.pos, range.end)).join('');
 };
 
+// ref. https://github.com/microsoft/TypeScript/blob/d701d908d534e68cfab24b6df15539014ac348a3/src/compiler/utilities.ts#L2048
+const isGlobalScopeAugmentation = (module: ts.ModuleDeclaration) =>
+  !!(module.flags & ts.NodeFlags.GlobalAugmentation);
+
 const resolve = ({
   specifier,
   file,
@@ -218,6 +222,10 @@ type Export =
       };
       skip: boolean;
       start: number;
+    }
+  | {
+      kind: ts.SyntaxKind.ModuleDeclaration;
+      type: 'ambient';
     };
 
 const collectName = (node: ts.BindingName): string[] => {
@@ -534,6 +542,24 @@ const fn = ({
 
       imports[resolved] ||= [];
       imports[resolved]?.push('*');
+
+      return;
+    }
+
+    if (ts.isModuleDeclaration(node)) {
+      // is ambient module
+      // ref. https://github.com/microsoft/TypeScript/blob/d701d908d534e68cfab24b6df15539014ac348a3/src/compiler/utilities.ts#L2002
+      if (
+        node.name.kind === ts.SyntaxKind.StringLiteral ||
+        isGlobalScopeAugmentation(node)
+      ) {
+        exports.push({
+          kind: ts.SyntaxKind.ModuleDeclaration,
+          type: 'ambient',
+        });
+
+        return;
+      }
 
       return;
     }

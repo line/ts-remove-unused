@@ -932,4 +932,34 @@ export class A {}`,
       true,
     );
   });
+
+  it('should collect ambient module declaration', () => {
+    const { exports } = parseFile({
+      file: '/app/a.ts',
+      content: `declare module 'a' {}`,
+      destFiles: new Set(),
+    });
+
+    assert.deepEqual(exports, [
+      {
+        kind: ts.SyntaxKind.ModuleDeclaration,
+        type: 'ambient',
+      },
+    ]);
+  });
+
+  it('should collect global scope argumentation', () => {
+    const { exports } = parseFile({
+      file: '/app/a.ts',
+      content: `declare global { interface A {} }`,
+      destFiles: new Set(),
+    });
+
+    assert.deepEqual(exports, [
+      {
+        kind: ts.SyntaxKind.ModuleDeclaration,
+        type: 'ambient',
+      },
+    ]);
+  });
 });

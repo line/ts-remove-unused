@@ -411,6 +411,10 @@ export const processFile = ({
 
         break;
       }
+      case ts.SyntaxKind.ModuleDeclaration: {
+        // do nothing
+        break;
+      }
       default: {
         throw new Error(`unexpected: ${item satisfies never}`);
       }

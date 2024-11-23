@@ -45,6 +45,10 @@ const getExportsOfFile = ({
     });
 
     exports.forEach((it) => {
+      if (it.kind === ts.SyntaxKind.ModuleDeclaration) {
+        return;
+      }
+
       if (it.kind === ts.SyntaxKind.ExportDeclaration && it.type === 'whole') {
         if (it.file) {
           stack.push(it.file);
