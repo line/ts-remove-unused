@@ -5,6 +5,7 @@
 </div>
 
 [![npm version](https://badge.fury.io/js/@line%2Fts-remove-unused.svg)](https://badge.fury.io/js/@line%2Fts-remove-unused)
+[![install size](https://packagephobia.com/badge?p=ts-remove-unused)](https://packagephobia.com/result?p=ts-remove-unused)
 [![CI](https://github.com/line/ts-remove-unused/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/line/ts-remove-unused/actions/workflows/ci.yml)
 
 ## Features
