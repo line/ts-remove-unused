@@ -1139,6 +1139,24 @@ export const b = 'b';`,
       );
     });
 
+    it('should keep the empty export declaration as-is if the file has a ambient module declaration', async () => {
+      const fileService = new MemoryFileService();
+      fileService.set('/app/a.ts', `declare module 'a' {}\nexport {};`);
+
+      await removeUnusedExport({
+        fileService,
+        pool,
+        recursive,
+        entrypoints: ['/app/main.ts'],
+        deleteUnusedFile: true,
+      });
+
+      assert.equal(
+        fileService.get('/app/a.ts'),
+        `declare module 'a' {}\nexport {};`,
+      );
+    });
+
     it('should not change external module augmentation to a non-augmentation', async () => {
       const fileService = new MemoryFileService();
       // if the file is a external module, the ModuleDeclaration is an augmentation
