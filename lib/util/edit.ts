@@ -15,7 +15,7 @@ import { findFileUsage } from './findFileUsage.js';
 import { createProgram } from './createProgram.js';
 import { parseFile } from './parseFile.js';
 
-const stripExportKeyword = (syntaxList: string) => {
+const stripFunctionExportKeyword = (syntaxList: string) => {
   const file = ts.createSourceFile(
     'tmp.ts',
     `${syntaxList} function f() {}`,
@@ -292,7 +292,7 @@ const processFile = ({
         changes.push({
           newText: item.change.isUnnamedDefaultExport
             ? ''
-            : stripExportKeyword(item.change.code),
+            : stripFunctionExportKeyword(item.change.code),
           span: item.change.span,
         });
         logs.push({
