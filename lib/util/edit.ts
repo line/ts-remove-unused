@@ -15,14 +15,19 @@ import { findFileUsage } from './findFileUsage.js';
 import { createProgram } from './createProgram.js';
 import { parseFile } from './parseFile.js';
 
-const stripFunctionExportKeyword = (syntaxList: string) => {
-  const file = ts.createSourceFile(
-    'tmp.ts',
-    `${syntaxList} function f() {}`,
-    ts.ScriptTarget.Latest,
-  );
+const transform = (
+  source: string,
+  transformer: ts.TransformerFactory<ts.SourceFile>,
+) => {
+  const file = ts.createSourceFile('file.ts', source, ts.ScriptTarget.Latest);
+  const result = ts.transform(file, [transformer]).transformed[0];
+  const printer = ts.createPrinter();
+  return result ? printer.printFile(result).trim() : '';
+};
 
-  const transformer: ts.TransformerFactory<ts.SourceFile> =
+const stripFunctionExportKeyword = (syntaxList: string) => {
+  const code = transform(
+    `${syntaxList} function f() {}`,
     (context: ts.TransformationContext) => (rootNode: ts.SourceFile) => {
       const visitor = (node: ts.Node): ts.Node | undefined => {
         if (ts.isFunctionDeclaration(node)) {
@@ -44,23 +49,15 @@ const stripFunctionExportKeyword = (syntaxList: string) => {
       };
 
       return ts.visitEachChild(rootNode, visitor, context);
-    };
-
-  const result = ts.transform(file, [transformer]).transformed[0];
-  const printer = ts.createPrinter();
-  const code = result ? printer.printFile(result).trim() : '';
+    },
+  );
   const pos = code.indexOf('function');
   return code.slice(0, pos);
 };
 
 const stripEnumExportKeyword = (syntaxList: string) => {
-  const file = ts.createSourceFile(
-    'tmp.ts',
+  const code = transform(
     `${syntaxList} enum E {}`,
-    ts.ScriptTarget.Latest,
-  );
-
-  const transformer: ts.TransformerFactory<ts.SourceFile> =
     (context: ts.TransformationContext) => (rootNode: ts.SourceFile) => {
       const visitor = (node: ts.Node): ts.Node | undefined => {
         if (ts.isEnumDeclaration(node)) {
@@ -76,11 +73,8 @@ const stripEnumExportKeyword = (syntaxList: string) => {
       };
 
       return ts.visitEachChild(rootNode, visitor, context);
-    };
-
-  const result = ts.transform(file, [transformer]).transformed[0];
-  const printer = ts.createPrinter();
-  const code = result ? printer.printFile(result).trim() : '';
+    },
+  );
   const pos = code.indexOf('enum');
   return code.slice(0, pos);
 };
