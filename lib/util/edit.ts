@@ -11,7 +11,6 @@ import { Vertexes } from './DependencyGraph.js';
 import { createDependencyGraph } from './createDependencyGraph.js';
 import { MemoryFileService } from './MemoryFileService.js';
 import { TaskManager } from './TaskManager.js';
-import { WorkerPool } from './WorkerPool.js';
 import { findFileUsage } from './findFileUsage.js';
 import { createProgram } from './createProgram.js';
 import { parseFile } from './parseFile.js';
@@ -558,7 +557,6 @@ export const edit = async ({
   editTracker = disabledEditTracker,
   options = {},
   projectRoot = '.',
-  pool,
   recursive,
 }: {
   entrypoints: string[];
@@ -569,7 +567,6 @@ export const edit = async ({
   options?: ts.CompilerOptions;
   projectRoot?: string;
   recursive: boolean;
-  pool?: WorkerPool<typeof processFile>;
 }) => {
   const program = createProgram({ fileService, options, projectRoot });
 
@@ -603,9 +600,7 @@ export const edit = async ({
       return;
     }
 
-    const fn = pool ? pool.run.bind(pool) : processFile;
-
-    const result = await fn({
+    const result = processFile({
       targetFile: c.file,
       vertexes: dependencyGraph.eject(),
       files: fileService.eject(),
