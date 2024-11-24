@@ -101,7 +101,7 @@ export const remove = async ({
     fileService,
     entrypoints,
     deleteUnusedFile: true,
-    enableCodeFix: true,
+    enableCodeFix: mode === 'write' || recursive,
     editTracker,
     options,
     projectRoot,
