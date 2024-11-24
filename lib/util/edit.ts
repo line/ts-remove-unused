@@ -159,8 +159,7 @@ const getSpecifierPosition = (exportDeclaration: string) => {
   return result;
 };
 
-// for use in worker
-export const processFile = ({
+const processFile = ({
   targetFile,
   files,
   vertexes,
