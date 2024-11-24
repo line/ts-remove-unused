@@ -1,6 +1,9 @@
 <h1 align="center">ts-remove-unused</h1>
 <div align="center">
-  <img width="480" src="./media/screenshot.png" />
+  <br />
+  <img width="600" src="./media/cover.gif" />
+  <br />
+  <br />
   <p>Remove unused code from your TypeScript Project – It's like tree shaking, but for source files</p>
 </div>
 
