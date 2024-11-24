@@ -123,7 +123,7 @@ For more info, run any command with the `--help` flag:
   $ ts-remove-unused --help
 
 Options:
-  --project <file>         Path to your tsconfig.json 
+  -p, --project <file>     Path to your tsconfig.json 
   --skip <regexp_pattern>  Specify the regexp pattern to match files that should be skipped from transforming 
   --include-d-ts           Include .d.ts files in target for transformation 
   --check                  Check if there are any unused exports without removing them 
@@ -133,12 +133,12 @@ Options:
 ```
 <!-- prettier-ignore-end -->
 
-#### `--project`
+#### `-p`, `--project`
 
 Specifies the `tsconfig.json` that is used to analyze your codebase. Defaults to `tsconfig.json` in your project root.
 
 ```bash
-npx @line/ts-remove-unused --skip tsconfig.client.json
+npx @line/ts-remove-unused --project tsconfig.client.json
 ```
 
 #### `--skip`
@@ -161,7 +161,7 @@ Use `--check` to check for unused files and exports without making changes to pr
 npx @line/ts-remove-unused --skip 'src/main\.ts' --check
 ```
 
-#### `-r, --recursive`
+#### `-r`, `--recursive`
 
 The default behavior of the CLI is to process all files once. Some issues may not be detected if the unused code is a result of the modification of another file in the project. When this option is enabled, ts-remove-unused will recursively re-edit/re-check files that may be affected by a file edit.
 
