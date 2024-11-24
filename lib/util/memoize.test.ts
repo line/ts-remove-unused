@@ -7,7 +7,6 @@ describe('memoize', () => {
     const fn = (a: number, b: number) => a + b;
     const memoized = memoize(fn, {
       key: (a, b) => `${a}+${b}`,
-      name: 'fn',
     });
     assert.equal(memoized(1, 2), 3);
   });
@@ -20,7 +19,6 @@ describe('memoize', () => {
     };
     const memoized = memoize(fn, {
       key: (a, b) => `${a}+${b}`,
-      name: 'fn',
     });
 
     assert.equal(memoized(1, 2), 3);
