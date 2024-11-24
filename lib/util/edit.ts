@@ -305,6 +305,13 @@ const processFile = ({
 
         break;
       }
+      case ts.SyntaxKind.EnumDeclaration: {
+        if (item.skip || usage.has(item.name)) {
+          break;
+        }
+
+        break;
+      }
       case ts.SyntaxKind.ExportAssignment: {
         if (item.skip || usage.has('default')) {
           break;
