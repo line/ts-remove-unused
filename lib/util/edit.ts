@@ -53,6 +53,38 @@ const stripExportKeyword = (syntaxList: string) => {
   return code.slice(0, pos);
 };
 
+const stripEnumExportKeyword = (syntaxList: string) => {
+  const file = ts.createSourceFile(
+    'tmp.ts',
+    `${syntaxList} enum E {}`,
+    ts.ScriptTarget.Latest,
+  );
+
+  const transformer: ts.TransformerFactory<ts.SourceFile> =
+    (context: ts.TransformationContext) => (rootNode: ts.SourceFile) => {
+      const visitor = (node: ts.Node): ts.Node | undefined => {
+        if (ts.isEnumDeclaration(node)) {
+          return ts.factory.createEnumDeclaration(
+            node.modifiers?.filter(
+              (v) => v.kind !== ts.SyntaxKind.ExportKeyword,
+            ),
+            node.name,
+            node.members,
+          );
+        }
+        return ts.visitEachChild(node, visitor, context);
+      };
+
+      return ts.visitEachChild(rootNode, visitor, context);
+    };
+
+  const result = ts.transform(file, [transformer]).transformed[0];
+  const printer = ts.createPrinter();
+  const code = result ? printer.printFile(result).trim() : '';
+  const pos = code.indexOf('enum');
+  return code.slice(0, pos);
+};
+
 const disabledEditTracker: EditTracker = {
   start: () => {},
   end: () => {},
@@ -309,6 +341,16 @@ const processFile = ({
         if (item.skip || usage.has(item.name)) {
           break;
         }
+
+        changes.push({
+          newText: stripEnumExportKeyword(item.change.code),
+          span: item.change.span,
+        });
+        logs.push({
+          fileName: targetFile,
+          position: item.start,
+          code: item.name,
+        });
 
         break;
       }
