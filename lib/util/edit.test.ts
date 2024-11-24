@@ -475,6 +475,76 @@ import B from './b';`,
     });
   });
 
+  describe('enum declaration', () => {
+    it('should not remove export for enum if its used in some other file', async () => {
+      const fileService = new MemoryFileService();
+      fileService.set('/app/main.ts', `import { A } from './a';`);
+      fileService.set('/app/a.ts', `export enum A { A1 }`);
+
+      await edit({
+        fileService,
+        recursive,
+        entrypoints: ['/app/main.ts'],
+      });
+
+      const result = fileService.get('/app/a.ts');
+      assert.equal(result, `export enum A { A1 }`);
+    });
+
+    it('should remove export for enum if its not used in some other file', async () => {
+      const fileService = new MemoryFileService();
+      fileService.set('/app/b.ts', `export enum B { B1 }`);
+
+      await edit({
+        fileService,
+        recursive,
+        entrypoints: ['/app/main.ts'],
+      });
+
+      const result = fileService.get('/app/b.ts');
+
+      assert.equal(result, `enum B { B1 }`);
+    });
+
+    it("should not remove const keyword of enum if it's not used in some other file", async () => {
+      const fileService = new MemoryFileService();
+      fileService.set('/app/b.ts', `export const enum B { B1 }`);
+
+      await edit({
+        fileService,
+        recursive,
+        entrypoints: ['/app/main.ts'],
+      });
+
+      const result = fileService.get('/app/b.ts');
+
+      assert.equal(result, `const enum B { B1 }`);
+    });
+
+    it('should not remove export for enum if it has a comment to ignore', async () => {
+      const fileService = new MemoryFileService();
+      fileService.set(
+        '/app/b.ts',
+        `// ts-remove-unused-skip
+  export enum B { B1 }`,
+      );
+
+      await edit({
+        fileService,
+        recursive,
+        entrypoints: ['/app/main.ts'],
+      });
+
+      const result = fileService.get('/app/b.ts');
+
+      assert.equal(
+        result,
+        `// ts-remove-unused-skip
+  export enum B { B1 }`,
+      );
+    });
+  });
+
   describe('default export of identifier', () => {
     it('should not remove default export for an identifier if its used in some other file', async () => {
       const fileService = new MemoryFileService();

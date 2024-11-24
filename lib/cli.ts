@@ -43,7 +43,7 @@ cli
       skip,
       mode: options.check ? 'check' : 'write',
       projectRoot: cwd(),
-      recursive: !!options.experimentalRecursive,
+      recursive: !!options.recursive,
     });
   });
 
