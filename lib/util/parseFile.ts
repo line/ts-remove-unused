@@ -47,7 +47,8 @@ const getChange = (
     | ts.ClassDeclaration
     | ts.TypeAliasDeclaration
     | ts.ExportDeclaration
-    | ts.ExportAssignment,
+    | ts.ExportAssignment
+    | ts.EnumDeclaration,
 ) => {
   if (ts.isExportDeclaration(node) || ts.isExportAssignment(node)) {
     return {
@@ -222,6 +223,19 @@ type Export =
       };
       skip: boolean;
       start: number;
+    }
+  | {
+      kind: ts.SyntaxKind.EnumDeclaration;
+      name: string;
+      change: {
+        code: string;
+        span: {
+          start: number;
+          length: number;
+        };
+      };
+      skip: boolean;
+      start: number;
     };
 
 type AmbientDeclaration = {
@@ -297,7 +311,8 @@ const fn = ({
     if (
       ts.isFunctionDeclaration(node) ||
       ts.isInterfaceDeclaration(node) ||
-      ts.isClassDeclaration(node)
+      ts.isClassDeclaration(node) ||
+      ts.isEnumDeclaration(node)
     ) {
       const isExported = node.modifiers?.some(
         (m) => m.kind === ts.SyntaxKind.ExportKeyword,
