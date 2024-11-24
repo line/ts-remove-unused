@@ -508,6 +508,70 @@ export function a() {}`,
     );
   });
 
+  it('should collect enum declaration export', () => {
+    const { exports } = parseFile({
+      file: '/app/a.ts',
+      content: `export enum A {}`,
+      destFiles: new Set(),
+    });
+
+    assert.deepEqual(exports, [
+      {
+        kind: ts.SyntaxKind.EnumDeclaration,
+        name: 'A',
+        change: {
+          code: 'export ',
+          span: {
+            start: 0,
+            length: 7,
+          },
+        },
+        skip: false,
+        start: 0,
+      },
+    ]);
+  });
+
+  it('should collect enum declaration export with const keyword', () => {
+    const { exports } = parseFile({
+      file: '/app/a.ts',
+      content: `export const enum A {}`,
+      destFiles: new Set(),
+    });
+
+    assert.deepEqual(exports, [
+      {
+        kind: ts.SyntaxKind.EnumDeclaration,
+        name: 'A',
+        change: {
+          code: 'export const ',
+          span: {
+            start: 0,
+            length: 13,
+          },
+        },
+        skip: false,
+        start: 0,
+      },
+    ]);
+  });
+
+  it('should return skip: true for enum declaration export with skip comment', () => {
+    const { exports } = parseFile({
+      file: '/app/a.ts',
+      content: `// ts-remove-unused-skip
+export enum A {}`,
+      destFiles: new Set(),
+    });
+
+    assert.equal(
+      exports[0] &&
+        exports[0].kind === ts.SyntaxKind.EnumDeclaration &&
+        exports[0].skip,
+      true,
+    );
+  });
+
   it('should collect interface declaration export', () => {
     const { exports } = parseFile({
       file: '/app/a.ts',

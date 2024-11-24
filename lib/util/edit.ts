@@ -15,14 +15,19 @@ import { findFileUsage } from './findFileUsage.js';
 import { createProgram } from './createProgram.js';
 import { parseFile } from './parseFile.js';
 
-const stripExportKeyword = (syntaxList: string) => {
-  const file = ts.createSourceFile(
-    'tmp.ts',
-    `${syntaxList} function f() {}`,
-    ts.ScriptTarget.Latest,
-  );
+const transform = (
+  source: string,
+  transformer: ts.TransformerFactory<ts.SourceFile>,
+) => {
+  const file = ts.createSourceFile('file.ts', source, ts.ScriptTarget.Latest);
+  const result = ts.transform(file, [transformer]).transformed[0];
+  const printer = ts.createPrinter();
+  return result ? printer.printFile(result).trim() : '';
+};
 
-  const transformer: ts.TransformerFactory<ts.SourceFile> =
+const stripFunctionExportKeyword = (syntaxList: string) => {
+  const code = transform(
+    `${syntaxList} function f() {}`,
     (context: ts.TransformationContext) => (rootNode: ts.SourceFile) => {
       const visitor = (node: ts.Node): ts.Node | undefined => {
         if (ts.isFunctionDeclaration(node)) {
@@ -44,12 +49,33 @@ const stripExportKeyword = (syntaxList: string) => {
       };
 
       return ts.visitEachChild(rootNode, visitor, context);
-    };
-
-  const result = ts.transform(file, [transformer]).transformed[0];
-  const printer = ts.createPrinter();
-  const code = result ? printer.printFile(result).trim() : '';
+    },
+  );
   const pos = code.indexOf('function');
+  return code.slice(0, pos);
+};
+
+const stripEnumExportKeyword = (syntaxList: string) => {
+  const code = transform(
+    `${syntaxList} enum E {}`,
+    (context: ts.TransformationContext) => (rootNode: ts.SourceFile) => {
+      const visitor = (node: ts.Node): ts.Node | undefined => {
+        if (ts.isEnumDeclaration(node)) {
+          return ts.factory.createEnumDeclaration(
+            node.modifiers?.filter(
+              (v) => v.kind !== ts.SyntaxKind.ExportKeyword,
+            ),
+            node.name,
+            node.members,
+          );
+        }
+        return ts.visitEachChild(node, visitor, context);
+      };
+
+      return ts.visitEachChild(rootNode, visitor, context);
+    },
+  );
+  const pos = code.indexOf('enum');
   return code.slice(0, pos);
 };
 
@@ -260,7 +286,7 @@ const processFile = ({
         changes.push({
           newText: item.change.isUnnamedDefaultExport
             ? ''
-            : stripExportKeyword(item.change.code),
+            : stripFunctionExportKeyword(item.change.code),
           span: item.change.span,
         });
         logs.push({
@@ -295,6 +321,23 @@ const processFile = ({
 
         changes.push({
           newText: '',
+          span: item.change.span,
+        });
+        logs.push({
+          fileName: targetFile,
+          position: item.start,
+          code: item.name,
+        });
+
+        break;
+      }
+      case ts.SyntaxKind.EnumDeclaration: {
+        if (item.skip || usage.has(item.name)) {
+          break;
+        }
+
+        changes.push({
+          newText: stripEnumExportKeyword(item.change.code),
           span: item.change.span,
         });
         logs.push({
