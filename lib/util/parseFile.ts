@@ -580,5 +580,4 @@ export const parseFile = memoize(fn, {
       destFiles: Array.from(arg.destFiles).sort(),
       options: arg.options,
     }),
-  name: 'parseFile',
 });

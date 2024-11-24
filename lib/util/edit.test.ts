@@ -1,23 +1,10 @@
-import { after, before, describe, it } from 'node:test';
+import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
-import { processFile, edit } from './edit.js';
+import { edit } from './edit.js';
 import { MemoryFileService } from './MemoryFileService.js';
-import { WorkerPool } from './WorkerPool.js';
 
 describe('edit', () => {
-  let pool: WorkerPool<typeof processFile>;
   const recursive = true;
-
-  before(() => {
-    pool = new WorkerPool({
-      name: 'processFile',
-      url: new URL('../../dist/worker.js', import.meta.url).href,
-    });
-  });
-
-  after(async () => {
-    await pool.close();
-  });
 
   describe('variable statement', () => {
     it('should not remove export for variable if its used in some other file', async () => {
@@ -27,7 +14,6 @@ describe('edit', () => {
 
       await edit({
         fileService,
-        pool,
         recursive,
         entrypoints: ['/app/main.ts'],
       });
@@ -42,7 +28,6 @@ describe('edit', () => {
 
       await edit({
         fileService,
-        pool,
         recursive,
         entrypoints: ['/app/main.ts'],
       });
@@ -62,7 +47,6 @@ describe('edit', () => {
 
       await edit({
         fileService,
-        pool,
         recursive,
         entrypoints: ['/app/main.ts'],
       });
@@ -84,7 +68,6 @@ describe('edit', () => {
 
         await edit({
           fileService,
-          pool,
           recursive,
           entrypoints: ['/app/main.ts'],
         });
@@ -100,7 +83,6 @@ describe('edit', () => {
 
         await edit({
           fileService,
-          pool,
           recursive,
           entrypoints: ['/app/main.ts'],
         });
@@ -115,7 +97,6 @@ describe('edit', () => {
 
         await edit({
           fileService,
-          pool,
           recursive,
           entrypoints: ['/app/main.ts'],
         });
@@ -134,7 +115,6 @@ describe('edit', () => {
 
         await edit({
           fileService,
-          pool,
           recursive,
           entrypoints: ['/app/main.ts'],
         });
@@ -153,7 +133,6 @@ describe('edit', () => {
 
         await edit({
           fileService,
-          pool,
           recursive,
           entrypoints: ['/app/main.ts'],
         });
@@ -168,7 +147,6 @@ describe('edit', () => {
 
         await edit({
           fileService,
-          pool,
           recursive,
           entrypoints: ['/app/main.ts'],
         });
@@ -196,7 +174,6 @@ import c from './c';`,
 
       await edit({
         fileService,
-        pool,
         recursive,
         entrypoints: ['/app/main.ts'],
       });
@@ -220,7 +197,6 @@ import c from './c';`,
 
       await edit({
         fileService,
-        pool,
         recursive,
         entrypoints: ['/app/main.ts'],
       });
@@ -243,7 +219,6 @@ export function a2() {
 
       await edit({
         fileService,
-        pool,
         recursive,
         entrypoints: ['/app/main.ts'],
       });
@@ -277,7 +252,6 @@ export default async function() {}`,
 
       await edit({
         fileService,
-        pool,
         recursive,
         entrypoints: ['/app/main.ts'],
       });
@@ -300,7 +274,6 @@ async function a2() {}`,
 
       await edit({
         fileService,
-        pool,
         recursive,
         entrypoints: ['/app/main.ts'],
       });
@@ -331,7 +304,6 @@ import C from './c';`,
 
       await edit({
         fileService,
-        pool,
         recursive,
         entrypoints: ['/app/main.ts'],
       });
@@ -349,7 +321,6 @@ import C from './c';`,
 
       await edit({
         fileService,
-        pool,
         recursive,
         entrypoints: ['/app/main.ts'],
       });
@@ -369,7 +340,6 @@ import C from './c';`,
 
       await edit({
         fileService,
-        pool,
         recursive,
         entrypoints: ['/app/main.ts'],
       });
@@ -397,7 +367,6 @@ import B from './b';`,
 
       await edit({
         fileService,
-        pool,
         recursive,
         entrypoints: ['/app/main.ts'],
       });
@@ -419,7 +388,6 @@ import B from './b';`,
 
       await edit({
         fileService,
-        pool,
         recursive,
         entrypoints: ['/app/main.ts'],
       });
@@ -438,7 +406,6 @@ import B from './b';`,
 
       await edit({
         fileService,
-        pool,
         recursive,
         entrypoints: ['/app/main.ts'],
       });
@@ -461,7 +428,6 @@ import B from './b';`,
 
       await edit({
         fileService,
-        pool,
         recursive,
         entrypoints: ['/app/main.ts'],
       });
@@ -476,7 +442,6 @@ import B from './b';`,
 
       await edit({
         fileService,
-        pool,
         recursive,
         entrypoints: ['/app/main.ts'],
       });
@@ -496,7 +461,6 @@ import B from './b';`,
 
       await edit({
         fileService,
-        pool,
         recursive,
         entrypoints: ['/app/main.ts'],
       });
@@ -534,7 +498,6 @@ export default B;`,
 
       await edit({
         fileService,
-        pool,
         recursive,
         entrypoints: ['/app/main.ts'],
       });
@@ -567,7 +530,6 @@ export default B;`,
 
       await edit({
         fileService,
-        pool,
         recursive,
         entrypoints: ['/app/main.ts'],
       });
@@ -588,7 +550,6 @@ export default B;`,
 
       await edit({
         fileService,
-        pool,
         recursive,
         entrypoints: ['/app/main.ts'],
       });
@@ -613,7 +574,6 @@ export default B;`,
 
       await edit({
         fileService,
-        pool,
         recursive,
         entrypoints: ['/app/main.ts'],
       });
@@ -629,7 +589,6 @@ export default B;`,
 
       await edit({
         fileService,
-        pool,
         recursive,
         entrypoints: ['/app/main.ts'],
       });
@@ -649,7 +608,6 @@ export default B;`,
 
       await edit({
         fileService,
-        pool,
         recursive,
         entrypoints: ['/app/main.ts'],
       });
@@ -686,7 +644,6 @@ export { B };`,
 
       await edit({
         fileService,
-        pool,
         recursive,
         entrypoints: ['/app/main.ts'],
       });
@@ -738,7 +695,6 @@ export { d, unused, unused2 };`,
 
       await edit({
         fileService,
-        pool,
         recursive,
         entrypoints: ['/app/main.ts'],
       });
@@ -775,7 +731,6 @@ export {
 
       await edit({
         fileService,
-        pool,
         recursive,
         entrypoints: ['/app/main.ts'],
       });
@@ -805,7 +760,6 @@ export { a, b };`,
 
         await edit({
           fileService,
-          pool,
           recursive,
           entrypoints: ['/app/main.ts'],
         });
@@ -832,7 +786,6 @@ export { a, b };`,
 
         await edit({
           fileService,
-          pool,
           recursive,
           entrypoints: ['/app/main.ts'],
         });
@@ -858,7 +811,6 @@ export { a, b }; // comment`,
 
         await edit({
           fileService,
-          pool,
           recursive,
           entrypoints: ['/app/main.ts'],
         });
@@ -885,7 +837,6 @@ const c = 'c';`,
 
         await edit({
           fileService,
-          pool,
           recursive,
           entrypoints: ['/app/main.ts'],
         });
@@ -912,7 +863,6 @@ const c = 'c';`,
 
       await edit({
         fileService,
-        pool,
         recursive,
         entrypoints: ['/app/main.ts'],
       });
@@ -931,7 +881,6 @@ const c = 'c';`,
 
       await edit({
         fileService,
-        pool,
         recursive,
         entrypoints: ['/app/main.ts'],
       });
@@ -951,7 +900,6 @@ const c = 'c';`,
 
       await edit({
         fileService,
-        pool,
         recursive,
         entrypoints: ['/app/main.ts'],
       });
@@ -978,7 +926,6 @@ const c = 'c';`,
 
       await edit({
         fileService,
-        pool,
         recursive,
         entrypoints: ['/app/main.ts'],
       });
@@ -997,7 +944,6 @@ const c = 'c';`,
       fileService.set('/app/a.ts', `export const a = 'a';`);
       await edit({
         fileService,
-        pool,
         recursive,
         entrypoints: ['/app/main.ts'],
       });
@@ -1014,7 +960,6 @@ const c = 'c';`,
 
       await edit({
         fileService,
-        pool,
         recursive,
         entrypoints: ['/app/main.ts'],
       });
@@ -1032,7 +977,6 @@ const c = 'c';`,
 
       await edit({
         fileService,
-        pool,
         recursive,
         entrypoints: ['/app/main.ts'],
       });
@@ -1061,7 +1005,6 @@ export const b = 'b';`,
 
       await edit({
         fileService,
-        pool,
         recursive,
         entrypoints: ['/app/main.ts'],
         deleteUnusedFile: true,
@@ -1081,7 +1024,6 @@ export const b = 'b';`,
 
       await edit({
         fileService,
-        // pool,
         recursive,
         entrypoints: ['/app/main.ts'],
       });
@@ -1096,7 +1038,6 @@ export const b = 'b';`,
 
       await edit({
         fileService,
-        // pool,
         recursive,
         entrypoints: ['/app/main.ts'],
       });
@@ -1112,7 +1053,6 @@ export const b = 'b';`,
 
       await edit({
         fileService,
-        pool,
         recursive,
         entrypoints: ['/app/main.ts'],
         deleteUnusedFile: true,
@@ -1127,7 +1067,6 @@ export const b = 'b';`,
 
       await edit({
         fileService,
-        pool,
         recursive,
         entrypoints: ['/app/main.ts'],
         deleteUnusedFile: true,
@@ -1145,7 +1084,6 @@ export const b = 'b';`,
 
       await edit({
         fileService,
-        pool,
         recursive,
         entrypoints: ['/app/main.ts'],
         deleteUnusedFile: true,
@@ -1168,7 +1106,6 @@ export const b = 'b';`,
 
       await edit({
         fileService,
-        pool,
         recursive,
         entrypoints: ['/app/main.ts'],
         deleteUnusedFile: true,
@@ -1195,7 +1132,6 @@ export {};\n`,
 
       await edit({
         fileService,
-        pool,
         recursive,
         entrypoints: ['/app/main.ts'],
         deleteUnusedFile: true,
@@ -1217,7 +1153,6 @@ export {};\n`,
 
       await edit({
         fileService,
-        pool,
         recursive,
         entrypoints: ['/app/main.ts'],
       });
@@ -1233,7 +1168,6 @@ export {};\n`,
 
       await edit({
         fileService,
-        pool,
         recursive,
         entrypoints: ['/app/main.ts'],
       });
@@ -1248,7 +1182,6 @@ export {};\n`,
 
       await edit({
         fileService,
-        pool,
         recursive,
         entrypoints: ['/app/main.ts'],
       });
@@ -1263,7 +1196,6 @@ export {};\n`,
 
       await edit({
         fileService,
-        pool,
         recursive,
         entrypoints: ['/app/main.ts'],
       });
@@ -1281,7 +1213,6 @@ export {};\n`,
 
       await edit({
         fileService,
-        pool,
         recursive,
         entrypoints: ['/app/main.ts'],
       });
@@ -1304,7 +1235,6 @@ console.log(b);`,
 
       await edit({
         fileService,
-        pool,
         recursive,
         entrypoints: ['/app/main.ts'],
       });
@@ -1330,7 +1260,6 @@ console.log(B);`,
 
       await edit({
         fileService,
-        pool,
         recursive,
         entrypoints: ['/app/main.ts'],
       });
@@ -1356,7 +1285,6 @@ const b: B = {};`,
 
       await edit({
         fileService,
-        pool,
         recursive,
         entrypoints: ['/app/main.ts'],
       });
@@ -1383,7 +1311,6 @@ import('./b.js');`,
 
       await edit({
         fileService,
-        pool,
         recursive,
         entrypoints: ['/app/main.ts'],
       });
@@ -1402,7 +1329,6 @@ import('./b.js');`,
 
         await edit({
           fileService,
-          pool,
           recursive,
           entrypoints: ['/app/main.ts'],
         });
@@ -1416,7 +1342,6 @@ import('./b.js');`,
 
         await edit({
           fileService,
-          pool,
           recursive,
           entrypoints: ['/app/main.ts'],
         });
@@ -1433,7 +1358,6 @@ import('./b.js');`,
 
         await edit({
           fileService,
-          pool,
           recursive,
           entrypoints: ['/app/main.ts'],
         });
@@ -1452,7 +1376,6 @@ export const a2 = 'a2';`,
 
         await edit({
           fileService,
-          pool,
           recursive,
           entrypoints: ['/app/main.ts'],
         });
@@ -1520,7 +1443,6 @@ const a2 = 'a2';`,
 
       await edit({
         fileService,
-        pool,
         recursive,
         entrypoints: ['/app/main.ts'],
         deleteUnusedFile: true,
@@ -1545,7 +1467,6 @@ const a2 = 'a2';`,
       );
       await edit({
         fileService,
-        pool,
         recursive,
         entrypoints: ['/app/main.ts'],
         deleteUnusedFile: true,
@@ -1562,7 +1483,6 @@ const a2 = 'a2';`,
 
       await edit({
         fileService,
-        pool,
         recursive,
         entrypoints: ['/app/main.ts'],
         deleteUnusedFile: true,
@@ -1578,7 +1498,6 @@ const a2 = 'a2';`,
 
       await edit({
         fileService,
-        pool,
         recursive,
         entrypoints: ['/app/main.ts'],
         deleteUnusedFile: true,
@@ -1637,7 +1556,6 @@ const a2 = 'a2';`,
 
       await edit({
         fileService,
-        pool,
         recursive,
         entrypoints: ['/app/main.ts'],
         deleteUnusedFile: true,
@@ -1659,7 +1577,6 @@ const a2 = 'a2';`,
 
       await edit({
         fileService,
-        pool,
         recursive,
         entrypoints: ['/app/main.ts'],
         deleteUnusedFile: true,
@@ -1688,7 +1605,6 @@ export const c = () => b;`,
 
       await edit({
         fileService,
-        pool,
         recursive,
         entrypoints: ['/app/main.ts'],
         deleteUnusedFile: true,
@@ -1711,7 +1627,6 @@ export const c = () => b;`,
 
         await edit({
           fileService,
-          pool,
           recursive,
           entrypoints: ['/app/main.ts'],
           deleteUnusedFile: true,
@@ -1729,7 +1644,6 @@ export const c = () => b;`,
 
         await edit({
           fileService,
-          pool,
           recursive,
           entrypoints: ['/app/main.ts'],
           deleteUnusedFile: true,
@@ -1748,7 +1662,6 @@ export const a = 'a';`,
 
         await edit({
           fileService,
-          pool,
           recursive,
           entrypoints: ['/app/main.ts'],
           deleteUnusedFile: true,
@@ -1770,7 +1683,6 @@ export const a = 'a';`,
 
         await edit({
           fileService,
-          pool,
           recursive,
           entrypoints: ['/app/main.ts'],
           deleteUnusedFile: true,
@@ -1790,7 +1702,6 @@ export const a = 'a';`,
 
         await edit({
           fileService,
-          pool,
           recursive,
           entrypoints: ['/app/main.ts'],
           deleteUnusedFile: true,
@@ -1819,7 +1730,6 @@ export const remain = 'remain';`,
 
       await edit({
         fileService,
-        pool,
         recursive,
         entrypoints: ['/app/main.ts'],
         enableCodeFix: true,
@@ -1851,7 +1761,6 @@ export const b = () => c;`,
 
       await edit({
         fileService,
-        pool,
         recursive,
         entrypoints: ['/app/main.ts'],
         deleteUnusedFile: true,
@@ -1874,7 +1783,6 @@ export const a2 = 'a2';`,
 
       await edit({
         fileService,
-        pool,
         recursive,
         entrypoints: ['/app/main.ts'],
         deleteUnusedFile: true,
@@ -1897,7 +1805,6 @@ export const a = () => b;`,
 
       await edit({
         fileService,
-        pool,
         recursive,
         entrypoints: ['/app/main.ts'],
         deleteUnusedFile: true,
@@ -1930,7 +1837,6 @@ export const a2 = 'a2';`,
 
       await edit({
         fileService,
-        pool,
         recursive,
         entrypoints: ['/app/main.ts'],
         deleteUnusedFile: true,
@@ -1957,7 +1863,6 @@ export const a = () => d;\n`,
 
       await edit({
         fileService,
-        pool,
         recursive,
         entrypoints: ['/app/main.ts'],
         deleteUnusedFile: true,
@@ -1974,7 +1879,6 @@ export const a = () => d;\n`,
 
       await edit({
         fileService,
-        pool,
         recursive,
         entrypoints: ['/app/main.ts'],
         deleteUnusedFile: true,
@@ -1992,7 +1896,6 @@ export const a = () => d;\n`,
 
       await edit({
         fileService,
-        pool,
         recursive,
         entrypoints: ['/app/main.ts'],
         deleteUnusedFile: true,
@@ -2011,7 +1914,6 @@ export const a = () => d;\n`,
 
       await edit({
         fileService,
-        pool,
         recursive,
         entrypoints: ['/app/main.ts'],
         deleteUnusedFile: true,
@@ -2031,7 +1933,6 @@ export const a = () => d;\n`,
 
       await edit({
         fileService,
-        pool,
         recursive,
         entrypoints: ['/app/main.ts'],
         deleteUnusedFile: true,

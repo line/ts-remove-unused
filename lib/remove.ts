@@ -6,8 +6,6 @@ import { Logger } from './util/Logger.js';
 import { cwd, stdout } from 'node:process';
 import { CliEditTracker } from './util/CliEditTracker.js';
 import { relative } from 'node:path';
-import { WorkerPool } from './util/WorkerPool.js';
-import type { processFile } from './util/edit.js';
 import { formatCount } from './util/formatCount.js';
 import { dts } from './util/regex.js';
 
@@ -99,13 +97,6 @@ export const remove = async ({
     ),
   );
 
-  const pool = new WorkerPool<typeof processFile>({
-    name: 'processFile',
-    url:
-      globalThis.__INTERNAL_WORKER_URL__ ||
-      new URL('./worker.js', import.meta.url).href,
-  });
-
   await edit({
     fileService,
     entrypoints,
@@ -114,7 +105,6 @@ export const remove = async ({
     editTracker,
     options,
     projectRoot,
-    pool,
     recursive,
   });
 
@@ -138,8 +128,6 @@ export const remove = async ({
   }
 
   editTracker.logResult();
-
-  await pool.close();
 
   if (mode === 'check' && !editTracker.isClean) {
     system.exit(1);

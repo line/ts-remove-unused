@@ -1,7 +1,7 @@
 import { dirname, resolve } from 'node:path';
 import { remove } from '../lib/remove.js';
 import { fileURLToPath } from 'node:url';
-import { before, test } from 'node:test';
+import { test } from 'node:test';
 import { stdout } from 'node:process';
 import ts from 'typescript';
 import stripAnsi from 'strip-ansi';
@@ -10,13 +10,6 @@ import { assertEqualOutput } from './helpers/assertEqualOutput.js';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
 const LOG = !!process.env.LOG;
-
-before(() => {
-  globalThis.__INTERNAL_WORKER_URL__ = new URL(
-    '../dist/worker.js',
-    import.meta.url,
-  ).href;
-});
 
 test('reexport_delete', async () => {
   let output = '';

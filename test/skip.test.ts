@@ -1,7 +1,7 @@
 import { dirname, resolve } from 'node:path';
 import { remove } from '../lib/remove.js';
 import { fileURLToPath } from 'node:url';
-import { before, describe, it } from 'node:test';
+import { describe, it } from 'node:test';
 import { stdout } from 'node:process';
 import ts from 'typescript';
 import stripAnsi from 'strip-ansi';
@@ -11,13 +11,6 @@ import assert from 'node:assert/strict';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
 const LOG = !!process.env.LOG;
-
-before(() => {
-  globalThis.__INTERNAL_WORKER_URL__ = new URL(
-    '../dist/worker.js',
-    import.meta.url,
-  ).href;
-});
 
 describe('project: skip', () => {
   it('should throw an error if no patterns are supplied', async () => {
