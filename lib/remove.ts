@@ -22,11 +22,6 @@ const createNodeJsLogger = (): Logger =>
         isTTY: false,
       };
 
-declare global {
-  // eslint-disable-next-line no-var
-  var __INTERNAL_WORKER_URL__: string | undefined;
-}
-
 export const remove = async ({
   configPath,
   skip,
