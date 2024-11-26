@@ -2,26 +2,17 @@ import ts from 'typescript';
 import { Vertexes } from './DependencyGraph.js';
 import { parseFile } from './parseFile.js';
 
-const fallback = () => ({
-  from: new Set<string>(),
-  to: new Set<string>(),
-  data: {
-    depth: Infinity,
-    wholeReexportSpecifier: new Map<string, string>(),
-  },
-});
-
 const ALL_EXPORTS_OF_UNKNOWN_FILE = '__all_exports_of_unknown_file__';
 
 const getExportsOfFile = ({
   targetFile,
-  vertexes,
   files,
+  fileNames,
   options,
 }: {
   targetFile: string;
-  vertexes: Vertexes;
   files: Map<string, string>;
+  fileNames: Set<string>;
   options: ts.CompilerOptions;
 }) => {
   const result: string[] = [];
@@ -35,12 +26,10 @@ const getExportsOfFile = ({
       break;
     }
 
-    const vertex = vertexes.get(item) || fallback();
-
     const { exports } = parseFile({
       file: item,
       content: files.get(item) || '',
-      destFiles: new Set(vertex.to),
+      destFiles: fileNames,
       options,
     });
 
@@ -68,17 +57,19 @@ export const findFileUsage = ({
   options,
   vertexes,
   files,
+  fileNames,
 }: {
   targetFile: string;
   vertexes: Vertexes;
   files: Map<string, string>;
+  fileNames: Set<string>;
   options: ts.CompilerOptions;
 }) => {
   const result: string[] = [];
   const exportsOfTargetFile = getExportsOfFile({
     targetFile,
-    vertexes,
     files,
+    fileNames,
     options,
   });
   const stack: { file: string; to: string }[] = [];
@@ -98,12 +89,10 @@ export const findFileUsage = ({
 
     const { file, to } = item;
 
-    const vertex = vertexes.get(file) || fallback();
-
     const { imports } = parseFile({
       file,
       content: files.get(file) || '',
-      destFiles: new Set(vertex.to),
+      destFiles: fileNames,
       options,
     });
 

@@ -615,10 +615,18 @@ const fn = ({
 
 export const parseFile = memoize(fn, {
   key: (arg) =>
-    JSON.stringify({
-      file: arg.file,
-      content: arg.content,
-      destFiles: Array.from(arg.destFiles).sort(),
-      options: arg.options,
-    }),
+    `${arg.file}::${arg.content}::${key(arg.destFiles)}::${arg.options ? key(arg.options) : ''}`,
 });
+
+const weakMap = new WeakMap<object, number>();
+let current = 0;
+
+const key = (obj: object) => {
+  if (weakMap.has(obj)) {
+    return weakMap.get(obj)!;
+  }
+
+  current++;
+  weakMap.set(obj, current);
+  return current;
+};

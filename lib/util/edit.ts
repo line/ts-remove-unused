@@ -187,6 +187,7 @@ const getSpecifierPosition = (exportDeclaration: string) => {
 const processFile = ({
   targetFile,
   files,
+  fileNames,
   vertexes,
   deleteUnusedFile,
   enableCodeFix,
@@ -196,6 +197,7 @@ const processFile = ({
   targetFile: string;
   vertexes: Vertexes;
   files: Map<string, string>;
+  fileNames: Set<string>;
   deleteUnusedFile: boolean;
   enableCodeFix: boolean;
   options: ts.CompilerOptions;
@@ -205,6 +207,7 @@ const processFile = ({
     targetFile,
     vertexes,
     files,
+    fileNames,
     options,
   });
 
@@ -433,7 +436,7 @@ const processFile = ({
               file: item.file,
               content: files.get(item.file) || '',
               options,
-              destFiles: vertexes.get(item.file)?.to || new Set([]),
+              destFiles: fileNames,
             });
 
             const exported = parsed.exports.flatMap((v) =>
@@ -546,8 +549,7 @@ export {};\n`,
   }
 
   let content = applyTextChanges(files.get(targetFile) || '', changes);
-  const fileService = new MemoryFileService();
-  fileService.set(targetFile, content);
+  const fileService = new MemoryFileService([[targetFile, content]]);
 
   if (enableCodeFix && changes.length > 0) {
     const languageService = createLanguageService({
@@ -647,6 +649,7 @@ export const edit = async ({
       targetFile: c.file,
       vertexes: dependencyGraph.eject(),
       files: fileService.eject(),
+      fileNames: fileService.getFileNamesSet(),
       deleteUnusedFile,
       enableCodeFix,
       options,

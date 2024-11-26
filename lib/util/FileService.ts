@@ -4,6 +4,7 @@ export interface FileService {
   delete(name: string): void;
   getVersion(name: string): string;
   getFileNames(): string[];
+  getFileNamesSet(): Set<string>;
   exists(name: string): boolean;
   eject(): Map<string, string>;
 }
