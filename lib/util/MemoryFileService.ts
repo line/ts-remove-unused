@@ -49,11 +49,6 @@ export class MemoryFileService implements FileService {
     return file ? file.version.toString() : '';
   }
 
-  // todo: remove later
-  getFileNames() {
-    return Array.from(this.#files.keys());
-  }
-
   getFileNamesSet() {
     return this.#fileNames;
   }

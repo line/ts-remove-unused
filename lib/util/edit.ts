@@ -100,7 +100,7 @@ const createLanguageService = ({
       return options;
     },
     getScriptFileNames() {
-      return fileService.getFileNames();
+      return Array.from(fileService.getFileNamesSet());
     },
     getScriptVersion(fileName) {
       return fileService.getVersion(fileName);
@@ -622,12 +622,12 @@ export const edit = async ({
   });
 
   // sort initial files by depth so that we process the files closest to the entrypoints first
-  const initialFiles = Array.from(
-    fileService.getFileNames().filter((file) => !entrypoints.includes(file)),
-  ).map((file) => ({
-    file,
-    depth: dependencyGraph.vertexes.get(file)?.data.depth || Infinity,
-  }));
+  const initialFiles = Array.from(fileService.getFileNamesSet())
+    .filter((file) => !entrypoints.includes(file))
+    .map((file) => ({
+      file,
+      depth: dependencyGraph.vertexes.get(file)?.data.depth || Infinity,
+    }));
 
   initialFiles.sort((a, b) => a.depth - b.depth);
 

@@ -9,7 +9,7 @@ export const setup = () => {
       return {};
     },
     getScriptFileNames() {
-      return fileService.getFileNames();
+      return Array.from(fileService.getFileNamesSet());
     },
     getScriptVersion(fileName) {
       return fileService.getVersion(fileName);

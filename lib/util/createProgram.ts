@@ -36,7 +36,7 @@ export const createProgram = ({
   };
 
   const program = ts.createProgram(
-    fileService.getFileNames(),
+    Array.from(fileService.getFileNamesSet()),
     options,
     compilerHost,
   );
