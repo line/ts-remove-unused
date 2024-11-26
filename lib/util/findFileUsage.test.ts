@@ -30,7 +30,7 @@ describe('findFileUsage', () => {
       targetFile: '/app/a.ts',
       vertexes: graph.eject(),
       files: fileService.eject(),
-      fileNames: fileService.getFileNamesSet(),
+      fileNames: fileService.getFileNames(),
       options: {},
     });
 
@@ -63,7 +63,7 @@ describe('findFileUsage', () => {
       targetFile: '/app/a.ts',
       vertexes: graph.eject(),
       files: fileService.eject(),
-      fileNames: fileService.getFileNamesSet(),
+      fileNames: fileService.getFileNames(),
       options: {},
     });
 
@@ -89,7 +89,7 @@ describe('findFileUsage', () => {
       targetFile: '/app/a.ts',
       vertexes: graph.eject(),
       files: fileService.eject(),
-      fileNames: fileService.getFileNamesSet(),
+      fileNames: fileService.getFileNames(),
       options: {},
     });
 
@@ -119,7 +119,7 @@ describe('findFileUsage', () => {
       targetFile: '/app/a.ts',
       vertexes: graph.eject(),
       files: fileService.eject(),
-      fileNames: fileService.getFileNamesSet(),
+      fileNames: fileService.getFileNames(),
       options: {},
     });
 
@@ -144,7 +144,7 @@ describe('findFileUsage', () => {
       targetFile: '/app/a.ts',
       vertexes: graph.eject(),
       files: fileService.eject(),
-      fileNames: fileService.getFileNamesSet(),
+      fileNames: fileService.getFileNames(),
       options: {},
     });
 
@@ -173,7 +173,7 @@ describe('findFileUsage', () => {
       targetFile: '/app/a.ts',
       vertexes: graph.eject(),
       files: fileService.eject(),
-      fileNames: fileService.getFileNamesSet(),
+      fileNames: fileService.getFileNames(),
       options: {},
     });
 

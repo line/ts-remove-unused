@@ -49,7 +49,7 @@ export class MemoryFileService implements FileService {
     return file ? file.version.toString() : '';
   }
 
-  getFileNamesSet() {
+  getFileNames() {
     return this.#fileNames;
   }
 

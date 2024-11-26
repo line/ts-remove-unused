@@ -82,10 +82,10 @@ export const createDependencyGraph = ({
   entrypoints: string[];
 }) => {
   const graph = new DependencyGraph();
-  const files = new Set(fileService.getFileNamesSet());
+  const files = new Set(fileService.getFileNames());
 
   const stack: { depth: number; file: string }[] = [];
-  const untouched = new Set(fileService.getFileNamesSet());
+  const untouched = new Set(fileService.getFileNames());
 
   for (const entrypoint of entrypoints) {
     stack.push({ file: entrypoint, depth: 0 });
