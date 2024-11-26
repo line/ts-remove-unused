@@ -600,15 +600,17 @@ const fn = ({
 
   sourceFile.forEachChild(visit);
 
-  findDynamicImports({
-    destFiles,
-    file,
-    sourceFile,
-    options,
-  }).forEach((resolved) => {
-    imports[resolved] ||= [];
-    imports[resolved]?.push('*');
-  });
+  if (content.includes('import(')) {
+    findDynamicImports({
+      destFiles,
+      file,
+      sourceFile,
+      options,
+    }).forEach((resolved) => {
+      imports[resolved] ||= [];
+      imports[resolved]?.push('*');
+    });
+  }
 
   return { imports, exports, ambientDeclarations };
 };
