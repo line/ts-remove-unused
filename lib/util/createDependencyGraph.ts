@@ -1,89 +1,18 @@
 import ts from 'typescript';
 import { FileService } from './FileService.js';
 import { DependencyGraph } from './DependencyGraph.js';
-
-const getFileFromModuleSpecifierText = ({
-  specifier,
-  fileName,
-  program,
-  fileService,
-}: {
-  specifier: string;
-  fileName: string;
-  program: ts.Program;
-  fileService: FileService;
-}) =>
-  ts.resolveModuleName(specifier, fileName, program.getCompilerOptions(), {
-    fileExists(f) {
-      return fileService.exists(f);
-    },
-    readFile(f) {
-      return fileService.get(f);
-    },
-  }).resolvedModule?.resolvedFileName;
-
-const getMatchingNode = (node: ts.Node) => {
-  if (ts.isImportDeclaration(node)) {
-    if (ts.isStringLiteral(node.moduleSpecifier)) {
-      return {
-        type: 'import' as const,
-        specifier: node.moduleSpecifier.text,
-      };
-    }
-    return {
-      type: 'import' as const,
-      specifier: null,
-    };
-  }
-
-  if (ts.isExportDeclaration(node)) {
-    if (node.moduleSpecifier && ts.isStringLiteral(node.moduleSpecifier)) {
-      const result = {
-        type: 'reexport' as const,
-        specifier: node.moduleSpecifier.text,
-        whole: !node.exportClause,
-      };
-
-      return result;
-    }
-    return {
-      type: 'reexport' as const,
-      specifier: null,
-    };
-  }
-
-  if (
-    ts.isCallExpression(node) &&
-    node.expression.kind === ts.SyntaxKind.ImportKeyword
-  ) {
-    if (node.arguments[0] && ts.isStringLiteral(node.arguments[0])) {
-      return {
-        type: 'dynamicImport' as const,
-        specifier: node.arguments[0].text,
-      };
-    }
-
-    return {
-      type: 'dynamicImport' as const,
-      specifier: null,
-    };
-  }
-
-  return null;
-};
+import { parseFile } from './parseFile.js';
 
 export const createDependencyGraph = ({
   fileService,
-  program,
   entrypoints,
+  options,
 }: {
   fileService: FileService;
-  program: ts.Program;
   entrypoints: string[];
+  options: ts.CompilerOptions;
 }) => {
   const graph = new DependencyGraph();
-  const files = new Set(fileService.getFileNames());
-
   const stack: { depth: number; file: string }[] = [];
   const untouched = new Set(fileService.getFileNames());
 
@@ -106,39 +35,17 @@ export const createDependencyGraph = ({
 
     untouched.delete(file);
 
-    const sourceFile = program.getSourceFile(file);
+    const { imports } = parseFile({
+      file,
+      content: fileService.get(file),
+      destFiles: fileService.getFileNames(),
+      options,
+    });
 
-    if (!sourceFile) {
-      continue;
-    }
-
-    const visit = (node: ts.Node) => {
-      const match = getMatchingNode(node);
-
-      if (!match) {
-        node.forEachChild(visit);
-
-        return;
-      }
-
-      if (match.specifier) {
-        const dest = getFileFromModuleSpecifierText({
-          specifier: match.specifier,
-          program,
-          fileName: sourceFile.fileName,
-          fileService,
-        });
-
-        if (dest && files.has(dest)) {
-          graph.addEdge(sourceFile.fileName, dest);
-          stack.push({ file: dest, depth: depth + 1 });
-        }
-
-        return;
-      }
-    };
-
-    sourceFile.forEachChild(visit);
+    Object.keys(imports).forEach((dest) => {
+      graph.addEdge(file, dest);
+      stack.push({ file: dest, depth: depth + 1 });
+    });
 
     const vertex = graph.vertexes.get(file);
 
@@ -148,38 +55,16 @@ export const createDependencyGraph = ({
   }
 
   for (const file of untouched.values()) {
-    const sourceFile = program.getSourceFile(file);
+    const { imports } = parseFile({
+      file,
+      content: fileService.get(file),
+      destFiles: fileService.getFileNames(),
+      options,
+    });
 
-    if (!sourceFile) {
-      continue;
-    }
-
-    const visit = (node: ts.Node) => {
-      const match = getMatchingNode(node);
-
-      if (!match) {
-        node.forEachChild(visit);
-
-        return;
-      }
-
-      if (match.specifier) {
-        const dest = getFileFromModuleSpecifierText({
-          specifier: match.specifier,
-          program,
-          fileName: sourceFile.fileName,
-          fileService,
-        });
-
-        if (dest && files.has(dest)) {
-          graph.addEdge(sourceFile.fileName, dest);
-        }
-
-        return;
-      }
-    };
-
-    sourceFile.forEachChild(visit);
+    Object.keys(imports).forEach((dest) => {
+      graph.addEdge(file, dest);
+    });
 
     const vertex = graph.vertexes.get(file);
 

@@ -1,9 +1,11 @@
 import { describe, it } from 'node:test';
 import { MemoryFileService } from './MemoryFileService.js';
-import { createProgram } from './createProgram.js';
 import { createDependencyGraph } from './createDependencyGraph.js';
 import { findFileUsage } from './findFileUsage.js';
 import assert from 'node:assert/strict';
+import ts from 'typescript';
+
+const options: ts.CompilerOptions = {};
 
 describe('findFileUsage', () => {
   it('should return a set of identifiers that are used', () => {
@@ -14,15 +16,9 @@ describe('findFileUsage', () => {
       `export const a = 'a'; export const a2 = 'a2';`,
     );
 
-    const program = createProgram({
-      fileService,
-      options: {},
-      projectRoot: '/app',
-    });
-
     const graph = createDependencyGraph({
       fileService,
-      program,
+      options,
       entrypoints: ['/app/main.ts'],
     });
 
@@ -49,14 +45,9 @@ describe('findFileUsage', () => {
     );
     fileService.set('/app/b.ts', `export const b = 'b';`);
 
-    const program = createProgram({
-      fileService,
-      options: {},
-      projectRoot: '/app',
-    });
     const graph = createDependencyGraph({
       fileService,
-      program,
+      options,
       entrypoints: ['/app/main.ts'],
     });
     const result = findFileUsage({
@@ -75,14 +66,10 @@ describe('findFileUsage', () => {
     fileService.set('/app/main.ts', `import { a, b } from './a';`);
     fileService.set('/app/a.ts', `export * from './b'; export const a = 'a';`);
     fileService.set('/app/b.ts', `export const b = 'b';`);
-    const program = createProgram({
-      fileService,
-      options: {},
-      projectRoot: '/app',
-    });
+
     const graph = createDependencyGraph({
       fileService,
-      program,
+      options,
       entrypoints: ['/app/main.ts'],
     });
     const result = findFileUsage({
@@ -105,14 +92,10 @@ describe('findFileUsage', () => {
     );
     fileService.set('/app/a.ts', `export const a = 'a';`);
     fileService.set('/app/b.ts', `export const b = 'b';`);
-    const program = createProgram({
-      fileService,
-      options: {},
-      projectRoot: '/app',
-    });
+
     const graph = createDependencyGraph({
       fileService,
-      program,
+      options,
       entrypoints: ['/app/main.ts'],
     });
     const result = findFileUsage({
@@ -130,14 +113,10 @@ describe('findFileUsage', () => {
     const fileService = new MemoryFileService();
     fileService.set('/app/main.ts', `import { glob } from './a';`);
     fileService.set('/app/a.ts', `export * from 'node:fs';`);
-    const program = createProgram({
-      fileService,
-      options: {},
-      projectRoot: '/app',
-    });
+
     const graph = createDependencyGraph({
       fileService,
-      program,
+      options,
       entrypoints: ['/app/main.ts'],
     });
     const result = findFileUsage({
@@ -159,14 +138,10 @@ describe('findFileUsage', () => {
       `export * from 'node:process'; export * from './a';`,
     );
     fileService.set('/app/a.ts', `export * from 'node:fs';`);
-    const program = createProgram({
-      fileService,
-      options: {},
-      projectRoot: '/app',
-    });
+
     const graph = createDependencyGraph({
       fileService,
-      program,
+      options,
       entrypoints: ['/app/main.ts'],
     });
     const result = findFileUsage({

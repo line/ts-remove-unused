@@ -12,7 +12,6 @@ import { createDependencyGraph } from './createDependencyGraph.js';
 import { MemoryFileService } from './MemoryFileService.js';
 import { TaskManager } from './TaskManager.js';
 import { findFileUsage } from './findFileUsage.js';
-import { createProgram } from './createProgram.js';
 import { parseFile } from './parseFile.js';
 
 const transform = (
@@ -613,11 +612,9 @@ export const edit = async ({
   projectRoot?: string;
   recursive: boolean;
 }) => {
-  const program = createProgram({ fileService, options, projectRoot });
-
   const dependencyGraph = createDependencyGraph({
     fileService,
-    program,
+    options,
     entrypoints,
   });
 
