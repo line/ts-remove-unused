@@ -7,7 +7,6 @@ import { cwd, stdout } from 'node:process';
 import { CliEditTracker } from './util/CliEditTracker.js';
 import { relative } from 'node:path';
 import { formatCount } from './util/formatCount.js';
-import { dts } from './util/regex.js';
 
 const createNodeJsLogger = (): Logger =>
   'isTTY' in stdout && stdout.isTTY
@@ -30,6 +29,7 @@ export const remove = async ({
   recursive = false,
   system = ts.sys,
   logger = createNodeJsLogger(),
+  includeDts = false,
 }: {
   configPath: string;
   skip: RegExp[];
@@ -38,6 +38,7 @@ export const remove = async ({
   recursive?: boolean;
   system?: ts.System;
   logger?: Logger;
+  includeDts?: boolean;
 }) => {
   const { config, error } = ts.readConfigFile(configPath, system.readFile);
 
@@ -57,11 +58,14 @@ export const remove = async ({
     fileNames.map((n) => [n, system.readFile(n) || '']),
   );
 
-  const entrypoints = fileNames.filter((fileName) =>
-    skip.some((regex) => regex.test(fileName)),
+  const entrypoints = fileNames.filter(
+    (fileName) =>
+      skip.some((regex) => regex.test(fileName)) ||
+      // we want to include the .d.ts files as an entrypoint if includeDts is false
+      (!includeDts && /\.d\.ts$/.test(fileName)),
   );
 
-  if (skip.filter((it) => it !== dts).length === 0) {
+  if (skip.length === 0) {
     logger.write(
       chalk.bold.red(
         'At least one pattern must be specified for the skip option\n',
