@@ -260,6 +260,49 @@ const collectName = (node: ts.BindingName): string[] => {
   return [];
 };
 
+const findDynamicImports = ({
+  destFiles,
+  sourceFile,
+  file,
+  options,
+}: {
+  destFiles: Set<string>;
+  sourceFile: ts.SourceFile;
+  file: string;
+  options: ts.CompilerOptions;
+}) => {
+  const result: string[] = [];
+
+  const visit = (node: ts.Node) => {
+    if (
+      ts.isCallExpression(node) &&
+      node.expression.kind === ts.SyntaxKind.ImportKeyword
+    ) {
+      if (node.arguments[0] && ts.isStringLiteral(node.arguments[0])) {
+        const resolved = resolve({
+          specifier: node.arguments[0].text,
+          destFiles,
+          file,
+          options,
+        });
+
+        if (!resolved) {
+          return;
+        }
+
+        result.push(resolved);
+      }
+
+      return;
+    }
+
+    node.forEachChild(visit);
+  };
+
+  sourceFile.forEachChild(visit);
+  return result;
+};
+
 const fn = ({
   file,
   content,
@@ -304,7 +347,6 @@ const fn = ({
         });
       }
 
-      ts.forEachChild(node, visit);
       return;
     }
 
@@ -340,7 +382,6 @@ const fn = ({
         }
       }
 
-      ts.forEachChild(node, visit);
       return;
     }
 
@@ -359,7 +400,6 @@ const fn = ({
         });
       }
 
-      ts.forEachChild(node, visit);
       return;
     }
 
@@ -372,7 +412,6 @@ const fn = ({
         start: node.getStart(),
       });
 
-      ts.forEachChild(node, visit);
       return;
     }
 
@@ -539,29 +578,6 @@ const fn = ({
       return;
     }
 
-    if (
-      ts.isCallExpression(node) &&
-      node.expression.kind === ts.SyntaxKind.ImportKeyword &&
-      node.arguments[0] &&
-      ts.isStringLiteral(node.arguments[0])
-    ) {
-      const resolved = resolve({
-        specifier: node.arguments[0].text,
-        destFiles,
-        file,
-        options,
-      });
-
-      if (!resolved) {
-        return;
-      }
-
-      imports[resolved] ||= [];
-      imports[resolved]?.push('*');
-
-      return;
-    }
-
     if (ts.isModuleDeclaration(node)) {
       // is ambient module
       // ref. https://github.com/microsoft/TypeScript/blob/d701d908d534e68cfab24b6df15539014ac348a3/src/compiler/utilities.ts#L2002
@@ -579,20 +595,40 @@ const fn = ({
       return;
     }
 
-    node.forEachChild(visit);
+    return;
   };
 
   sourceFile.forEachChild(visit);
+
+  if (content.includes('import(')) {
+    findDynamicImports({
+      destFiles,
+      file,
+      sourceFile,
+      options,
+    }).forEach((resolved) => {
+      imports[resolved] ||= [];
+      imports[resolved]?.push('*');
+    });
+  }
 
   return { imports, exports, ambientDeclarations };
 };
 
 export const parseFile = memoize(fn, {
   key: (arg) =>
-    JSON.stringify({
-      file: arg.file,
-      content: arg.content,
-      destFiles: Array.from(arg.destFiles).sort(),
-      options: arg.options,
-    }),
+    `${arg.file}::${arg.content}::${key(arg.destFiles)}::${arg.options ? key(arg.options) : ''}`,
 });
+
+const weakMap = new WeakMap<object, number>();
+let current = 0;
+
+const key = (obj: object) => {
+  if (weakMap.has(obj)) {
+    return weakMap.get(obj)!;
+  }
+
+  current++;
+  weakMap.set(obj, current);
+  return current;
+};

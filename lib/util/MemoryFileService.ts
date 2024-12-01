@@ -2,17 +2,33 @@ import { FileService } from './FileService.js';
 
 export class MemoryFileService implements FileService {
   #files: Map<string, { content: string; version: number }>;
+  #fileNames = new Set<string>();
 
-  constructor() {
+  constructor(initialFiles?: Iterable<[string, string]>) {
     this.#files = new Map();
+    for (const [name, content] of initialFiles || []) {
+      this.#files.set(name, {
+        content,
+        version: 0,
+      });
+    }
+    this.#fileNames = new Set(this.#files.keys());
   }
 
   set(name: string, content: string) {
-    const currentVersion = this.#files.get(name)?.version || 0;
-    this.#files.set(name, {
-      content,
-      version: currentVersion + 1,
-    });
+    const stored = this.#files.get(name);
+    if (stored) {
+      this.#files.set(name, {
+        content,
+        version: stored.version + 1,
+      });
+    } else {
+      this.#files.set(name, {
+        content,
+        version: 0,
+      });
+      this.#fileNames = new Set(this.#files.keys());
+    }
   }
 
   get(name: string) {
@@ -24,6 +40,7 @@ export class MemoryFileService implements FileService {
 
   delete(name: string) {
     this.#files.delete(name);
+    this.#fileNames = new Set(this.#files.keys());
   }
 
   getVersion(name: string) {
@@ -32,8 +49,11 @@ export class MemoryFileService implements FileService {
     return file ? file.version.toString() : '';
   }
 
+  // we reuse the same Set and update when there's a change in the file list
+  // so that this Set reference can be used as a key for memoization
+  // see also: lib/util/parseFile.ts
   getFileNames() {
-    return Array.from(this.#files.keys());
+    return this.#fileNames;
   }
 
   exists(name: string) {

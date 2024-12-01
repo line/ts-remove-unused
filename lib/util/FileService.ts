@@ -3,7 +3,7 @@ export interface FileService {
   get(name: string): string;
   delete(name: string): void;
   getVersion(name: string): string;
-  getFileNames(): string[];
+  getFileNames(): Set<string>;
   exists(name: string): boolean;
   eject(): Map<string, string>;
 }

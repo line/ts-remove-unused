@@ -1,22 +1,14 @@
 import { describe, it } from 'node:test';
-import { setup } from '../../test/helpers/setup.js';
 import { createDependencyGraph } from './createDependencyGraph.js';
 import ts from 'typescript';
 import assert from 'node:assert/strict';
+import { MemoryFileService } from './MemoryFileService.js';
 
-const getProgram = (languageService: ts.LanguageService) => {
-  const program = languageService.getProgram();
-
-  if (!program) {
-    throw new Error('Program not found');
-  }
-
-  return program;
-};
+const options: ts.CompilerOptions = {};
 
 describe('createDependencyGraph', () => {
   it('should return a graph of imports', () => {
-    const { languageService, fileService } = setup();
+    const fileService = new MemoryFileService();
     fileService.set('/app/main.ts', `import { a } from './a.js';`);
     fileService.set(
       '/app/a.ts',
@@ -27,11 +19,9 @@ export const a = () => ({ b, c });`,
     fileService.set('/app/b.ts', `export const b = 'b';`);
     fileService.set('/app/c.ts', `export const c = 'c';`);
 
-    const program = getProgram(languageService);
-
     const graph = createDependencyGraph({
       fileService,
-      program,
+      options,
       entrypoints: ['/app/main.ts'],
     });
 
@@ -64,7 +54,7 @@ export const a = () => ({ b, c });`,
   });
 
   it('should return a graph of imports when re-exports are used', () => {
-    const { languageService, fileService } = setup();
+    const fileService = new MemoryFileService();
     fileService.set('/app/main.ts', `import { a } from './a.js';`);
     fileService.set(
       '/app/a.ts',
@@ -74,10 +64,9 @@ export const a = () => b;`,
     fileService.set('/app/b.ts', `export { b } from './b2.js';`);
     fileService.set('/app/b2.ts', `export const b = 'b';`);
 
-    const program = getProgram(languageService);
     const graph = createDependencyGraph({
       fileService,
-      program,
+      options,
       entrypoints: ['/app/main.ts'],
     });
 
@@ -110,7 +99,7 @@ export const a = () => b;`,
   });
 
   it('should return a graph of imports when whole re-exports are used', () => {
-    const { languageService, fileService } = setup();
+    const fileService = new MemoryFileService();
     fileService.set('/app/main.ts', `import { a } from './a.js';`);
     fileService.set(
       '/app/a.ts',
@@ -120,10 +109,9 @@ export const a = () => b;`,
     fileService.set('/app/b.ts', `export * from './b2.js';`);
     fileService.set('/app/b2.ts', `export const b = 'b';`);
 
-    const program = getProgram(languageService);
     const graph = createDependencyGraph({
       fileService,
-      program,
+      options,
       entrypoints: ['/app/main.ts'],
     });
 
@@ -156,15 +144,14 @@ export const a = () => b;`,
   });
 
   it('should return a graph of imports when dynamic imports are used', () => {
-    const { languageService, fileService } = setup();
+    const fileService = new MemoryFileService();
     fileService.set('/app/main.ts', `import('./a.js');`);
     fileService.set('/app/a.ts', `export a = () => import('./b.js');`);
     fileService.set('/app/b.ts', `export const b = 'b';`);
 
-    const program = getProgram(languageService);
     const graph = createDependencyGraph({
       fileService,
-      program,
+      options,
       entrypoints: ['/app/main.ts'],
     });
 
@@ -191,7 +178,7 @@ export const a = () => b;`,
   });
 
   it('should handle files that are unreachable from the entry point', () => {
-    const { languageService, fileService } = setup();
+    const fileService = new MemoryFileService();
     fileService.set('/app/main.ts', `import { a } from './a.js';`);
     fileService.set(
       '/app/a.ts',
@@ -206,11 +193,9 @@ export const c = () => d;`,
     );
     fileService.set('/app/d.ts', `export const d = 'd';`);
 
-    const program = getProgram(languageService);
-
     const graph = createDependencyGraph({
       fileService,
-      program,
+      options,
       entrypoints: ['/app/main.ts'],
     });
 
@@ -247,27 +232,25 @@ export const c = () => d;`,
   });
 
   it('should not create a vertex if there are no imports', () => {
-    const { languageService, fileService } = setup();
+    const fileService = new MemoryFileService();
     fileService.set('/app/main.ts', 'console.log("hello world");');
-    const program = getProgram(languageService);
     const graph = createDependencyGraph({
       fileService,
-      program,
+      options,
       entrypoints: ['/app/main.ts'],
     });
     assert.equal(graph.vertexes.size, 0);
   });
 
   it('should not create a vertex for a file that is unreachable from the entry point if there are no imports from/exports to the file', () => {
-    const { languageService, fileService } = setup();
+    const fileService = new MemoryFileService();
     fileService.set('/app/main.ts', `import { a } from './a.js';`);
     fileService.set('/app/a.ts', `export const a = () => 'a';`);
     fileService.set('/app/b.ts', `export const b = 'b';`);
 
-    const program = getProgram(languageService);
     const graph = createDependencyGraph({
       fileService,
-      program,
+      options,
       entrypoints: ['/app/main.ts'],
     });
     assert.equal(graph.vertexes.size, 2);
@@ -277,7 +260,7 @@ export const c = () => d;`,
   });
 
   it('should correctly collect circular dependencies', () => {
-    const { languageService, fileService } = setup();
+    const fileService = new MemoryFileService();
 
     fileService.set(
       '/app/main.ts',
@@ -301,11 +284,9 @@ export const b = () => c();`,
 export const c = () => a2;`,
     );
 
-    const program = getProgram(languageService);
-
     const graph = createDependencyGraph({
       fileService,
-      program,
+      options,
       entrypoints: ['/app/main.ts'],
     });
 
@@ -340,7 +321,7 @@ export const c = () => a2;`,
   });
 
   it('should work when there are multiple entrypoints', () => {
-    const { languageService, fileService } = setup();
+    const fileService = new MemoryFileService();
 
     fileService.set(
       '/app/main.ts',
@@ -364,11 +345,9 @@ export const b = () => c;`,
     );
     fileService.set('/app/c.ts', `export const c = 'c';`);
 
-    const program = getProgram(languageService);
-
     const graph = createDependencyGraph({
       fileService,
-      program,
+      options,
       entrypoints: ['/app/main.ts', '/app/main2.ts'],
     });
 

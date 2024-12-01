@@ -12,7 +12,6 @@ import { createDependencyGraph } from './createDependencyGraph.js';
 import { MemoryFileService } from './MemoryFileService.js';
 import { TaskManager } from './TaskManager.js';
 import { findFileUsage } from './findFileUsage.js';
-import { createProgram } from './createProgram.js';
 import { parseFile } from './parseFile.js';
 
 const transform = (
@@ -100,7 +99,7 @@ const createLanguageService = ({
       return options;
     },
     getScriptFileNames() {
-      return fileService.getFileNames();
+      return Array.from(fileService.getFileNames());
     },
     getScriptVersion(fileName) {
       return fileService.getVersion(fileName);
@@ -187,6 +186,7 @@ const getSpecifierPosition = (exportDeclaration: string) => {
 const processFile = ({
   targetFile,
   files,
+  fileNames,
   vertexes,
   deleteUnusedFile,
   enableCodeFix,
@@ -196,6 +196,7 @@ const processFile = ({
   targetFile: string;
   vertexes: Vertexes;
   files: Map<string, string>;
+  fileNames: Set<string>;
   deleteUnusedFile: boolean;
   enableCodeFix: boolean;
   options: ts.CompilerOptions;
@@ -205,6 +206,7 @@ const processFile = ({
     targetFile,
     vertexes,
     files,
+    fileNames,
     options,
   });
 
@@ -433,7 +435,7 @@ const processFile = ({
               file: item.file,
               content: files.get(item.file) || '',
               options,
-              destFiles: vertexes.get(item.file)?.to || new Set([]),
+              destFiles: fileNames,
             });
 
             const exported = parsed.exports.flatMap((v) =>
@@ -546,8 +548,7 @@ export {};\n`,
   }
 
   let content = applyTextChanges(files.get(targetFile) || '', changes);
-  const fileService = new MemoryFileService();
-  fileService.set(targetFile, content);
+  const fileService = new MemoryFileService([[targetFile, content]]);
 
   if (enableCodeFix && changes.length > 0) {
     const languageService = createLanguageService({
@@ -611,21 +612,19 @@ export const edit = async ({
   projectRoot?: string;
   recursive: boolean;
 }) => {
-  const program = createProgram({ fileService, options, projectRoot });
-
   const dependencyGraph = createDependencyGraph({
     fileService,
-    program,
+    options,
     entrypoints,
   });
 
   // sort initial files by depth so that we process the files closest to the entrypoints first
-  const initialFiles = Array.from(
-    fileService.getFileNames().filter((file) => !entrypoints.includes(file)),
-  ).map((file) => ({
-    file,
-    depth: dependencyGraph.vertexes.get(file)?.data.depth || Infinity,
-  }));
+  const initialFiles = Array.from(fileService.getFileNames())
+    .filter((file) => !entrypoints.includes(file))
+    .map((file) => ({
+      file,
+      depth: dependencyGraph.vertexes.get(file)?.data.depth || Infinity,
+    }));
 
   initialFiles.sort((a, b) => a.depth - b.depth);
 
@@ -647,6 +646,7 @@ export const edit = async ({
       targetFile: c.file,
       vertexes: dependencyGraph.eject(),
       files: fileService.eject(),
+      fileNames: fileService.getFileNames(),
       deleteUnusedFile,
       enableCodeFix,
       options,

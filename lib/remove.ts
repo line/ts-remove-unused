@@ -53,10 +53,9 @@ export const remove = async ({
     logger.write(`${chalk.blue('tsconfig')} ${relativeToCwd(configPath)}\n`);
   }
 
-  const fileService = new MemoryFileService();
-  for (const fileName of fileNames) {
-    fileService.set(fileName, system.readFile(fileName) || '');
-  }
+  const fileService = new MemoryFileService(
+    fileNames.map((n) => [n, system.readFile(n) || '']),
+  );
 
   const entrypoints = fileNames.filter((fileName) =>
     skip.some((regex) => regex.test(fileName)),
