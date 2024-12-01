@@ -23,6 +23,7 @@ jobs:
             echo "TAG=beta" >> $GITHUB_ENV
           else
             echo "TAG=latest" >> $GITHUB_ENV
+          fi
 
       - run: npm publish --provenance --access public --tag $TAG
         env:
