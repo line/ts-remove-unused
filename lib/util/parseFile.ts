@@ -1,7 +1,7 @@
 import ts from 'typescript';
 import { memoize } from './memoize.js';
 
-const IGNORE_COMMENT = 'ts-remove-unused-skip';
+const IGNORE_COMMENT = 'tsr-skip';
 
 const getLeadingComment = (node: ts.Node) => {
   const fullText = node.getSourceFile().getFullText();

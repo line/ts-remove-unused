@@ -190,7 +190,7 @@ await remove({
 When you add a comment `// ts-remove-unused-skip` to your export declaration, it will be skipped from being removed
 
 ```ts
-// ts-remove-unused-skip
+// tsr-skip
 export const hello = 'world';
 ```
 

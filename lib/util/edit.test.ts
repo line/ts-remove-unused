@@ -41,7 +41,7 @@ describe('edit', () => {
       const fileService = new MemoryFileService();
       fileService.set(
         '/app/a.ts',
-        `// ts-remove-unused-skip
+        `// tsr-skip
   export const b = 'b';`,
       );
 
@@ -55,7 +55,7 @@ describe('edit', () => {
 
       assert.equal(
         result,
-        `// ts-remove-unused-skip
+        `// tsr-skip
   export const b = 'b';`,
       );
     });
@@ -268,7 +268,7 @@ async function a2() {}`,
       const fileService = new MemoryFileService();
       fileService.set(
         '/app/a.ts',
-        `// ts-remove-unused-skip
+        `// tsr-skip
   export function b() {}`,
       );
 
@@ -282,7 +282,7 @@ async function a2() {}`,
 
       assert.equal(
         result,
-        `// ts-remove-unused-skip
+        `// tsr-skip
   export function b() {}`,
       );
     });
@@ -334,7 +334,7 @@ import C from './c';`,
       const fileService = new MemoryFileService();
       fileService.set(
         '/app/a.ts',
-        `// ts-remove-unused-skip
+        `// tsr-skip
   export class A {}`,
       );
 
@@ -348,7 +348,7 @@ import C from './c';`,
 
       assert.equal(
         result,
-        `// ts-remove-unused-skip
+        `// tsr-skip
   export class A {}`,
       );
     });
@@ -400,7 +400,7 @@ import B from './b';`,
       const fileService = new MemoryFileService();
       fileService.set(
         '/app/a.ts',
-        `// ts-remove-unused-skip
+        `// tsr-skip
   export interface A { a: 'a' }`,
       );
 
@@ -414,7 +414,7 @@ import B from './b';`,
 
       assert.equal(
         result,
-        `// ts-remove-unused-skip
+        `// tsr-skip
   export interface A { a: 'a' }`,
       );
     });
@@ -455,7 +455,7 @@ import B from './b';`,
       const fileService = new MemoryFileService();
       fileService.set(
         '/app/a.ts',
-        `// ts-remove-unused-skip
+        `// tsr-skip
   export type B = 'b';`,
       );
 
@@ -469,7 +469,7 @@ import B from './b';`,
 
       assert.equal(
         result,
-        `// ts-remove-unused-skip
+        `// tsr-skip
   export type B = 'b';`,
       );
     });
@@ -525,7 +525,7 @@ import B from './b';`,
       const fileService = new MemoryFileService();
       fileService.set(
         '/app/b.ts',
-        `// ts-remove-unused-skip
+        `// tsr-skip
   export enum B { B1 }`,
       );
 
@@ -539,7 +539,7 @@ import B from './b';`,
 
       assert.equal(
         result,
-        `// ts-remove-unused-skip
+        `// tsr-skip
   export enum B { B1 }`,
       );
     });
@@ -614,7 +614,7 @@ export default B;`,
       fileService.set(
         '/app/a.ts',
         `const a = 'a';
-  // ts-remove-unused-skip
+  // tsr-skip
   export default a;`,
       );
 
@@ -628,7 +628,7 @@ export default B;`,
       assert.equal(
         result,
         `const a = 'a';
-  // ts-remove-unused-skip
+  // tsr-skip
   export default a;`,
       );
     });
@@ -672,7 +672,7 @@ export default B;`,
 
       fileService.set(
         '/app/a.ts',
-        `// ts-remove-unused-skip
+        `// tsr-skip
   export default 'a';`,
       );
 
@@ -685,7 +685,7 @@ export default B;`,
       const result = fileService.get('/app/a.ts');
       assert.equal(
         result,
-        `// ts-remove-unused-skip
+        `// tsr-skip
   export default 'a';`,
       );
     });
@@ -793,7 +793,7 @@ export { d };`,
       fileService.set(
         '/app/a.ts',
         `const a = 'a';
-// ts-remove-unused-skip
+// tsr-skip
 export { 
   a
 };`,
@@ -809,7 +809,7 @@ export {
       assert.equal(
         result,
         `const a = 'a';
-// ts-remove-unused-skip
+// tsr-skip
 export { 
   a
 };`,
@@ -1580,7 +1580,7 @@ const a2 = 'a2';`,
       const fileService = new MemoryFileService();
       fileService.set(
         '/app/a.ts',
-        `// ts-remove-unused-skip
+        `// tsr-skip
   export const a = 'a';
   export function b() {}
   export class C {}
@@ -1590,7 +1590,7 @@ const a2 = 'a2';`,
       fileService.set(
         '/app/b.ts',
         `export const a = 'a';
-  // ts-remove-unused-skip
+  // tsr-skip
   export function b() {}
   export class C {}
   export type D = 'd';
@@ -1600,7 +1600,7 @@ const a2 = 'a2';`,
         '/app/c.ts',
         `export const a = 'a';
   export function b() {}
-  // ts-remove-unused-skip
+  // tsr-skip
   export class C {}
   export type D = 'd';
   export interface E {}`,
@@ -1610,7 +1610,7 @@ const a2 = 'a2';`,
         `export const a = 'a';
   export function b() {}
   export class C {}
-  // ts-remove-unused-skip
+  // tsr-skip
   export type D = 'd';
   export interface E {}`,
       );
@@ -1620,7 +1620,7 @@ const a2 = 'a2';`,
   export function b() {}
   export class C {}
   export type D = 'd';
-  // ts-remove-unused-skip
+  // tsr-skip
   export interface E {}`,
       );
 
@@ -1726,7 +1726,7 @@ export const c = () => b;`,
         const fileService = new MemoryFileService();
         fileService.set(
           '/app/a.ts',
-          `// ts-remove-unused-skip
+          `// tsr-skip
 export const a = 'a';`,
         );
 
@@ -1739,7 +1739,7 @@ export const a = 'a';`,
 
         assert.equal(
           fileService.get('/app/a.ts'),
-          `// ts-remove-unused-skip
+          `// tsr-skip
 export const a = 'a';`,
         );
       });
@@ -1868,7 +1868,7 @@ export const a2 = 'a2';`,
       fileService.set(
         '/app/a.ts',
         `import { b } from './b';
-// ts-remove-unused-skip
+// tsr-skip
 export const a = () => b;`,
       );
       fileService.set('/app/b.ts', `export const b = 'b';`);
@@ -1884,7 +1884,7 @@ export const a = () => b;`,
       assert.equal(
         fileService.get('/app/a.ts'),
         `import { b } from './b';
-// ts-remove-unused-skip
+// tsr-skip
 export const a = () => b;`,
       );
       assert.equal(fileService.get('/app/b.ts'), `export const b = 'b';`);
