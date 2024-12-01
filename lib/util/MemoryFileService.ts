@@ -49,6 +49,9 @@ export class MemoryFileService implements FileService {
     return file ? file.version.toString() : '';
   }
 
+  // we reuse the same Set and update when there's a change in the file list
+  // so that this Set reference can be used as a key for memoization
+  // see also: lib/util/parseFile.ts
   getFileNames() {
     return this.#fileNames;
   }
