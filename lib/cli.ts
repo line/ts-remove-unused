@@ -5,7 +5,6 @@ import { remove } from './remove.js';
 import { createRequire } from 'node:module';
 import { resolve } from 'node:path';
 import { cwd } from 'node:process';
-import { dts } from './util/regex.js';
 const cli = cac('ts-remove-unused');
 
 cli
@@ -34,16 +33,13 @@ cli
           ? [new RegExp(skipArg)]
           : [];
 
-    if (!options['includeD-ts']) {
-      skip.push(dts);
-    }
-
     remove({
       configPath: resolve(options.project || './tsconfig.json'),
       skip,
       mode: options.check ? 'check' : 'write',
       projectRoot: cwd(),
       recursive: !!options.recursive,
+      includeDts: !!options['includeD-ts'],
     });
   });
 
