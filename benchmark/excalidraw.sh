@@ -5,5 +5,5 @@ else
   cd excalidraw
 fi
 
-npx @line/ts-remove-unused --version
-hyperfine --warmup 3 --runs 5 -i "npx @line/ts-remove-unused --skip 'excalidraw-app/index\.tsx' --check"
+npx tsr --version
+hyperfine --warmup 3 --runs 5 -i "npx tsr --skip 'excalidraw-app/index\.tsx' --check"

@@ -7,5 +7,5 @@ else
   cd taxonomy
 fi
 
-npx @line/ts-remove-unused --version
-hyperfine --warmup 3 --runs 5 -i "npx @line/ts-remove-unused --skip 'app' --skip 'pages' --skip '\.contentlayer' --check"
+npx tsr --version
+hyperfine --warmup 3 --runs 5 -i "npx tsr --skip 'app' --skip 'pages' --skip '\.contentlayer' --check"
