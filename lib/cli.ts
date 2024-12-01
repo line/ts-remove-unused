@@ -8,7 +8,7 @@ import { cwd } from 'node:process';
 const cli = cac('ts-remove-unused');
 
 cli
-  .command('', 'There are no subcommands. Simply execute ts-remove-unused')
+  .command('')
   .option('-p, --project <file>', 'Path to your tsconfig.json')
   .option(
     '--skip <regexp_pattern>',
@@ -43,7 +43,8 @@ cli
     });
   });
 
-cli.help();
+// omit the 'Commands' section from the help output because there is only one command
+cli.help((sections) => sections.filter(({ title }) => title !== 'Commands'));
 
 const { version } = createRequire(import.meta.url)('../package.json');
 
