@@ -1,8 +1,6 @@
 import ts from 'typescript';
 import { memoize } from './memoize.js';
 
-const IGNORE_COMMENT = 'tsr-skip';
-
 const getLeadingComment = (node: ts.Node) => {
   const fullText = node.getSourceFile().getFullText();
   const ranges = ts.getLeadingCommentRanges(fullText, node.getFullStart());
@@ -12,6 +10,14 @@ const getLeadingComment = (node: ts.Node) => {
   }
 
   return ranges.map((range) => fullText.slice(range.pos, range.end)).join('');
+};
+
+const SKIP_KEYWORD = ['tsr-skip', 'ts-remove-unused-skip'] as const;
+
+const skip = (node: ts.Node) => {
+  const comment = getLeadingComment(node);
+
+  return SKIP_KEYWORD.some((keyword) => comment.includes(keyword));
 };
 
 // ref. https://github.com/microsoft/TypeScript/blob/d701d908d534e68cfab24b6df15539014ac348a3/src/compiler/utilities.ts#L2048
@@ -342,7 +348,7 @@ const fn = ({
           kind: ts.SyntaxKind.VariableStatement,
           name,
           change: getChange(node),
-          skip: !!getLeadingComment(node).includes(IGNORE_COMMENT),
+          skip: skip(node),
           start: node.getStart(),
         });
       }
@@ -368,7 +374,7 @@ const fn = ({
             kind: node.kind,
             name: 'default',
             change: getChange(node),
-            skip: !!getLeadingComment(node).includes(IGNORE_COMMENT),
+            skip: skip(node),
             start: node.getStart(),
           });
         } else {
@@ -376,7 +382,7 @@ const fn = ({
             kind: node.kind,
             name: node.name?.getText() || '',
             change: getChange(node),
-            skip: !!getLeadingComment(node).includes(IGNORE_COMMENT),
+            skip: skip(node),
             start: node.getStart(),
           });
         }
@@ -395,7 +401,7 @@ const fn = ({
           kind: node.kind,
           name: node.name.getText(),
           change: getChange(node),
-          skip: !!getLeadingComment(node).includes(IGNORE_COMMENT),
+          skip: skip(node),
           start: node.getStart(),
         });
       }
@@ -408,7 +414,7 @@ const fn = ({
         kind: ts.SyntaxKind.ExportAssignment,
         name: 'default',
         change: getChange(node),
-        skip: !!getLeadingComment(node).includes(IGNORE_COMMENT),
+        skip: skip(node),
         start: node.getStart(),
       });
 
@@ -427,7 +433,7 @@ const fn = ({
         // we always collect the name not the propertyName because its for exports
         name: node.exportClause.elements.map((element) => element.name.text),
         change: getChange(node),
-        skip: !!getLeadingComment(node).includes(IGNORE_COMMENT),
+        skip: skip(node),
         start: node.getStart(),
       });
 
