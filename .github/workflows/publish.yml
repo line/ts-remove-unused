@@ -17,6 +17,13 @@ jobs:
 
       - run: npm ci
       - run: npm version --no-git-tag-version ${{ github.event.release.tag_name }}
-      - run: npm publish --provenance --access public
+      - name: get release tag
+        run: |
+          if [[ "${{ github.event.release.tag_name }}" == *beta* ]]; then
+            echo "TAG=beta" >> $GITHUB_ENV
+          else
+            echo "TAG=latest" >> $GITHUB_ENV
+
+      - run: npm publish --provenance --access public --tag $TAG
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
