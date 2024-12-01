@@ -2013,4 +2013,27 @@ export const a = () => d;\n`,
       assert.equal(fileService.get('/app/b.ts'), `export const b = 'b';`);
     });
   });
+
+  describe('backwards compatibility', () => {
+    it('should not remove export if it has old skip comment', async () => {
+      const fileService = new MemoryFileService();
+      fileService.set(
+        '/app/a.ts',
+        `// ts-remove-unused-skip
+export const a = 'a';`,
+      );
+
+      await edit({
+        fileService,
+        recursive,
+        entrypoints: ['/app/main.ts'],
+      });
+
+      assert.equal(
+        fileService.get('/app/a.ts'),
+        `// ts-remove-unused-skip
+export const a = 'a';`,
+      );
+    });
+  });
 });
