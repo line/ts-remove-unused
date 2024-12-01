@@ -1,5 +1,5 @@
 import { describe, it } from 'node:test';
-import { remove } from '../lib/remove.js';
+import { tsr } from '../lib/tsr.js';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import ts from 'typescript';
@@ -24,7 +24,7 @@ describe('project: include_dts', () => {
       isTTY: false as const,
     };
 
-    await remove({
+    await tsr({
       configPath: resolve(__dirname, 'fixtures/include_dts/tsconfig.json'),
       skip: [/main\.ts/],
       projectRoot: resolve(__dirname, 'fixtures/include_dts'),
@@ -60,7 +60,7 @@ export types.d.ts:2:0     'B'
       isTTY: false as const,
     };
 
-    await remove({
+    await tsr({
       configPath: resolve(__dirname, 'fixtures/include_dts/tsconfig.json'),
       skip: [/main\.ts/],
       projectRoot: resolve(__dirname, 'fixtures/include_dts'),

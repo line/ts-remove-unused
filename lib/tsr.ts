@@ -21,7 +21,7 @@ const createNodeJsLogger = (): Logger =>
         isTTY: false,
       };
 
-export const remove = async ({
+export const tsr = async ({
   configPath,
   skip,
   projectRoot,

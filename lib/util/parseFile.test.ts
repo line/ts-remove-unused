@@ -406,7 +406,7 @@ describe('parseFile', () => {
   it('should return skip: true for variable statement export with skip comment', () => {
     const { exports } = parseFile({
       file: '/app/a.ts',
-      content: `// ts-remove-unused-skip
+      content: `// tsr-skip
 export const a = 'a';`,
       destFiles: new Set(),
     });
@@ -495,7 +495,7 @@ export const a = 'a';`,
   it('should return skip: true for function declaration export with skip comment', () => {
     const { exports } = parseFile({
       file: '/app/a.ts',
-      content: `// ts-remove-unused-skip
+      content: `// tsr-skip
 export function a() {}`,
       destFiles: new Set(),
     });
@@ -559,7 +559,7 @@ export function a() {}`,
   it('should return skip: true for enum declaration export with skip comment', () => {
     const { exports } = parseFile({
       file: '/app/a.ts',
-      content: `// ts-remove-unused-skip
+      content: `// tsr-skip
 export enum A {}`,
       destFiles: new Set(),
     });
@@ -623,7 +623,7 @@ export enum A {}`,
   it('should return skip: true for interface declaration export with skip comment', () => {
     const { exports } = parseFile({
       file: '/app/a.ts',
-      content: `// ts-remove-unused-skip
+      content: `// tsr-skip
 export interface A {}`,
       destFiles: new Set(),
     });
@@ -663,7 +663,7 @@ export interface A {}`,
   it('should return skip: true for type alias declaration export with skip comment', () => {
     const { exports } = parseFile({
       file: '/app/a.ts',
-      content: `// ts-remove-unused-skip
+      content: `// tsr-skip
 export type A = string;`,
       destFiles: new Set(),
     });
@@ -703,7 +703,7 @@ export type A = string;`,
   it('should return skip: true for default export assignment with skip comment', () => {
     const { exports } = parseFile({
       file: '/app/a.ts',
-      content: `// ts-remove-unused-skip
+      content: `// tsr-skip
 export default 'a';`,
       destFiles: new Set(),
     });
@@ -745,7 +745,7 @@ export default 'a';`,
     const { exports } = parseFile({
       file: '/app/a.ts',
       content: `const a = 'a'; const b = 'b';
-// ts-remove-unused-skip
+// tsr-skip
 export { a, b };`,
       destFiles: new Set(),
     });
@@ -984,7 +984,7 @@ export { a, b };`,
   it('should return skip: true for class declaration with skip comment', () => {
     const { exports } = parseFile({
       file: '/app/a.ts',
-      content: `// ts-remove-unused-skip
+      content: `// tsr-skip
 export class A {}`,
       destFiles: new Set(),
     });

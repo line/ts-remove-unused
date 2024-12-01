@@ -1,14 +1,14 @@
 #!/usr/bin/env node
 
 import { cac } from 'cac';
-import { remove } from './remove.js';
+import { tsr } from './tsr.js';
 import { createRequire } from 'node:module';
 import { resolve } from 'node:path';
 import { cwd } from 'node:process';
-const cli = cac('ts-remove-unused');
+const cli = cac('tsr');
 
 cli
-  .command('', 'There are no subcommands. Simply execute ts-remove-unused')
+  .command('')
   .option('-p, --project <file>', 'Path to your tsconfig.json')
   .option(
     '--skip <regexp_pattern>',
@@ -33,7 +33,7 @@ cli
           ? [new RegExp(skipArg)]
           : [];
 
-    remove({
+    tsr({
       configPath: resolve(options.project || './tsconfig.json'),
       skip,
       mode: options.check ? 'check' : 'write',
@@ -43,7 +43,8 @@ cli
     });
   });
 
-cli.help();
+// omit the 'Commands' section from the help output because there is only one command
+cli.help((sections) => sections.filter(({ title }) => title !== 'Commands'));
 
 const { version } = createRequire(import.meta.url)('../package.json');
 

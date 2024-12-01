@@ -1,5 +1,5 @@
 import { dirname, resolve } from 'node:path';
-import { remove } from '../lib/remove.js';
+import { tsr } from '../lib/tsr.js';
 import { fileURLToPath } from 'node:url';
 import { describe, it } from 'node:test';
 import { stdout } from 'node:process';
@@ -31,7 +31,7 @@ describe('project: skip', () => {
       exitHistory.push(code);
     };
 
-    await remove({
+    await tsr({
       configPath: resolve(__dirname, 'fixtures/skip/tsconfig.json'),
       skip: [],
       projectRoot: resolve(__dirname, 'fixtures/skip'),
@@ -70,7 +70,7 @@ describe('project: skip', () => {
       exitHistory.push(code);
     };
 
-    await remove({
+    await tsr({
       configPath: resolve(__dirname, 'fixtures/skip/tsconfig.json'),
       skip: [/foo\.ts/],
       projectRoot: resolve(__dirname, 'fixtures/skip'),

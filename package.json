@@ -1,10 +1,10 @@
 {
-  "name": "@line/ts-remove-unused",
+  "name": "tsr",
   "description": "Remove unused code from your TypeScript project",
   "type": "module",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/line/ts-remove-unused"
+    "url": "git+https://github.com/line/tsr"
   },
   "license": "Apache-2.0",
   "bin": "dist/cli.js",
@@ -21,7 +21,7 @@
     "type-check": "tsc -b",
     "prepublishOnly": "npm run build",
     "test": "npm run build && tsx ./test.js",
-    "unused": "npm run build && node dist/cli.js --skip 'lib/[a-z]+\\.ts' --project tsconfig.lib.json"
+    "tsr": "npm run build && node dist/cli.js --skip 'lib/[a-z]+\\.ts' --project tsconfig.lib.json"
   },
   "devDependencies": {
     "@eslint/js": "^9.15.0",
