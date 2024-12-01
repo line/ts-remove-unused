@@ -1,1 +1,1 @@
-export { remove } from './remove.js';
+export { tsr } from './tsr.js';

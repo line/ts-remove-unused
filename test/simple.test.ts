@@ -1,5 +1,5 @@
 import { dirname, resolve } from 'node:path';
-import { remove } from '../lib/remove.js';
+import { tsr } from '../lib/tsr.js';
 import { fileURLToPath } from 'node:url';
 import { test } from 'node:test';
 import { stdout } from 'node:process';
@@ -23,7 +23,7 @@ test('simple', async () => {
     isTTY: false as const,
   };
 
-  await remove({
+  await tsr({
     configPath: resolve(__dirname, 'fixtures/simple/tsconfig.json'),
     skip: [/main\.ts/],
     projectRoot: resolve(__dirname, 'fixtures/simple'),

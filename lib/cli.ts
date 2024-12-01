@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 import { cac } from 'cac';
-import { remove } from './remove.js';
+import { tsr } from './tsr.js';
 import { createRequire } from 'node:module';
 import { resolve } from 'node:path';
 import { cwd } from 'node:process';
@@ -33,7 +33,7 @@ cli
           ? [new RegExp(skipArg)]
           : [];
 
-    remove({
+    tsr({
       configPath: resolve(options.project || './tsconfig.json'),
       skip,
       mode: options.check ? 'check' : 'write',
