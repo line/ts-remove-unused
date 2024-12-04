@@ -6,13 +6,13 @@ import {
   fixIdDelete,
   fixIdDeleteImports,
 } from './applyCodeFix.js';
-import { EditTracker } from './EditTracker.js';
 import { Vertexes } from './DependencyGraph.js';
 import { createDependencyGraph } from './createDependencyGraph.js';
 import { MemoryFileService } from './MemoryFileService.js';
 import { TaskManager } from './TaskManager.js';
 import { findFileUsage } from './findFileUsage.js';
 import { parseFile } from './parseFile.js';
+import { Output } from './Output.js';
 
 const transform = (
   source: string,
@@ -78,11 +78,10 @@ const stripEnumExportKeyword = (syntaxList: string) => {
   return code.slice(0, pos);
 };
 
-const disabledEditTracker: EditTracker = {
-  start: () => {},
-  end: () => {},
-  delete: () => {},
+const disableOutput: Output = {
+  deleteFile: () => {},
   removeExport: () => {},
+  done: () => {},
 };
 
 const createLanguageService = ({
@@ -598,7 +597,7 @@ export const edit = async ({
   fileService,
   deleteUnusedFile = false,
   enableCodeFix = false,
-  editTracker = disabledEditTracker,
+  output = disableOutput,
   options = {},
   projectRoot = '.',
   recursive,
@@ -607,7 +606,7 @@ export const edit = async ({
   fileService: FileService;
   enableCodeFix?: boolean;
   deleteUnusedFile?: boolean;
-  editTracker?: EditTracker;
+  output?: Output;
   options?: ts.CompilerOptions;
   projectRoot?: string;
   recursive: boolean;
@@ -659,14 +658,10 @@ export const edit = async ({
 
     switch (result.operation) {
       case 'delete': {
-        editTracker.start(c.file, fileService.get(c.file));
-
         if (entrypoints.includes(c.file)) {
-          editTracker.end(c.file);
           break;
         }
-
-        editTracker.delete(c.file);
+        output.deleteFile(c.file);
         fileService.delete(c.file);
 
         if (vertex) {
@@ -681,14 +676,14 @@ export const edit = async ({
         break;
       }
       case 'edit': {
-        editTracker.start(c.file, fileService.get(c.file));
         for (const item of result.removedExports) {
-          editTracker.removeExport(item.fileName, {
+          output.removeExport({
+            file: item.fileName,
+            content: fileService.get(item.fileName),
             code: item.code,
             position: item.position,
           });
         }
-        editTracker.end(c.file);
         fileService.set(c.file, result.content);
 
         if (vertex && result.removedExports.length > 0 && recursive) {
