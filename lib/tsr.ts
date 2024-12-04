@@ -122,9 +122,7 @@ export const tsr = async ({
     }
   }
 
-  const { isClean } = output.done();
+  const { code } = output.done();
 
-  if (mode === 'check' && !isClean) {
-    system.exit(1);
-  }
+  system.exit(code);
 };

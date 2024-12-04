@@ -86,7 +86,7 @@ export class CliOutput implements Output {
     if (this.#mode === 'check' && result.length > 0) {
       this.#logger.write(chalk.red.bold(`✖ ${result.join(', ')}\n`));
       return {
-        isClean: false,
+        code: 1,
       };
     }
 
@@ -95,7 +95,7 @@ export class CliOutput implements Output {
         `✔ ${result.length > 0 ? result.join(', ') : 'all good!'}\n`,
       ),
     );
-    return { isClean: true };
+    return { code: 0 };
   }
 
   #relativePath(file: string) {
