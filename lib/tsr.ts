@@ -4,9 +4,9 @@ import { edit } from './util/edit.js';
 import chalk from 'chalk';
 import { Logger } from './util/Logger.js';
 import { cwd, stdout } from 'node:process';
-import { CliEditTracker } from './util/CliEditTracker.js';
 import { relative } from 'node:path';
 import { formatCount } from './util/formatCount.js';
+import { CliOutput } from './util/CliOutput.js';
 
 const createNodeJsLogger = (): Logger =>
   'isTTY' in stdout && stdout.isTTY
@@ -83,8 +83,7 @@ export const tsr = async ({
     return;
   }
 
-  const editTracker = new CliEditTracker(logger, mode, projectRoot);
-  editTracker.setTotal(fileNames.length - entrypoints.length);
+  const output = new CliOutput({ logger, mode, projectRoot });
 
   logger.write(
     chalk.gray(
@@ -100,13 +99,11 @@ export const tsr = async ({
     entrypoints,
     deleteUnusedFile: true,
     enableCodeFix: mode === 'write' || recursive,
-    editTracker,
+    output,
     options,
     projectRoot,
     recursive,
   });
-
-  editTracker.clearProgressOutput();
 
   if (mode === 'write') {
     logger.write(chalk.gray(`Writing to disk...\n`));
@@ -125,9 +122,7 @@ export const tsr = async ({
     }
   }
 
-  editTracker.logResult();
+  const { code } = output.done();
 
-  if (mode === 'check' && !editTracker.isClean) {
-    system.exit(1);
-  }
+  system.exit(code);
 };
