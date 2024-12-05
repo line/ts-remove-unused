@@ -31,9 +31,8 @@ describe('project: skip', () => {
       exitHistory.push(code);
     };
 
-    await tsr({
+    await tsr([], {
       configPath: resolve(__dirname, 'fixtures/skip/tsconfig.json'),
-      skip: [],
       projectRoot: resolve(__dirname, 'fixtures/skip'),
       mode: 'check',
       logger,
@@ -70,9 +69,8 @@ describe('project: skip', () => {
       exitHistory.push(code);
     };
 
-    await tsr({
+    await tsr(/foo\.ts/, {
       configPath: resolve(__dirname, 'fixtures/skip/tsconfig.json'),
-      skip: [/foo\.ts/],
       projectRoot: resolve(__dirname, 'fixtures/skip'),
       mode: 'check',
       logger,

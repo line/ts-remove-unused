@@ -23,9 +23,8 @@ test('reexport_delete', async () => {
     isTTY: false as const,
   };
 
-  await tsr({
+  await tsr(/main\.ts/, {
     configPath: resolve(__dirname, 'fixtures/reexport_delete/tsconfig.json'),
-    skip: [/main\.ts/],
     projectRoot: resolve(__dirname, 'fixtures/reexport_delete'),
     mode: 'check',
     logger,

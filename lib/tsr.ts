@@ -21,25 +21,26 @@ const createNodeJsLogger = (): Logger =>
         isTTY: false,
       };
 
-export const tsr = async ({
-  configPath,
-  skip,
-  projectRoot,
-  mode,
-  recursive = false,
-  system = ts.sys,
-  logger = createNodeJsLogger(),
-  includeDts = false,
-}: {
-  configPath: string;
-  skip: RegExp[];
-  projectRoot: string;
-  mode: 'check' | 'write';
-  recursive?: boolean;
-  system?: ts.System;
-  logger?: Logger;
-  includeDts?: boolean;
-}) => {
+export const tsr = async (
+  entrypoints: RegExp[] | RegExp,
+  {
+    configPath,
+    projectRoot,
+    mode,
+    recursive = false,
+    system = ts.sys,
+    logger = createNodeJsLogger(),
+    includeDts = false,
+  }: {
+    configPath: string;
+    projectRoot: string;
+    mode: 'check' | 'write';
+    recursive?: boolean;
+    system?: ts.System;
+    logger?: Logger;
+    includeDts?: boolean;
+  },
+) => {
   const { config, error } = ts.readConfigFile(configPath, system.readFile);
 
   const relativeToCwd = (fileName: string) =>
@@ -58,14 +59,16 @@ export const tsr = async ({
     fileNames.map((n) => [n, system.readFile(n) || '']),
   );
 
-  const entrypoints = fileNames.filter(
+  const entrypointFiles = fileNames.filter(
     (fileName) =>
-      skip.some((regex) => regex.test(fileName)) ||
+      (Array.isArray(entrypoints) ? entrypoints : [entrypoints]).some((regex) =>
+        regex.test(fileName),
+      ) ||
       // we want to include the .d.ts files as an entrypoint if includeDts is false
       (!includeDts && /\.d\.ts$/.test(fileName)),
   );
 
-  if (skip.length === 0) {
+  if (Array.isArray(entrypoints) && entrypoints.length === 0) {
     logger.write(
       chalk.bold.red(
         'At least one pattern must be specified for the skip option\n',
@@ -76,7 +79,7 @@ export const tsr = async ({
     return;
   }
 
-  if (entrypoints.length === 0) {
+  if (entrypointFiles.length === 0) {
     logger.write(chalk.bold.red('No files matched the skip pattern\n'));
 
     system.exit(1);
@@ -88,7 +91,7 @@ export const tsr = async ({
   logger.write(
     chalk.gray(
       `Project has ${formatCount(fileNames.length, 'file')}, skipping ${formatCount(
-        entrypoints.length,
+        entrypointFiles.length,
         'file',
       )}\n`,
     ),
@@ -96,7 +99,7 @@ export const tsr = async ({
 
   await edit({
     fileService,
-    entrypoints,
+    entrypoints: entrypointFiles,
     deleteUnusedFile: true,
     enableCodeFix: mode === 'write' || recursive,
     output,

@@ -24,9 +24,8 @@ describe('project: include_dts', () => {
       isTTY: false as const,
     };
 
-    await tsr({
+    await tsr(/main\.ts/, {
       configPath: resolve(__dirname, 'fixtures/include_dts/tsconfig.json'),
-      skip: [/main\.ts/],
       projectRoot: resolve(__dirname, 'fixtures/include_dts'),
       mode: 'check',
       logger,
@@ -60,9 +59,8 @@ export types.d.ts:2:0     'B'
       isTTY: false as const,
     };
 
-    await tsr({
+    await tsr(/main\.ts/, {
       configPath: resolve(__dirname, 'fixtures/include_dts/tsconfig.json'),
-      skip: [/main\.ts/],
       projectRoot: resolve(__dirname, 'fixtures/include_dts'),
       mode: 'check',
       logger,

@@ -8,7 +8,7 @@ import { cwd } from 'node:process';
 const cli = cac('tsr');
 
 cli
-  .command('')
+  .command('[...entrypoints]', 'regex patterns to match entrypoints')
   .option('-p, --project <file>', 'Path to your tsconfig.json')
   .option(
     '--skip <regexp_pattern>',
@@ -23,24 +23,21 @@ cli
     '-r, --recursive',
     'Recursively look into files until the project is clean',
   )
-  .action((options) => {
-    const skipArg = options.skip;
-
-    const skip =
-      skipArg && Array.isArray(skipArg)
-        ? skipArg.map((s) => new RegExp(s))
-        : typeof skipArg === 'string'
-          ? [new RegExp(skipArg)]
-          : [];
-
-    tsr({
-      configPath: resolve(options.project || './tsconfig.json'),
-      skip,
-      mode: options.check ? 'check' : 'write',
-      projectRoot: cwd(),
-      recursive: !!options.recursive,
-      includeDts: !!options['includeD-ts'],
-    });
+  .action((args, options) => {
+    tsr(
+      args.reduce(
+        (acc: string[], cur: unknown) =>
+          typeof cur === 'string' ? [...acc, new RegExp(cur)] : acc,
+        [],
+      ),
+      {
+        configPath: resolve(options.project || './tsconfig.json'),
+        mode: options.check ? 'check' : 'write',
+        projectRoot: cwd(),
+        recursive: !!options.recursive,
+        includeDts: !!options['includeD-ts'],
+      },
+    );
   });
 
 // omit the 'Commands' section from the help output because there is only one command

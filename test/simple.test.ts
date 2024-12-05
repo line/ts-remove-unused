@@ -23,9 +23,8 @@ test('simple', async () => {
     isTTY: false as const,
   };
 
-  await tsr({
+  await tsr(/main\.ts/, {
     configPath: resolve(__dirname, 'fixtures/simple/tsconfig.json'),
-    skip: [/main\.ts/],
     projectRoot: resolve(__dirname, 'fixtures/simple'),
     mode: 'check',
     logger,
