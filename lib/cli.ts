@@ -10,10 +10,6 @@ const cli = cac('tsr');
 cli
   .command('[...entrypoints]', 'regex patterns to match entrypoints')
   .option('-p, --project <file>', 'Path to your tsconfig.json')
-  .option(
-    '--skip <regexp_pattern>',
-    'Specify the regexp pattern to match files that should be skipped from transforming',
-  )
   .option('--include-d-ts', 'Include .d.ts files in target for transformation')
   .option(
     '--check',
