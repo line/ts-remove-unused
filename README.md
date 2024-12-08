@@ -126,7 +126,7 @@ Options:
   -p, --project <file>  Path to your tsconfig.json 
   -w, --write           Write changes in place 
   -r, --recursive       Recursively look into files until the project is clean 
-  --include-d-ts        checks for unused exports in .d.ts files 
+  --include-d-ts        Check for unused code in .d.ts files 
   -h, --help            Display this message 
   -v, --version         Display version number 
 

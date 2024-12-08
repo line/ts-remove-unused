@@ -13,7 +13,7 @@ cli
     '-r, --recursive',
     'Recursively look into files until the project is clean',
   )
-  .option('--include-d-ts', 'checks for unused exports in .d.ts files')
+  .option('--include-d-ts', 'Check for unused code in .d.ts files')
   .example(`npx tsr 'src/main\\.ts$'`)
   .action((args, options) =>
     tsr({
