@@ -117,19 +117,21 @@ tsr works with all kinds of code: variables, functions, interfaces, classes, typ
 
 ```
 Usage:
-  $ tsr 
+  $ tsr [...entrypoints]
+
+Commands:
+  [...entrypoints]  regex patterns to match entrypoints. ex) npx tsr 'src/main\.ts$'
 
 For more info, run any command with the `--help` flag:
   $ tsr --help
 
 Options:
-  -p, --project <file>     Path to your tsconfig.json 
-  --skip <regexp_pattern>  Specify the regexp pattern to match files that should be skipped from transforming 
-  --include-d-ts           Include .d.ts files in target for transformation 
-  --check                  Check if there are any unused exports without removing them 
-  -r, --recursive          Recursively look into files until the project is clean 
-  -h, --help               Display this message 
-  -v, --version            Display version number 
+  -p, --project <file>  Path to your tsconfig.json 
+  -w, --write           Write changes in place 
+  -r, --recursive       Recursively look into files until the project is clean 
+  --include-d-ts        checks for unused exports in .d.ts files 
+  -h, --help            Display this message 
+  -v, --version         Display version number 
 ```
 <!-- prettier-ignore-end -->
 
