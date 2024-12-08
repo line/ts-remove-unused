@@ -24,7 +24,7 @@ cli
           typeof cur === 'string' ? [...acc, new RegExp(cur)] : acc,
         [],
       ),
-      mode: options.write ? 'check' : 'write',
+      mode: options.write ? 'write' : 'check',
       configFile:
         typeof options.project === 'string' ? options.project : undefined,
       recursive: !!options.recursive,
