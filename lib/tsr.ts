@@ -23,9 +23,9 @@ const createNodeJsLogger = (): Logger =>
 
 export const tsr = async ({
   entrypoints,
-  configFile,
-  projectRoot = cwd(),
   mode,
+  configFile = 'tsconfig.json',
+  projectRoot = cwd(),
   recursive = false,
   system = ts.sys,
   logger = createNodeJsLogger(),
@@ -43,7 +43,7 @@ export const tsr = async ({
   const relativeToCwd = (fileName: string) =>
     relative(cwd(), fileName).replaceAll('\\', '/');
 
-  const configPath = resolve(projectRoot, configFile || 'tsconfig.json');
+  const configPath = resolve(projectRoot, configFile);
 
   const { config, error } = configPath
     ? ts.readConfigFile(configPath, system.readFile)
