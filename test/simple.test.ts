@@ -24,7 +24,7 @@ test('simple', async () => {
   };
 
   await tsr(/main\.ts/, {
-    configPath: resolve(__dirname, 'fixtures/simple/tsconfig.json'),
+    configFile: resolve(__dirname, 'fixtures/simple/tsconfig.json'),
     projectRoot: resolve(__dirname, 'fixtures/simple'),
     mode: 'check',
     logger,

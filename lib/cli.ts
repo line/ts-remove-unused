@@ -24,7 +24,7 @@ cli
         [],
       ),
       {
-        configPath: resolve(options.project || './tsconfig.json'),
+        configFile: resolve(options.project || './tsconfig.json'),
         mode: options.write ? 'check' : 'write',
         projectRoot: cwd(),
         recursive: !!options.recursive,

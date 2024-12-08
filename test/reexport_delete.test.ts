@@ -24,7 +24,7 @@ test('reexport_delete', async () => {
   };
 
   await tsr(/main\.ts/, {
-    configPath: resolve(__dirname, 'fixtures/reexport_delete/tsconfig.json'),
+    configFile: resolve(__dirname, 'fixtures/reexport_delete/tsconfig.json'),
     projectRoot: resolve(__dirname, 'fixtures/reexport_delete'),
     mode: 'check',
     logger,

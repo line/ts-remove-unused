@@ -24,7 +24,7 @@ const createNodeJsLogger = (): Logger =>
 export const tsr = async (
   entrypoints: RegExp[] | RegExp,
   {
-    configPath,
+    configFile,
     projectRoot,
     mode,
     recursive = false,
@@ -32,7 +32,7 @@ export const tsr = async (
     logger = createNodeJsLogger(),
     includeDts = false,
   }: {
-    configPath?: string;
+    configFile?: string;
     projectRoot: string;
     mode: 'check' | 'write';
     recursive?: boolean;
@@ -44,8 +44,8 @@ export const tsr = async (
   const relativeToCwd = (fileName: string) =>
     relative(cwd(), fileName).replaceAll('\\', '/');
 
-  const { config, error } = configPath
-    ? ts.readConfigFile(configPath, system.readFile)
+  const { config, error } = configFile
+    ? ts.readConfigFile(configFile, system.readFile)
     : { config: {}, error: undefined };
 
   const { options, fileNames } = ts.parseJsonConfigFileContent(
@@ -85,13 +85,13 @@ export const tsr = async (
     return;
   }
 
-  if (configPath) {
+  if (configFile) {
     if (error) {
       logger.write(
         `${chalk.blue('tsconfig')} Couldn't load, using default options\n`,
       );
     } else {
-      logger.write(`${chalk.blue('tsconfig')} ${relativeToCwd(configPath)}\n`);
+      logger.write(`${chalk.blue('tsconfig')} ${relativeToCwd(configFile)}\n`);
     }
   } else {
     logger.write(`${chalk.blue('tsconfig')} using default options\n`);

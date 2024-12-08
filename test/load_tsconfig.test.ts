@@ -58,7 +58,7 @@ Project has 1 file, skipping 1 file
     };
 
     await tsr(/main\.ts/, {
-      configPath: 'tsconfig.invalid.json',
+      configFile: 'tsconfig.invalid.json',
       projectRoot: resolve(__dirname, 'fixtures/load_tsconfig'),
       mode: 'check',
       logger,
@@ -92,7 +92,7 @@ Project has 1 file, skipping 1 file
     };
 
     await tsr(/main\.ts/, {
-      configPath: resolve(
+      configFile: resolve(
         __dirname,
         'fixtures/load_tsconfig/tsconfig.sample.json',
       ),
