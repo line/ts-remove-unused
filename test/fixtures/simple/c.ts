@@ -1,2 +1,2 @@
-// ts-remove-unused-skip
+// tsr-skip
 export const c = 'c';

@@ -1,5 +1,5 @@
 import { dirname, resolve } from 'node:path';
-import { remove } from '../lib/remove.js';
+import { tsr } from '../lib/tsr.js';
 import { fileURLToPath } from 'node:url';
 import { test } from 'node:test';
 import { stdout } from 'node:process';
@@ -7,7 +7,10 @@ import ts from 'typescript';
 import stripAnsi from 'strip-ansi';
 import { assertEqualOutput } from './helpers/assertEqualOutput.js';
 
-const __dirname = dirname(fileURLToPath(import.meta.url));
+const projectRoot = resolve(
+  dirname(fileURLToPath(import.meta.url)),
+  'fixtures/reexport_delete',
+);
 
 const LOG = !!process.env.LOG;
 
@@ -23,10 +26,9 @@ test('reexport_delete', async () => {
     isTTY: false as const,
   };
 
-  await remove({
-    configPath: resolve(__dirname, 'fixtures/reexport_delete/tsconfig.json'),
-    skip: [/main\.ts/],
-    projectRoot: resolve(__dirname, 'fixtures/reexport_delete'),
+  await tsr({
+    entrypoints: [/main\.ts/],
+    projectRoot,
     mode: 'check',
     logger,
     system: {

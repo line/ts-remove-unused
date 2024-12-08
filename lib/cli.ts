@@ -1,51 +1,34 @@
 #!/usr/bin/env node
 
 import { cac } from 'cac';
-import { remove } from './remove.js';
+import { tsr } from './tsr.js';
 import { createRequire } from 'node:module';
-import { resolve } from 'node:path';
-import { cwd } from 'node:process';
-import { dts } from './util/regex.js';
-const cli = cac('ts-remove-unused');
+const cli = cac('tsr');
 
 cli
-  .command('', 'There are no subcommands. Simply execute ts-remove-unused')
+  .command('[...entrypoints]', `regex patterns to match entrypoints`)
   .option('-p, --project <file>', 'Path to your tsconfig.json')
-  .option(
-    '--skip <regexp_pattern>',
-    'Specify the regexp pattern to match files that should be skipped from transforming',
-  )
-  .option('--include-d-ts', 'Include .d.ts files in target for transformation')
-  .option(
-    '--check',
-    'Check if there are any unused exports without removing them',
-  )
+  .option('-w, --write', 'Write changes in place')
   .option(
     '-r, --recursive',
     'Recursively look into files until the project is clean',
   )
-  .action((options) => {
-    const skipArg = options.skip;
-
-    const skip =
-      skipArg && Array.isArray(skipArg)
-        ? skipArg.map((s) => new RegExp(s))
-        : typeof skipArg === 'string'
-          ? [new RegExp(skipArg)]
-          : [];
-
-    if (!options['includeD-ts']) {
-      skip.push(dts);
-    }
-
-    remove({
-      configPath: resolve(options.project || './tsconfig.json'),
-      skip,
-      mode: options.check ? 'check' : 'write',
-      projectRoot: cwd(),
+  .option('--include-d-ts', 'Check for unused code in .d.ts files')
+  .example(`npx tsr 'src/main\\.ts$'`)
+  .action((args, options) =>
+    tsr({
+      entrypoints: args.reduce(
+        (acc: string[], cur: unknown) =>
+          typeof cur === 'string' ? [...acc, new RegExp(cur)] : acc,
+        [],
+      ),
+      mode: options.write ? 'write' : 'check',
+      configFile:
+        typeof options.project === 'string' ? options.project : undefined,
       recursive: !!options.recursive,
-    });
-  });
+      includeDts: !!options['includeD-ts'],
+    }),
+  );
 
 cli.help();
 
