@@ -21,6 +21,9 @@ const createNodeJsLogger = (): Logger =>
         isTTY: false,
       };
 
+const relativeToCwd = (fileName: string) =>
+  relative(cwd(), fileName).replaceAll('\\', '/');
+
 export const tsr = async ({
   entrypoints,
   mode,
@@ -40,9 +43,6 @@ export const tsr = async ({
   logger?: Logger;
   includeDts?: boolean;
 }) => {
-  const relativeToCwd = (fileName: string) =>
-    relative(cwd(), fileName).replaceAll('\\', '/');
-
   const configPath = resolve(projectRoot, configFile);
 
   const { config, error } = configPath
