@@ -32,7 +32,6 @@ describe('project: skip', () => {
     };
 
     await tsr([], {
-      configPath: resolve(__dirname, 'fixtures/skip/tsconfig.json'),
       projectRoot: resolve(__dirname, 'fixtures/skip'),
       mode: 'check',
       logger,
@@ -70,7 +69,6 @@ describe('project: skip', () => {
     };
 
     await tsr(/foo\.ts/, {
-      configPath: resolve(__dirname, 'fixtures/skip/tsconfig.json'),
       projectRoot: resolve(__dirname, 'fixtures/skip'),
       mode: 'check',
       logger,

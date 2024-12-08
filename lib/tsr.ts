@@ -32,7 +32,7 @@ export const tsr = async (
     logger = createNodeJsLogger(),
     includeDts = false,
   }: {
-    configPath: string;
+    configPath?: string;
     projectRoot: string;
     mode: 'check' | 'write';
     recursive?: boolean;
@@ -41,19 +41,18 @@ export const tsr = async (
     includeDts?: boolean;
   },
 ) => {
-  const { config, error } = ts.readConfigFile(configPath, system.readFile);
-
   const relativeToCwd = (fileName: string) =>
     relative(cwd(), fileName).replaceAll('\\', '/');
+
+  const { config, error } = configPath
+    ? ts.readConfigFile(configPath, system.readFile)
+    : { config: {}, error: undefined };
+
   const { options, fileNames } = ts.parseJsonConfigFileContent(
     config,
     system,
     projectRoot,
   );
-
-  if (!error) {
-    logger.write(`${chalk.blue('tsconfig')} ${relativeToCwd(configPath)}\n`);
-  }
 
   const fileService = new MemoryFileService(
     fileNames.map((n) => [n, system.readFile(n) || '']),
@@ -84,6 +83,18 @@ export const tsr = async (
 
     system.exit(1);
     return;
+  }
+
+  if (configPath) {
+    if (error) {
+      logger.write(
+        `${chalk.blue('tsconfig')} Couldn't load, using default options\n`,
+      );
+    } else {
+      logger.write(`${chalk.blue('tsconfig')} ${relativeToCwd(configPath)}\n`);
+    }
+  } else {
+    logger.write(`${chalk.blue('tsconfig')} using default options\n`);
   }
 
   const output = new CliOutput({ logger, mode, projectRoot });

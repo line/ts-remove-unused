@@ -25,7 +25,6 @@ describe('project: include_dts', () => {
     };
 
     await tsr(/main\.ts/, {
-      configPath: resolve(__dirname, 'fixtures/include_dts/tsconfig.json'),
       projectRoot: resolve(__dirname, 'fixtures/include_dts'),
       mode: 'check',
       logger,
@@ -40,7 +39,8 @@ describe('project: include_dts', () => {
 
     assert.equal(
       stripedOutput,
-      `Project has 2 files, skipping 1 file
+      `tsconfig using default options
+Project has 2 files, skipping 1 file
 export types.d.ts:2:0     'B'
 ✖ remove 1 export
 `,
@@ -60,7 +60,6 @@ export types.d.ts:2:0     'B'
     };
 
     await tsr(/main\.ts/, {
-      configPath: resolve(__dirname, 'fixtures/include_dts/tsconfig.json'),
       projectRoot: resolve(__dirname, 'fixtures/include_dts'),
       mode: 'check',
       logger,
@@ -75,7 +74,8 @@ export types.d.ts:2:0     'B'
 
     assert.equal(
       stripedOutput,
-      `Project has 2 files, skipping 2 files
+      `tsconfig using default options
+Project has 2 files, skipping 2 files
 ✔ all good!
 `,
     );
