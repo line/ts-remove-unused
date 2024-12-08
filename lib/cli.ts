@@ -4,7 +4,6 @@ import { cac } from 'cac';
 import { tsr } from './tsr.js';
 import { createRequire } from 'node:module';
 import { resolve } from 'node:path';
-import { cwd } from 'node:process';
 const cli = cac('tsr');
 
 cli
@@ -26,7 +25,6 @@ cli
       {
         configFile: resolve(options.project || './tsconfig.json'),
         mode: options.write ? 'check' : 'write',
-        projectRoot: cwd(),
         recursive: !!options.recursive,
         includeDts: !!options['includeD-ts'],
       },

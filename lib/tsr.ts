@@ -25,7 +25,7 @@ export const tsr = async (
   entrypoints: RegExp[] | RegExp,
   {
     configFile,
-    projectRoot,
+    projectRoot = cwd(),
     mode,
     recursive = false,
     system = ts.sys,
@@ -33,7 +33,7 @@ export const tsr = async (
     includeDts = false,
   }: {
     configFile?: string;
-    projectRoot: string;
+    projectRoot?: string;
     mode: 'check' | 'write';
     recursive?: boolean;
     system?: ts.System;
