@@ -6,4 +6,4 @@ else
 fi
 
 npx tsr --version
-hyperfine --warmup 3 --runs 5 -i "npx tsr --skip 'excalidraw-app/index\.tsx' --check"
+hyperfine --warmup 3 --runs 5 -i "npx tsr 'excalidraw-app/index\.tsx'"

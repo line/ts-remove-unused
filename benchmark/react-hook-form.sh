@@ -44,4 +44,4 @@ else
 fi
 
 npx tsr --version
-hyperfine --warmup 3 --runs 5 -i "npx tsr --check --skip 'src/index\.ts'"
+hyperfine --warmup 3 --runs 5 -i "npx tsr 'src/index\.ts'"

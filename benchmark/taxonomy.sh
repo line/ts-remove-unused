@@ -8,4 +8,4 @@ else
 fi
 
 npx tsr --version
-hyperfine --warmup 3 --runs 5 -i "npx tsr --skip 'app' --skip 'pages' --skip '\.contentlayer' --check"
+hyperfine --warmup 3 --runs 5 -i "npx tsr 'app' 'pages' '\.contentlayer'"
