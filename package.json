@@ -21,7 +21,7 @@
     "type-check": "tsc -b",
     "prepublishOnly": "npm run build",
     "test": "npm run build && tsx ./test.js",
-    "tsr": "npm run build && node dist/cli.js --skip 'lib/[a-z]+\\.ts' --project tsconfig.lib.json"
+    "tsr": "npm run build && node dist/cli.js -p tsconfig.lib.json 'lib/[a-z]+\\.ts'"
   },
   "devDependencies": {
     "@eslint/js": "^9.15.0",

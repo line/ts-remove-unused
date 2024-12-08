@@ -9,13 +9,13 @@ import { stdout } from 'node:process';
 
 const projectRoot = resolve(
   dirname(fileURLToPath(import.meta.url)),
-  'fixtures/include_dts',
+  'fixtures/load_tsconfig',
 );
 
 const LOG = !!process.env.LOG;
 
-describe('project: include_dts', () => {
-  it('should include unused exports from .d.ts files', async () => {
+describe('project: load_tsconfig', () => {
+  it('should log using default options if no tsconfig is found', async () => {
     let output = '';
     const logger = {
       write: (text: string) => {
@@ -36,7 +36,6 @@ describe('project: include_dts', () => {
         ...ts.sys,
         exit: () => {},
       },
-      includeDts: true,
     });
 
     const stripedOutput = stripAnsi(output);
@@ -44,14 +43,13 @@ describe('project: include_dts', () => {
     assert.equal(
       stripedOutput,
       `tsconfig using default options
-Project has 2 files, skipping 1 file
-export types.d.ts:2:0     'B'
-✖ remove 1 export
+Project has 1 file, skipping 1 file
+✔ all good!
 `,
     );
   });
 
-  it('should not include unused exports from .d.ts files', async () => {
+  it(`should log using default options tsconfig path is invalid`, async () => {
     let output = '';
     const logger = {
       write: (text: string) => {
@@ -65,6 +63,7 @@ export types.d.ts:2:0     'B'
 
     await tsr({
       entrypoints: [/main\.ts/],
+      configFile: 'tsconfig.invalid.json',
       projectRoot,
       mode: 'check',
       logger,
@@ -72,7 +71,6 @@ export types.d.ts:2:0     'B'
         ...ts.sys,
         exit: () => {},
       },
-      includeDts: false,
     });
 
     const stripedOutput = stripAnsi(output);
@@ -80,7 +78,42 @@ export types.d.ts:2:0     'B'
     assert.equal(
       stripedOutput,
       `tsconfig using default options
-Project has 2 files, skipping 2 files
+Project has 1 file, skipping 1 file
+✔ all good!
+`,
+    );
+  });
+
+  it('should log loaded tsconfig path if tsconfig is found', async () => {
+    let output = '';
+    const logger = {
+      write: (text: string) => {
+        if (LOG) {
+          stdout.write(text);
+        }
+        output += text;
+      },
+      isTTY: false as const,
+    };
+
+    await tsr({
+      entrypoints: [/main\.ts/],
+      configFile: 'tsconfig.sample.json',
+      projectRoot,
+      mode: 'check',
+      logger,
+      system: {
+        ...ts.sys,
+        exit: () => {},
+      },
+    });
+
+    const stripedOutput = stripAnsi(output);
+
+    assert.equal(
+      stripedOutput,
+      `tsconfig test/fixtures/load_tsconfig/tsconfig.sample.json
+Project has 1 file, skipping 1 file
 ✔ all good!
 `,
     );

@@ -4,7 +4,7 @@ import { edit } from './util/edit.js';
 import chalk from 'chalk';
 import { Logger } from './util/Logger.js';
 import { cwd, stdout } from 'node:process';
-import { relative } from 'node:path';
+import { relative, resolve } from 'node:path';
 import { formatCount } from './util/formatCount.js';
 import { CliOutput } from './util/CliOutput.js';
 
@@ -21,51 +21,54 @@ const createNodeJsLogger = (): Logger =>
         isTTY: false,
       };
 
-export const tsr = async ({
-  configPath,
-  skip,
-  projectRoot,
-  mode,
-  recursive = false,
-  system = ts.sys,
-  logger = createNodeJsLogger(),
-  includeDts = false,
-}: {
-  configPath: string;
-  skip: RegExp[];
-  projectRoot: string;
+const relativeToCwd = (fileName: string) =>
+  relative(cwd(), fileName).replaceAll('\\', '/');
+
+export type Config = {
+  entrypoints: RegExp[];
   mode: 'check' | 'write';
+  configFile?: string;
+  projectRoot?: string;
   recursive?: boolean;
   system?: ts.System;
   logger?: Logger;
   includeDts?: boolean;
-}) => {
-  const { config, error } = ts.readConfigFile(configPath, system.readFile);
+};
 
-  const relativeToCwd = (fileName: string) =>
-    relative(cwd(), fileName).replaceAll('\\', '/');
+export const tsr = async ({
+  entrypoints,
+  mode,
+  configFile = 'tsconfig.json',
+  projectRoot = cwd(),
+  recursive = false,
+  system = ts.sys,
+  logger = createNodeJsLogger(),
+  includeDts = false,
+}: Config) => {
+  const configPath = resolve(projectRoot, configFile);
+
+  const { config, error } = configPath
+    ? ts.readConfigFile(configPath, system.readFile)
+    : { config: {}, error: undefined };
+
   const { options, fileNames } = ts.parseJsonConfigFileContent(
     config,
     system,
     projectRoot,
   );
 
-  if (!error) {
-    logger.write(`${chalk.blue('tsconfig')} ${relativeToCwd(configPath)}\n`);
-  }
-
   const fileService = new MemoryFileService(
     fileNames.map((n) => [n, system.readFile(n) || '']),
   );
 
-  const entrypoints = fileNames.filter(
+  const entrypointFiles = fileNames.filter(
     (fileName) =>
-      skip.some((regex) => regex.test(fileName)) ||
+      entrypoints.some((regex) => regex.test(fileName)) ||
       // we want to include the .d.ts files as an entrypoint if includeDts is false
       (!includeDts && /\.d\.ts$/.test(fileName)),
   );
 
-  if (skip.length === 0) {
+  if (entrypoints.length === 0) {
     logger.write(
       chalk.bold.red(
         'At least one pattern must be specified for the skip option\n',
@@ -76,19 +79,25 @@ export const tsr = async ({
     return;
   }
 
-  if (entrypoints.length === 0) {
+  if (entrypointFiles.length === 0) {
     logger.write(chalk.bold.red('No files matched the skip pattern\n'));
 
     system.exit(1);
     return;
   }
 
+  logger.write(
+    `${chalk.blue('tsconfig')} ${
+      error ? 'using default options' : relativeToCwd(configPath)
+    }\n`,
+  );
+
   const output = new CliOutput({ logger, mode, projectRoot });
 
   logger.write(
     chalk.gray(
       `Project has ${formatCount(fileNames.length, 'file')}, skipping ${formatCount(
-        entrypoints.length,
+        entrypointFiles.length,
         'file',
       )}\n`,
     ),
@@ -96,7 +105,7 @@ export const tsr = async ({
 
   await edit({
     fileService,
-    entrypoints,
+    entrypoints: entrypointFiles,
     deleteUnusedFile: true,
     enableCodeFix: mode === 'write' || recursive,
     output,

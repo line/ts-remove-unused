@@ -8,7 +8,10 @@ import stripAnsi from 'strip-ansi';
 import { assertEqualOutput } from './helpers/assertEqualOutput.js';
 import assert from 'node:assert/strict';
 
-const __dirname = dirname(fileURLToPath(import.meta.url));
+const projectRoot = resolve(
+  dirname(fileURLToPath(import.meta.url)),
+  'fixtures/skip',
+);
 
 const LOG = !!process.env.LOG;
 
@@ -32,9 +35,8 @@ describe('project: skip', () => {
     };
 
     await tsr({
-      configPath: resolve(__dirname, 'fixtures/skip/tsconfig.json'),
-      skip: [],
-      projectRoot: resolve(__dirname, 'fixtures/skip'),
+      entrypoints: [],
+      projectRoot,
       mode: 'check',
       logger,
       system: {
@@ -71,9 +73,8 @@ describe('project: skip', () => {
     };
 
     await tsr({
-      configPath: resolve(__dirname, 'fixtures/skip/tsconfig.json'),
-      skip: [/foo\.ts/],
-      projectRoot: resolve(__dirname, 'fixtures/skip'),
+      entrypoints: [/foo\.ts/],
+      projectRoot,
       mode: 'check',
       logger,
       system: {

@@ -15,7 +15,7 @@
 
 - 🛠️ Auto-fix unused exports — removes the `export` keyword from the declaration or the whole declaration based on its usage
 - 🧹 Deletes TypeScript modules that have no referenced exports
-- 🕵️ `--check` mode — reports unused exports and deletable files without writing changes
+- 🕵️ Check – Use the command without `--write` to detect unused code without making changes
 
 ## Install
 
@@ -31,14 +31,11 @@ TypeScript is a peer dependency.
 
 2. 🔍 Check your entrypoint files – What's the file that is the starting point for your code? Without this information, all files will be recognized as unnecessary. Usually it is some file like `src/main.ts` or maybe a group of files like `src/pages/*`.
 
-3. 🚀 Execute – Set a regex pattern that matches your entry files for `--skip`. You can optionally set `--project` to a path to your custom `tsconfig.json` if necessary.
+3. 🚀 Execute – Pass a regex (or multiple regex patterns) that match the entrypoints. Use `--write` to change the files in place.
 
 ```bash
-npx tsr --skip 'src/main\.ts$'
+npx tsr 'src/main\.ts$'
 ```
-
-> [!WARNING]
-> THIS COMMAND WILL DELETE CODE FROM YOUR PROJECT. Using it in a git controlled environment is highly recommended. If you're just playing around use `--check`.
 
 ## Examples
 
@@ -117,19 +114,24 @@ tsr works with all kinds of code: variables, functions, interfaces, classes, typ
 
 ```
 Usage:
-  $ tsr 
+  $ tsr [...entrypoints]
+
+Commands:
+  [...entrypoints]  regex patterns to match entrypoints
 
 For more info, run any command with the `--help` flag:
   $ tsr --help
 
 Options:
-  -p, --project <file>     Path to your tsconfig.json 
-  --skip <regexp_pattern>  Specify the regexp pattern to match files that should be skipped from transforming 
-  --include-d-ts           Include .d.ts files in target for transformation 
-  --check                  Check if there are any unused exports without removing them 
-  -r, --recursive          Recursively look into files until the project is clean 
-  -h, --help               Display this message 
-  -v, --version            Display version number 
+  -p, --project <file>  Path to your tsconfig.json 
+  -w, --write           Write changes in place 
+  -r, --recursive       Recursively look into files until the project is clean 
+  --include-d-ts        Check for unused code in .d.ts files 
+  -h, --help            Display this message 
+  -v, --version         Display version number 
+
+Examples:
+npx tsr 'src/main\.ts$'
 ```
 <!-- prettier-ignore-end -->
 
@@ -141,31 +143,22 @@ Specifies the `tsconfig.json` that is used to analyze your codebase. Defaults to
 npx tsr --project tsconfig.client.json
 ```
 
-#### `--skip`
+#### `-w`, `--write`
 
-Skip files that match a given regex pattern. Note that you can pass multiple patterns.
+Writes fixable changes in place.
 
-```bash
-npx tsr --skip 'src/main\.ts' --skip '/pages/'
-```
-
-#### `--include-d-ts`
-
-By default, `.d.ts` files are skipped. If you want to include `.d.ts` files, use the `--include-d-ts` option.
-
-#### `--check`
-
-Use `--check` to check for unused files and exports without making changes to project files. The command will exit with exit code 1 if there are any unused files or exports discovered.
-
-```bash
-npx tsr --skip 'src/main\.ts' --check
-```
+> [!WARNING]
+> This will delete code. Using it in a git controlled environment is highly recommended.
 
 #### `-r`, `--recursive`
 
 The default behavior of the CLI is to process all files once. Some issues may not be detected if the unused code is a result of the modification of another file in the project. When this option is enabled, tsr will recursively re-edit/re-check files that may be affected by a file edit.
 
 This will take longer but is helpful when you want to edit in one pass.
+
+#### `--include-d-ts`
+
+By default, exported types in `.d.ts` files are not detected. Use the `--include-d-ts` option if you want to include types in `.d.ts` files
 
 ### Use the JavaScript API
 
@@ -175,10 +168,8 @@ Alternatively, you can use the JavaScript API to execute tsr.
 import { tsr } from 'tsr';
 
 await tsr({
-  configPath: '/path/to/project/tsconfig.json',
-  projectRoot: '/path/to/project',
-  skip: [/main\.ts/],
-  mode: 'write',
+  entrypoints: [/main\.ts/],
+  mode: 'check',
 });
 ```
 
@@ -195,7 +186,12 @@ export const hello = 'world';
 
 If you have a separate tsconfig for tests using [Project References](https://www.typescriptlang.org/docs/handbook/project-references.html), that would be great! tsr will remove exports/files that exist for the sake of testing.
 
-If you pass a `tsconfig.json` to the CLI that includes both the implementation and the test files, tsr will remove your test files since they are not referenced by your entry point file (which is specified in `--skip`). You can avoid tests being deleted by passing a pattern that matches your test files to `--skip` in the meantime, but the recommended way is to use project references to ensure your TypeScript config is more robust and strict (not just for using this tool).
+If you pass a `tsconfig.json` to the CLI that includes both the implementation and the test files, tsr will remove your test files since they are not referenced by your entry point file by default. You can avoid tests being deleted by passing a pattern that matches your test files to the args in the meantime, but the recommended way is to use project references to ensure your TypeScript config is more robust and strict (not just for using this tool).
+
+```bash
+npx tsr -w 'src/main\.ts$' ## depending on the tsconfig, this will delete test files
+npx tsr -w 'src/main\.ts$' '.*\.test\.ts$' ## Specifying test files as entrypoints will avoid deletion
+```
 
 ## Comparison
 
