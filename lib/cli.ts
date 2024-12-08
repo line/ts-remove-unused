@@ -6,10 +6,7 @@ import { createRequire } from 'node:module';
 const cli = cac('tsr');
 
 cli
-  .command(
-    '[...entrypoints]',
-    `regex patterns to match entrypoints. ex) npx tsr 'src/main\\.ts$'`,
-  )
+  .command('[...entrypoints]', `regex patterns to match entrypoints`)
   .option('-p, --project <file>', 'Path to your tsconfig.json')
   .option('-w, --write', 'Write changes in place')
   .option(
@@ -17,6 +14,7 @@ cli
     'Recursively look into files until the project is clean',
   )
   .option('--include-d-ts', 'checks for unused exports in .d.ts files')
+  .example(`npx tsr 'src/main\\.ts$'`)
   .action((args, options) =>
     tsr({
       entrypoints: args.reduce(
