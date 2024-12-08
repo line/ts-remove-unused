@@ -120,7 +120,7 @@ Usage:
   $ tsr [...entrypoints]
 
 Commands:
-  [...entrypoints]  regex patterns to match entrypoints. ex) npx tsr 'src/main\.ts$'
+  [...entrypoints]  regex patterns to match entrypoints
 
 For more info, run any command with the `--help` flag:
   $ tsr --help
@@ -132,6 +132,9 @@ Options:
   --include-d-ts        checks for unused exports in .d.ts files 
   -h, --help            Display this message 
   -v, --version         Display version number 
+
+Examples:
+npx tsr 'src/main\.ts$'
 ```
 <!-- prettier-ignore-end -->
 
