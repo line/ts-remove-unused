@@ -11,10 +11,7 @@ cli
   .command('[...entrypoints]', 'regex patterns to match entrypoints')
   .option('-p, --project <file>', 'Path to your tsconfig.json')
   .option('--include-d-ts', 'Include .d.ts files in target for transformation')
-  .option(
-    '--check',
-    'Check if there are any unused exports without removing them',
-  )
+  .option('-w, --write', 'Write changes in place')
   .option(
     '-r, --recursive',
     'Recursively look into files until the project is clean',
@@ -28,7 +25,7 @@ cli
       ),
       {
         configPath: resolve(options.project || './tsconfig.json'),
-        mode: options.check ? 'check' : 'write',
+        mode: options.write ? 'check' : 'write',
         projectRoot: cwd(),
         recursive: !!options.recursive,
         includeDts: !!options['includeD-ts'],
