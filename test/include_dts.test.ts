@@ -27,7 +27,8 @@ describe('project: include_dts', () => {
       isTTY: false as const,
     };
 
-    await tsr(/main\.ts/, {
+    await tsr({
+      entrypoints: [/main\.ts/],
       projectRoot,
       mode: 'check',
       logger,
@@ -62,7 +63,8 @@ export types.d.ts:2:0     'B'
       isTTY: false as const,
     };
 
-    await tsr(/main\.ts/, {
+    await tsr({
+      entrypoints: [/main\.ts/],
       projectRoot,
       mode: 'check',
       logger,

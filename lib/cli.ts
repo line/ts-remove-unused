@@ -15,21 +15,19 @@ cli
     'Recursively look into files until the project is clean',
   )
   .option('--include-d-ts', 'checks for unused exports in .d.ts files')
-  .action((args, options) => {
-    tsr(
-      args.reduce(
+  .action((args, options) =>
+    tsr({
+      entrypoints: args.reduce(
         (acc: string[], cur: unknown) =>
           typeof cur === 'string' ? [...acc, new RegExp(cur)] : acc,
         [],
       ),
-      {
-        configFile: resolve(options.project || './tsconfig.json'),
-        mode: options.write ? 'check' : 'write',
-        recursive: !!options.recursive,
-        includeDts: !!options['includeD-ts'],
-      },
-    );
-  });
+      mode: options.write ? 'check' : 'write',
+      configFile: resolve(options.project || './tsconfig.json'),
+      recursive: !!options.recursive,
+      includeDts: !!options['includeD-ts'],
+    }),
+  );
 
 // omit the 'Commands' section from the help output because there is only one command
 cli.help((sections) => sections.filter(({ title }) => title !== 'Commands'));

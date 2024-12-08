@@ -34,7 +34,8 @@ describe('project: skip', () => {
       exitHistory.push(code);
     };
 
-    await tsr([], {
+    await tsr({
+      entrypoints: [],
       projectRoot,
       mode: 'check',
       logger,
@@ -71,7 +72,8 @@ describe('project: skip', () => {
       exitHistory.push(code);
     };
 
-    await tsr(/foo\.ts/, {
+    await tsr({
+      entrypoints: [/foo\.ts/],
       projectRoot,
       mode: 'check',
       logger,

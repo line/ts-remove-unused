@@ -26,7 +26,8 @@ test('reexport_delete', async () => {
     isTTY: false as const,
   };
 
-  await tsr(/main\.ts/, {
+  await tsr({
+    entrypoints: [/main\.ts/],
     projectRoot,
     mode: 'check',
     logger,

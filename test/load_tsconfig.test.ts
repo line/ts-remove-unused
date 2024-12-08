@@ -27,7 +27,8 @@ describe('project: load_tsconfig', () => {
       isTTY: false as const,
     };
 
-    await tsr(/main\.ts/, {
+    await tsr({
+      entrypoints: [/main\.ts/],
       projectRoot,
       mode: 'check',
       logger,
@@ -60,7 +61,8 @@ Project has 1 file, skipping 1 file
       isTTY: false as const,
     };
 
-    await tsr(/main\.ts/, {
+    await tsr({
+      entrypoints: [/main\.ts/],
       configFile: 'tsconfig.invalid.json',
       projectRoot,
       mode: 'check',
@@ -94,7 +96,8 @@ Project has 1 file, skipping 1 file
       isTTY: false as const,
     };
 
-    await tsr(/main\.ts/, {
+    await tsr({
+      entrypoints: [/main\.ts/],
       configFile: 'tsconfig.sample.json',
       projectRoot,
       mode: 'check',

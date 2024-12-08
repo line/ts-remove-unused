@@ -21,26 +21,25 @@ const createNodeJsLogger = (): Logger =>
         isTTY: false,
       };
 
-export const tsr = async (
-  entrypoints: RegExp[] | RegExp,
-  {
-    configFile,
-    projectRoot = cwd(),
-    mode,
-    recursive = false,
-    system = ts.sys,
-    logger = createNodeJsLogger(),
-    includeDts = false,
-  }: {
-    configFile?: string;
-    projectRoot?: string;
-    mode: 'check' | 'write';
-    recursive?: boolean;
-    system?: ts.System;
-    logger?: Logger;
-    includeDts?: boolean;
-  },
-) => {
+export const tsr = async ({
+  entrypoints,
+  configFile,
+  projectRoot = cwd(),
+  mode,
+  recursive = false,
+  system = ts.sys,
+  logger = createNodeJsLogger(),
+  includeDts = false,
+}: {
+  entrypoints: RegExp[];
+  configFile?: string;
+  projectRoot?: string;
+  mode: 'check' | 'write';
+  recursive?: boolean;
+  system?: ts.System;
+  logger?: Logger;
+  includeDts?: boolean;
+}) => {
   const relativeToCwd = (fileName: string) =>
     relative(cwd(), fileName).replaceAll('\\', '/');
 
@@ -62,14 +61,12 @@ export const tsr = async (
 
   const entrypointFiles = fileNames.filter(
     (fileName) =>
-      (Array.isArray(entrypoints) ? entrypoints : [entrypoints]).some((regex) =>
-        regex.test(fileName),
-      ) ||
+      entrypoints.some((regex) => regex.test(fileName)) ||
       // we want to include the .d.ts files as an entrypoint if includeDts is false
       (!includeDts && /\.d\.ts$/.test(fileName)),
   );
 
-  if (Array.isArray(entrypoints) && entrypoints.length === 0) {
+  if (entrypoints.length === 0) {
     logger.write(
       chalk.bold.red(
         'At least one pattern must be specified for the skip option\n',
