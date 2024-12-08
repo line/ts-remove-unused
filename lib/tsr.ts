@@ -24,6 +24,17 @@ const createNodeJsLogger = (): Logger =>
 const relativeToCwd = (fileName: string) =>
   relative(cwd(), fileName).replaceAll('\\', '/');
 
+export type Config = {
+  entrypoints: RegExp[];
+  mode: 'check' | 'write';
+  configFile?: string;
+  projectRoot?: string;
+  recursive?: boolean;
+  system?: ts.System;
+  logger?: Logger;
+  includeDts?: boolean;
+};
+
 export const tsr = async ({
   entrypoints,
   mode,
@@ -33,16 +44,7 @@ export const tsr = async ({
   system = ts.sys,
   logger = createNodeJsLogger(),
   includeDts = false,
-}: {
-  entrypoints: RegExp[];
-  configFile?: string;
-  projectRoot?: string;
-  mode: 'check' | 'write';
-  recursive?: boolean;
-  system?: ts.System;
-  logger?: Logger;
-  includeDts?: boolean;
-}) => {
+}: Config) => {
   const configPath = resolve(projectRoot, configFile);
 
   const { config, error } = configPath

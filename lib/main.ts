@@ -1,1 +1,2 @@
-export { tsr } from './tsr.js';
+export { tsr, Config } from './tsr.js';
+export { Logger } from './util/Logger.js';
