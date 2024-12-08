@@ -10,12 +10,12 @@ const cli = cac('tsr');
 cli
   .command('[...entrypoints]', 'regex patterns to match entrypoints')
   .option('-p, --project <file>', 'Path to your tsconfig.json')
-  .option('--include-d-ts', 'Include .d.ts files in target for transformation')
   .option('-w, --write', 'Write changes in place')
   .option(
     '-r, --recursive',
     'Recursively look into files until the project is clean',
   )
+  .option('--include-d-ts', 'checks for unused exports in .d.ts files')
   .action((args, options) => {
     tsr(
       args.reduce(
