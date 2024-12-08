@@ -6,7 +6,10 @@ import { createRequire } from 'node:module';
 const cli = cac('tsr');
 
 cli
-  .command('[...entrypoints]', 'regex patterns to match entrypoints')
+  .command(
+    '[...entrypoints]',
+    `regex patterns to match entrypoints. ex) npx tsr 'src/main\\.ts$'`,
+  )
   .option('-p, --project <file>', 'Path to your tsconfig.json')
   .option('-w, --write', 'Write changes in place')
   .option(
@@ -29,8 +32,7 @@ cli
     }),
   );
 
-// omit the 'Commands' section from the help output because there is only one command
-cli.help((sections) => sections.filter(({ title }) => title !== 'Commands'));
+cli.help();
 
 const { version } = createRequire(import.meta.url)('../package.json');
 
