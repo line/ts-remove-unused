@@ -4,7 +4,7 @@ import { edit } from './util/edit.js';
 import chalk from 'chalk';
 import { Logger } from './util/Logger.js';
 import { cwd, stdout } from 'node:process';
-import { relative } from 'node:path';
+import { relative, resolve } from 'node:path';
 import { formatCount } from './util/formatCount.js';
 import { CliOutput } from './util/CliOutput.js';
 
@@ -44,8 +44,10 @@ export const tsr = async (
   const relativeToCwd = (fileName: string) =>
     relative(cwd(), fileName).replaceAll('\\', '/');
 
-  const { config, error } = configFile
-    ? ts.readConfigFile(configFile, system.readFile)
+  const configPath = resolve(projectRoot, configFile || 'tsconfig.json');
+
+  const { config, error } = configPath
+    ? ts.readConfigFile(configPath, system.readFile)
     : { config: {}, error: undefined };
 
   const { options, fileNames } = ts.parseJsonConfigFileContent(
@@ -85,17 +87,11 @@ export const tsr = async (
     return;
   }
 
-  if (configFile) {
-    if (error) {
-      logger.write(
-        `${chalk.blue('tsconfig')} Couldn't load, using default options\n`,
-      );
-    } else {
-      logger.write(`${chalk.blue('tsconfig')} ${relativeToCwd(configFile)}\n`);
-    }
-  } else {
-    logger.write(`${chalk.blue('tsconfig')} using default options\n`);
-  }
+  logger.write(
+    `${chalk.blue('tsconfig')} ${
+      error ? 'using default options' : relativeToCwd(configPath)
+    }\n`,
+  );
 
   const output = new CliOutput({ logger, mode, projectRoot });
 

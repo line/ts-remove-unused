@@ -7,7 +7,10 @@ import ts from 'typescript';
 import stripAnsi from 'strip-ansi';
 import { assertEqualOutput } from './helpers/assertEqualOutput.js';
 
-const __dirname = dirname(fileURLToPath(import.meta.url));
+const projectRoot = resolve(
+  dirname(fileURLToPath(import.meta.url)),
+  'fixtures/reexport_delete',
+);
 
 const LOG = !!process.env.LOG;
 
@@ -24,8 +27,7 @@ test('reexport_delete', async () => {
   };
 
   await tsr(/main\.ts/, {
-    configFile: resolve(__dirname, 'fixtures/reexport_delete/tsconfig.json'),
-    projectRoot: resolve(__dirname, 'fixtures/reexport_delete'),
+    projectRoot,
     mode: 'check',
     logger,
     system: {

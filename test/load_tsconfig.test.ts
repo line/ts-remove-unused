@@ -7,7 +7,10 @@ import assert from 'node:assert/strict';
 import stripAnsi from 'strip-ansi';
 import { stdout } from 'node:process';
 
-const __dirname = dirname(fileURLToPath(import.meta.url));
+const projectRoot = resolve(
+  dirname(fileURLToPath(import.meta.url)),
+  'fixtures/load_tsconfig',
+);
 
 const LOG = !!process.env.LOG;
 
@@ -25,7 +28,7 @@ describe('project: load_tsconfig', () => {
     };
 
     await tsr(/main\.ts/, {
-      projectRoot: resolve(__dirname, 'fixtures/load_tsconfig'),
+      projectRoot,
       mode: 'check',
       logger,
       system: {
@@ -45,7 +48,7 @@ Project has 1 file, skipping 1 file
     );
   });
 
-  it(`should log couldn't load if tsconfig path is invalid`, async () => {
+  it(`should log using default options tsconfig path is invalid`, async () => {
     let output = '';
     const logger = {
       write: (text: string) => {
@@ -59,7 +62,7 @@ Project has 1 file, skipping 1 file
 
     await tsr(/main\.ts/, {
       configFile: 'tsconfig.invalid.json',
-      projectRoot: resolve(__dirname, 'fixtures/load_tsconfig'),
+      projectRoot,
       mode: 'check',
       logger,
       system: {
@@ -72,7 +75,7 @@ Project has 1 file, skipping 1 file
 
     assert.equal(
       stripedOutput,
-      `tsconfig Couldn't load, using default options
+      `tsconfig using default options
 Project has 1 file, skipping 1 file
 ✔ all good!
 `,
@@ -92,11 +95,8 @@ Project has 1 file, skipping 1 file
     };
 
     await tsr(/main\.ts/, {
-      configFile: resolve(
-        __dirname,
-        'fixtures/load_tsconfig/tsconfig.sample.json',
-      ),
-      projectRoot: resolve(__dirname, 'fixtures/load_tsconfig'),
+      configFile: 'tsconfig.sample.json',
+      projectRoot,
       mode: 'check',
       logger,
       system: {

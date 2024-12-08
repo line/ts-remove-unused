@@ -7,7 +7,10 @@ import assert from 'node:assert/strict';
 import stripAnsi from 'strip-ansi';
 import { stdout } from 'node:process';
 
-const __dirname = dirname(fileURLToPath(import.meta.url));
+const projectRoot = resolve(
+  dirname(fileURLToPath(import.meta.url)),
+  'fixtures/include_dts',
+);
 
 const LOG = !!process.env.LOG;
 
@@ -25,7 +28,7 @@ describe('project: include_dts', () => {
     };
 
     await tsr(/main\.ts/, {
-      projectRoot: resolve(__dirname, 'fixtures/include_dts'),
+      projectRoot,
       mode: 'check',
       logger,
       system: {
@@ -60,7 +63,7 @@ export types.d.ts:2:0     'B'
     };
 
     await tsr(/main\.ts/, {
-      projectRoot: resolve(__dirname, 'fixtures/include_dts'),
+      projectRoot,
       mode: 'check',
       logger,
       system: {
