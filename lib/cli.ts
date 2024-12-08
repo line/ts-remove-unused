@@ -3,7 +3,6 @@
 import { cac } from 'cac';
 import { tsr } from './tsr.js';
 import { createRequire } from 'node:module';
-import { resolve } from 'node:path';
 const cli = cac('tsr');
 
 cli
@@ -23,7 +22,8 @@ cli
         [],
       ),
       mode: options.write ? 'check' : 'write',
-      configFile: resolve(options.project || './tsconfig.json'),
+      configFile:
+        typeof options.project === 'string' ? options.project : undefined,
       recursive: !!options.recursive,
       includeDts: !!options['includeD-ts'],
     }),
