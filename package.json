@@ -4,7 +4,7 @@
   "type": "module",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/line/ts-remove-unused"
+    "url": "git+https://github.com/line/tsr"
   },
   "license": "Apache-2.0",
   "bin": "dist/cli.js",
