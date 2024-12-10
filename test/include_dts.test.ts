@@ -1,21 +1,21 @@
-import { dirname, resolve } from 'node:path';
-import { tsr } from '../lib/tsr.js';
-import { fileURLToPath } from 'node:url';
 import { describe, it } from 'node:test';
-import { stdout } from 'node:process';
+import { tsr } from '../lib/tsr.js';
+import { dirname, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import ts from 'typescript';
-import stripAnsi from 'strip-ansi';
 import assert from 'node:assert/strict';
+import stripAnsi from 'strip-ansi';
+import { stdout } from 'node:process';
 
 const projectRoot = resolve(
   dirname(fileURLToPath(import.meta.url)),
-  'fixtures/skip',
+  'fixtures/include_dts',
 );
 
 const LOG = !!process.env.LOG;
 
-describe('project: skip', () => {
-  it('should throw an error if no patterns are supplied', async () => {
+describe('project: include_dts', () => {
+  it('should include unused exports from .d.ts files', async () => {
     let output = '';
     const logger = {
       write: (text: string) => {
@@ -27,33 +27,31 @@ describe('project: skip', () => {
       isTTY: false as const,
     };
 
-    const exitHistory: (number | undefined)[] = [];
-
-    const exit = (code?: number) => {
-      exitHistory.push(code);
-    };
-
     await tsr({
-      entrypoints: [],
+      entrypoints: [/main\.ts/],
       projectRoot,
       mode: 'check',
       logger,
       system: {
         ...ts.sys,
-        exit,
+        exit: () => {},
       },
+      includeDts: true,
     });
 
     const stripedOutput = stripAnsi(output);
 
     assert.equal(
       stripedOutput,
-      `At least one pattern must be specified for entrypoints\n`,
+      `tsconfig using default options
+Project has 2 files. Found 1 entrypoint file
+export types.d.ts:2:0     'B'
+✖ remove 1 export
+`,
     );
-    assert.deepEqual(exitHistory, [1]);
   });
 
-  it('should throw an error if no files are matched', async () => {
+  it('should not include unused exports from .d.ts files', async () => {
     let output = '';
     const logger = {
       write: (text: string) => {
@@ -65,26 +63,26 @@ describe('project: skip', () => {
       isTTY: false as const,
     };
 
-    const exitHistory: (number | undefined)[] = [];
-
-    const exit = (code?: number) => {
-      exitHistory.push(code);
-    };
-
     await tsr({
-      entrypoints: [/foo\.ts/],
+      entrypoints: [/main\.ts/],
       projectRoot,
       mode: 'check',
       logger,
       system: {
         ...ts.sys,
-        exit,
+        exit: () => {},
       },
+      includeDts: false,
     });
 
     const stripedOutput = stripAnsi(output);
 
-    assert.equal(stripedOutput, `No files matched the entrypoints pattern\n`);
-    assert.deepEqual(exitHistory, [1]);
+    assert.equal(
+      stripedOutput,
+      `tsconfig using default options
+Project has 2 files. Found 2 entrypoint files
+✔ all good!
+`,
+    );
   });
 });

@@ -1,48 +1,245 @@
-<h1 align="center">ts-remove-unused</h1>
-<div align="center">
-  <br />
-  <img width="600" src="./media/cover.gif" />
-  <br />
-  <br />
-  <p>Remove unused code from your TypeScript Project – It's like tree shaking, but for source files</p>
-</div>
+# tsr
 
-[![npm version](https://badge.fury.io/js/@line%2Fts-remove-unused.svg)](https://badge.fury.io/js/@line%2Fts-remove-unused)
-[![install size](https://packagephobia.com/badge?p=ts-remove-unused)](https://packagephobia.com/result?p=ts-remove-unused)
-[![CI](https://github.com/line/ts-remove-unused/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/line/ts-remove-unused/actions/workflows/ci.yml)
+[![npm version](https://badge.fury.io/js/tsr.svg)](https://badge.fury.io/js/tsr)
+[![install size](https://packagephobia.com/badge?p=tsr)](https://packagephobia.com/result?p=tsr)
+[![CI](https://github.com/line/tsr/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/line/tsr/actions/workflows/ci.yml)
+
+TypeScript Remove (tsr) is a utility that removes unused code from TypeScript projects – It's like tree shaking, but for source files
+
+[Migrating from v0.x (ts-remove-unused)](./doc/migration.md)
 
 ## Features
 
-- 🛠️ Auto-fix unused exports — removes the `export` keyword from the declaration or the whole declaration based on its usage
-- 🧹 Deletes TypeScript modules that have no referenced exports
-- 🕵️ `--check` mode — reports unused exports and deletable files without writing changes
+<div align="center">
+  <img width="600" src="./media/cover.gif" />
+</div>
+
+### 🕵️ Find unused code
+
+tsr statically analyses your TypeScript project like how tree-shaking is implemented in bundlers. Run tsr to get a list of unused exports and files (modules) in your TypeScript project. Use tsr in your CI pipeline to detect unused code from being added.
+
+### 🧹 Remove unused code automatically
+
+tsr is built for automatic code removal. Not only does tsr remove the `export` keyword from unused declarations, it will remove the whole declaration if the declaration not used within the file. tsr will also remove imports and other local declarations that became unnecessary after removing the declaration. [Check out the examples of how tsr edits your files.](#examples)
+
+### 📦 Works out of the box
+
+tsr uses the TypeScript compiler to detect files in your project and resolve imports. The only requirement is a valid `tsconfig.json`. There's no need to setup another config file to get tsr running. Specify your entrypoint file and start using tsr in seconds.
 
 ## Install
 
 ```bash
-npm install @line/ts-remove-unused
+npm i tsr
 ```
 
 TypeScript is a peer dependency.
 
 ## Quick Start
 
-1. 🔍 Check your `tsconfig.json` – Make sure `include` and `exclude` is configured thoroughly so that we can correctly detect what's "unused" in your project.
+1. **🔍 Check your `tsconfig.json`** – Make sure `include` and `exclude` are configured thoroughly so that tsr can correctly detect unused code.
 
-2. 🔍 Check your entrypoint files – What's the file that is the starting point for your code? Without this information, all files will be recognized as unnecessary. Usually it is some file like `src/main.ts` or maybe a group of files like `src/pages/*`.
+2. **🔍 Check your entrypoint files** – Without entrypoint files, all files are unnecessary. Usually it is some file like `src/main.ts` or maybe a group of files like `src/pages/*`.
 
-3. 🚀 Execute – Set a regex pattern that matches your entry files for `--skip`. You can optionally set `--project` to a path to your custom `tsconfig.json` if necessary.
+3. **🚀 Execute** – Pass regex patterns that match the entrypoints. Use `--write` to change the files in place.
 
 ```bash
-npx @line/ts-remove-unused --skip 'src/main\.ts$'
+npx tsr 'src/main\.ts$'
 ```
 
+## Usage
+
+### CLI
+
+<!-- prettier-ignore-start -->
+
+```
+Usage:
+  $ tsr [...entrypoints]
+
+Commands:
+  [...entrypoints]  regex patterns to match entrypoints
+
+For more info, run any command with the `--help` flag:
+  $ tsr --help
+
+Options:
+  -p, --project <file>  Path to your tsconfig.json 
+  -w, --write           Write changes in place 
+  -r, --recursive       Recursively look into files until the project is clean 
+  --include-d-ts        Check for unused code in .d.ts files 
+  -h, --help            Display this message 
+  -v, --version         Display version number 
+
+Examples:
+npx tsr 'src/main\.ts$'
+```
+<!-- prettier-ignore-end -->
+
+#### `-p`, `--project`
+
+Specifies the `tsconfig.json` that is used to analyze your codebase. Defaults to `tsconfig.json` in your project root.
+
+```bash
+npx tsr --project tsconfig.client.json 'src/main\.ts$'
+```
+
+#### `-w`, `--write`
+
+Writes fixable changes in place.
+
 > [!WARNING]
-> THIS COMMAND WILL DELETE CODE FROM YOUR PROJECT. Using it in a git controlled environment is highly recommended. If you're just playing around use `--check`.
+> This will delete code. Using it in a git controlled environment is highly recommended.
+
+#### `-r`, `--recursive`
+
+The default behavior of the CLI is to process all files once. Some issues may not be detected if the unused code is a result of the modification of another file in the project. When this option is enabled, tsr will recursively look into files that may be affected by a file edit.
+
+This will take longer but is helpful when you want to edit in one pass.
+
+#### `--include-d-ts`
+
+By default, exported types in `.d.ts` files are not detected. Use the `--include-d-ts` option if you want to include types in `.d.ts` files
+
+### JavaScript API
+
+Alternatively, you can use the JavaScript API to execute tsr.
+
+```typescript
+import { tsr } from 'tsr';
+
+await tsr({
+  entrypoints: [/main\.ts/],
+  mode: 'check',
+});
+```
+
+The project path and/or the custom `tsconfig.json` can be manually specified.
+
+```typescript
+await tsr({
+  entrypoints: [/main\.ts/],
+  mode: 'check',
+  configFile: 'tsconfig.sample.json',
+  projectRoot: '/path/to/project',
+});
+```
+
+Check the type definition `import('tsr').Config` for all of the available options.
+
+## Skip
+
+When you add a comment `// tsr-skip` to your export declaration, it will be skipped from being removed
+
+```ts
+// tsr-skip
+export const hello = 'world';
+```
+
+## Test files
+
+If you have a separate tsconfig for tests using [Project References](https://www.typescriptlang.org/docs/handbook/project-references.html), that would be great! tsr will remove exports/files that exist for the sake of testing.
+
+If you pass a `tsconfig.json` to the CLI that includes both the implementation and the test files, tsr will remove your test files since they are not referenced by your entry point file by default. You can avoid tests being deleted by passing a pattern that matches your test files to the args in the meantime, but the recommended way is to use project references to ensure your TypeScript config is more robust and strict (not just for using this tool).
+
+```bash
+npx tsr -w 'src/main\.ts$' ## depending on the tsconfig, this will delete test files
+npx tsr -w 'src/main\.ts$' '.*\.test\.ts$' ## Specifying test files as entrypoints will avoid deletion
+```
+
+## Comparison
+
+### TypeScript
+
+If you enable `compilerOptions.noUnusedLocals`, declarations that are never read will be reported.
+
+```typescript
+// 'a' is declared but its value is never read.
+const a = 'a';
+```
+
+However, when you `export` it, no errors will be reported regardless of its usage within the project. tsr's aim is to report/fix unused code while taking project wide usage into account.
+
+### ESLint
+
+ESLint will detect unused imports. Plugins such as `eslint-plugin-unused-imports` can also auto-fix this issue.
+
+```typescript
+// 'foo' is defined but never used.
+import { foo } from './foo';
+```
+
+However, we can't detect unused exports. ESLint's architecture works in a file by file basis and was never intended to provide linting based on project-wide usage stats.
+
+```typescript
+// a lint rule that detects if this export is used within the project is unlikely to be introduced
+export const a = 'a';
+```
+
+tsr's main goal is to remove unused exports and delete unused modules, but it will also delete unused imports that are a result of removing an export declaration.
+
+### Knip
+
+Knip aims to be a comprehensive solution around the idea of detecting unused code (and even dependencies) in repositories. While there are obvious differences like tsr supporting TypeScript projects only, here are some notable differences.
+
+#### Built for automatic editing
+
+tsr was designed for automatic code editing from the beginning. Knip currently does support automatic fixing, however there are limitations to what it provides. For example, given the following code:
+
+```typescript
+export const a = 'a';
+
+export const f = () => a2;
+
+const a2 = 'a2';
+```
+
+When `f()` is not used within the project,
+
+- Knip will only remove the `export` keyword
+- tsr will remove the whole declaration of `f()` and will also remove `a2`
+
+#### Zero Configuration
+
+Knip expects users to provide a config file. While this adds the flexibility, it's difficult to correctly configure Knip to suite your needs. tsr relies on `tsconfig.json` to avoid additional setup. If you have a `tsconfig.json` configured in your repository, it works out of the box.
+
+#### Less ambiguity
+
+Knip makes some assumptions on how your project is structured to detect code usage. Also, Knip has a custom module resolution behavior. While these design decisions might be helpful for some users and opens the possibility to support file types that TypeScript can't handle, the behavior becomes less predictable.
+
+tsr's behavior is clear by design. TypeScript is used to detect modules in your project and to resolve import statements so you can take full control with `tsconfig.json`. Basically, if your project passes type checking, tsr will work. If tsc fails, tsr will also fail to produce the correct results.
+
+#### Minimal Design
+
+tsr is designed to be minimal and serve a single purpose. The install size is substantially smaller. Also, tsr is runtime dependent, not relying on `@types/node`.
+
+| tsr   | Knip   |
+| ----- | ------ |
+| 237kB | 5.86MB |
+
+#### Better Performance
+
+Our benchmark shows that tsr is 2.5x faster compared to Knip 🚀 (see `benchmark/vue_core.sh` for details)
+
+<img width="400" src="./media/comparison.png" alt="benchmark of tsr and Knip" />
+
+#### Recursive Editing
+
+tsr provides `---recursive` option which will edit your files until there are no unused code in one pass.
+
+#### Key Differences
+
+| Feature                  | tsr                            | Knip                                       |
+| ------------------------ | ------------------------------ | ------------------------------------------ |
+| **Automatic Editing**    | ✅ Comprehensive               | Limited                                    |
+| **Zero Configuration**   | ✅ Works with `tsconfig.json`  | Requires a config file for correct results |
+| **Predictable Behavior** | ✅ TypeScript-based logic      | Assumptions for project structure          |
+| **Install Size**         | ✅ 237kB, minimal dependencies | 5.86MB, requires `@types/node`             |
+| **Performance**          | ✅ 2.5x faster                 |                                            |
+| **Recursive Editing**    | ✅ `--recursive` option        |                                            |
 
 ## Examples
 
-Here are some examples of how this tool will auto-fix unused code.
+Here are some examples of how tsr edits your files when it finds unused code.
 
 <!-- prettier-ignore-start -->
 
@@ -105,139 +302,13 @@ When `f()` and `exported` are not used within the project and when deleting `f()
 
 <!-- prettier-ignore-end -->
 
-In addition to the behavior shown in the examples above, ts-remove-unused will delete files that have no used exports.
+## Contributing
 
-ts-remove-unused works with all kinds of code: variables, functions, interfaces, classes, type aliases and more!
-
-## Usage
-
-### Options
-
-<!-- prettier-ignore-start -->
-
-```
-Usage:
-  $ ts-remove-unused 
-
-Commands:
-    There are no subcommands. Simply execute ts-remove-unused
-
-For more info, run any command with the `--help` flag:
-  $ ts-remove-unused --help
-
-Options:
-  -p, --project <file>     Path to your tsconfig.json 
-  --skip <regexp_pattern>  Specify the regexp pattern to match files that should be skipped from transforming 
-  --include-d-ts           Include .d.ts files in target for transformation 
-  --check                  Check if there are any unused exports without removing them 
-  -r, --recursive          Recursively look into files until the project is clean 
-  -h, --help               Display this message 
-  -v, --version            Display version number 
-```
-<!-- prettier-ignore-end -->
-
-#### `-p`, `--project`
-
-Specifies the `tsconfig.json` that is used to analyze your codebase. Defaults to `tsconfig.json` in your project root.
-
-```bash
-npx @line/ts-remove-unused --project tsconfig.client.json
-```
-
-#### `--skip`
-
-Skip files that match a given regex pattern. Note that you can pass multiple patterns.
-
-```bash
-npx @line/ts-remove-unused --skip 'src/main\.ts' --skip '/pages/'
-```
-
-#### `--include-d-ts`
-
-By default, `.d.ts` files are skipped. If you want to include `.d.ts` files, use the `--include-d-ts` option.
-
-#### `--check`
-
-Use `--check` to check for unused files and exports without making changes to project files. The command will exit with exit code 1 if there are any unused files or exports discovered.
-
-```bash
-npx @line/ts-remove-unused --skip 'src/main\.ts' --check
-```
-
-#### `-r`, `--recursive`
-
-The default behavior of the CLI is to process all files once. Some issues may not be detected if the unused code is a result of the modification of another file in the project. When this option is enabled, ts-remove-unused will recursively re-edit/re-check files that may be affected by a file edit.
-
-This will take longer but is helpful when you want to edit in one pass.
-
-### Use the JavaScript API
-
-Alternatively, you can use the JavaScript API to execute ts-remove-unused.
-
-```typescript
-import { remove } from '@line/ts-remove-unused';
-
-await remove({
-  configPath: '/path/to/project/tsconfig.json',
-  projectRoot: '/path/to/project',
-  skip: [/main\.ts/],
-  mode: 'write',
-});
-```
-
-### Skip
-
-When you add a comment `// ts-remove-unused-skip` to your export declaration, it will be skipped from being removed
-
-```ts
-// ts-remove-unused-skip
-export const hello = 'world';
-```
-
-## Handling test files
-
-If you have a separate tsconfig for tests using [Project References](https://www.typescriptlang.org/docs/handbook/project-references.html), that would be great! ts-remove-unused will remove exports/files that exist for the sake of testing.
-
-If you pass a `tsconfig.json` to the CLI that includes both the implementation and the test files, ts-remove-unused will remove your test files since they are not referenced by your entry point file (which is specified in `--skip`). You can avoid tests being deleted by passing a pattern that matches your test files to `--skip` in the meantime, but the recommended way is to use project references to ensure your TypeScript config is more robust and strict (not just for using this tool).
-
-## Comparison
-
-### TypeScript
-
-If you enable `compilerOptions.noUnusedLocals`, declarations that are never read will be reported.
-
-```typescript
-// 'a' is declared but its value is never read.
-const a = 'a';
-```
-
-However, when you `export` it, no errors will be reported regardless of its usage within the project. ts-remove-unused's aim is to report/fix unused code while taking project wide usage into account.
-
-### ESLint
-
-ESLint will detect unused imports. Plugins such as `eslint-plugin-unused-imports` can also auto-fix this issue.
-
-```typescript
-// 'foo' is defined but never used.
-import { foo } from './foo';
-```
-
-However, we can't detect unused exports. ESLint's architecture works in a file by file basis and was never intended to provide linting based on project-wide usage stats.
-
-```typescript
-// a lint rule that detects if this export is used within the project is unlikely to be introduced
-export const a = 'a';
-```
-
-ts-remove-unused's main goal is to remove unused exports and delete unused modules, but it will also delete unused imports that are a result of removing an export declaration.
+Contributions are welcomed!
 
 ## Author
 
 Kazushi Konosu (https://github.com/kazushisan)
-
-## Contributing
-
-Contributions are welcomed!
 
 ## License
 
