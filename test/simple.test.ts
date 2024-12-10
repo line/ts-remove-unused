@@ -5,7 +5,7 @@ import { test } from 'node:test';
 import { stdout } from 'node:process';
 import ts from 'typescript';
 import stripAnsi from 'strip-ansi';
-import { assertEqualOutput } from './helpers/assertEqualOutput.js';
+import assert from 'node:assert/strict';
 
 const projectRoot = resolve(
   dirname(fileURLToPath(import.meta.url)),
@@ -39,11 +39,10 @@ test('simple', async () => {
 
   const stripedOutput = stripAnsi(output);
 
-  assertEqualOutput(
+  assert.equal(
     stripedOutput,
     `tsconfig test/fixtures/simple/tsconfig.json
-Project has 5 files, skipping 1 file
-file   b.ts
+Project has 5 files. Found 1 entrypoint file
 export a.ts:1:0     'b'
 export a.ts:3:0     'default'
 export d.ts:9:2     'unusedLong'
@@ -51,6 +50,7 @@ export d.ts:10:2    'unusedLongLong'
 export d.ts:11:2    'unusedLongLongLong'
 export d.ts:12:2    'unusedLongLongLongLong'
 export d.ts:15:0    'default'
+file   b.ts
 ✖ delete 1 file, remove 7 exports
 `,
   );
