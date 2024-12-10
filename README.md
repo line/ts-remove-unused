@@ -175,6 +175,31 @@ export const a = 'a';
 
 tsr's main goal is to remove unused exports and delete unused modules, but it will also delete unused imports that are a result of removing an export declaration.
 
+### Knip
+
+Knip aims to be a comprehensive solution around the idea of detecting unused code (and even dependencies) in repositories. While there are obvious differences like tsr supporting only TypeScript projects, here are some notable differences.
+
+#### Built for automatic editing
+
+tsr was designed for automatic code editing from the beginning. Knip now does support automatic fixing, but the feature is limited. For example, given the following code, when `f()` is not used within the project, Knip will only remove the `export` keyword. tsr will remove the whole declaration of `f()` and will also remove `a2`.
+
+```typescript
+export const a = 'a';
+
+export const f = () => a2;
+
+const a2 = 'a2';
+```
+
+#### Fast
+
+Our benchmark for the Vue.js repository shows that tsr is 2.5x faster compared to Knip 🚀 (see `benchmark/vue_core.sh` for details)
+
+<div align="center">
+  <img width="400" src="./media/comparison.png" />
+</div>
+
+
 ## Examples
 
 Here are some examples of how tsr edits your files when it finds unused code.
