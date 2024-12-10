@@ -5,7 +5,6 @@ import { describe, it } from 'node:test';
 import { stdout } from 'node:process';
 import ts from 'typescript';
 import stripAnsi from 'strip-ansi';
-import { assertEqualOutput } from './helpers/assertEqualOutput.js';
 import assert from 'node:assert/strict';
 
 const projectRoot = resolve(
@@ -47,7 +46,7 @@ describe('project: skip', () => {
 
     const stripedOutput = stripAnsi(output);
 
-    assertEqualOutput(
+    assert.equal(
       stripedOutput,
       `At least one pattern must be specified for the skip option\n`,
     );
@@ -85,7 +84,7 @@ describe('project: skip', () => {
 
     const stripedOutput = stripAnsi(output);
 
-    assertEqualOutput(stripedOutput, `No files matched the skip pattern\n`);
+    assert.equal(stripedOutput, `No files matched the skip pattern\n`);
     assert.deepEqual(exitHistory, [1]);
   });
 });
