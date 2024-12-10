@@ -1,15 +1,16 @@
-<h1 align="center">tsr</h1>
-<div align="center">
-  <br />
-  <img width="600" src="./media/cover.gif" />
-  <br />
-  <br />
-  <p>TypeScript Remove (tsr) is a utility that removes unused code from TypeScript projects – It's like tree shaking, but for source files</p>
-</div>
+# tsr
 
 [![npm version](https://badge.fury.io/js/@line%2Fts-remove-unused.svg)](https://badge.fury.io/js/@line%2Fts-remove-unused)
 [![install size](https://packagephobia.com/badge?p=ts-remove-unused)](https://packagephobia.com/result?p=ts-remove-unused)
 [![CI](https://github.com/line/ts-remove-unused/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/line/ts-remove-unused/actions/workflows/ci.yml)
+
+TypeScript Remove (tsr) is a utility that removes unused code from TypeScript projects – It's like tree shaking, but for source files
+
+<div align="center">
+  <br />
+  <img width="600" src="./media/cover.gif" />
+  <br />
+</div>
 
 ## Features
 
