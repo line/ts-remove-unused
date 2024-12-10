@@ -96,9 +96,9 @@ export const tsr = async ({
 
   logger.write(
     chalk.gray(
-      `Project has ${formatCount(fileNames.length, 'file')}, skipping ${formatCount(
+      `Project has ${formatCount(fileNames.length, 'file')}. Found ${formatCount(
         entrypointFiles.length,
-        'file',
+        'entrypoint file',
       )}\n`,
     ),
   );

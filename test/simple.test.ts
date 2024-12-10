@@ -42,7 +42,7 @@ test('simple', async () => {
   assert.equal(
     stripedOutput,
     `tsconfig test/fixtures/simple/tsconfig.json
-Project has 5 files, skipping 1 file
+Project has 5 files. Found 1 entrypoint file
 export a.ts:1:0     'b'
 export a.ts:3:0     'default'
 export d.ts:9:2     'unusedLong'
