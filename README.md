@@ -177,7 +177,7 @@ tsr's main goal is to remove unused exports and delete unused modules, but it wi
 
 ### Knip
 
-Knip aims to be a comprehensive solution around the idea of detecting unused code (and even dependencies) in repositories. While there are obvious differences like tsr supporting only TypeScript projects, here are some notable differences.
+Knip aims to be a comprehensive solution around the idea of detecting unused code (and even dependencies) in repositories. While there are obvious differences like tsr supporting TypeScript projects only, here are some notable differences.
 
 #### Built for automatic editing
 
@@ -201,7 +201,7 @@ Knip makes some assumptions on how your project is structured to detect code usa
 
 tsr's behavior is clear by design. It uses TypeScript to detect modules in your project and resolve import statements so you can control the module resolution behavior in `tsconfig.json`. Basically, if your project passes type checking, tsr will work. If tsc fails, tsr will also fail to produce the correct results.
 
-#### Minimal
+#### Minimal Design
 
 tsr is designed to be minimal and serve a single purpose. The install size is substantially smaller. Also, tsr is runtime dependent, not relying on `@types/node`.
 
