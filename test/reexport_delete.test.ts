@@ -42,7 +42,7 @@ test('reexport_delete', async () => {
   assert.equal(
     stripedOutput,
     `tsconfig test/fixtures/reexport_delete/tsconfig.json
-Project has 3 files, skipping 1 file
+Project has 3 files. Found 1 entrypoint file
 export b.ts:0:0     'export * from './a';'
 file   a.ts
 ✖ delete 1 file, remove 1 export
