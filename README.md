@@ -111,6 +111,19 @@ await tsr({
 });
 ```
 
+The project path and/or the custom `tsconfig.json` can be manually specified.
+
+```typescript
+await tsr({
+  entrypoints: [/main\.ts/],
+  mode: 'check',
+  configFile: 'tsconfig.sample.json',
+  projectRoot: '/path/to/project',
+});
+```
+
+Check the type definition `import('tsr').Config` for all of the available options.
+
 ### Skip
 
 When you add a comment `// tsr-skip` to your export declaration, it will be skipped from being removed
