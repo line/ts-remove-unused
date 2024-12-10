@@ -46,7 +46,7 @@ npx tsr 'src/main\.ts$'
 
 ## Usage
 
-### Options
+### CLI
 
 <!-- prettier-ignore-start -->
 
@@ -98,7 +98,7 @@ This will take longer but is helpful when you want to edit in one pass.
 
 By default, exported types in `.d.ts` files are not detected. Use the `--include-d-ts` option if you want to include types in `.d.ts` files
 
-### Use the JavaScript API
+### JavaScript API
 
 Alternatively, you can use the JavaScript API to execute tsr.
 
@@ -124,7 +124,7 @@ await tsr({
 
 Check the type definition `import('tsr').Config` for all of the available options.
 
-### Skip
+## Skip
 
 When you add a comment `// tsr-skip` to your export declaration, it will be skipped from being removed
 
@@ -133,7 +133,7 @@ When you add a comment `// tsr-skip` to your export declaration, it will be skip
 export const hello = 'world';
 ```
 
-## Handling test files
+## Test files
 
 If you have a separate tsconfig for tests using [Project References](https://www.typescriptlang.org/docs/handbook/project-references.html), that would be great! tsr will remove exports/files that exist for the sake of testing.
 
