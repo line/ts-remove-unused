@@ -202,7 +202,7 @@ Knip expects users to provide a config file. While this adds the flexibility, it
 
 #### Less ambiguity
 
-Knip makes some assumptions on how your project is structured to detect code usage. Also, Knip has its own module resolution logic. While these design decisions might be helpful for some users and opens the possibility to support file types that TypeScript can't handle, the behavior becomes less predictable.
+Knip makes some assumptions on how your project is structured to detect code usage. Also, Knip has a custom module resolution behavior. While these design decisions might be helpful for some users and opens the possibility to support file types that TypeScript can't handle, the behavior becomes less predictable.
 
 tsr's behavior is clear by design. TypeScript is used detect modules in your project and to resolve import statements so you can take full control. Basically, if your project passes type checking, tsr will work. If tsc fails, tsr will also fail to produce the correct results.
 
