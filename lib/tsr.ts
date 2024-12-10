@@ -114,10 +114,6 @@ export const tsr = async ({
     recursive,
   });
 
-  if (mode === 'write') {
-    logger.write(chalk.gray(`Writing to disk...\n`));
-  }
-
   for (const target of fileNames) {
     if (!fileService.exists(target)) {
       if (mode == 'write') {
