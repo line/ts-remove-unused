@@ -78,7 +78,7 @@ npx tsr 'src/main\.ts$'
 Specifies the `tsconfig.json` that is used to analyze your codebase. Defaults to `tsconfig.json` in your project root.
 
 ```bash
-npx tsr --project tsconfig.client.json
+npx tsr --project tsconfig.client.json 'src/main\.ts$'
 ```
 
 #### `-w`, `--write`
