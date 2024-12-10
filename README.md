@@ -14,9 +14,17 @@ TypeScript Remove (tsr) is a utility that removes unused code from TypeScript pr
 
 ## Features
 
-- 🛠️ Auto-fix unused exports — removes the `export` keyword from the declaration or the whole declaration based on its usage
-- 🧹 Deletes TypeScript modules that have no referenced exports
-- 🕵️ Check – Use the command without `--write` to detect unused code without making changes
+### 🕵️ Find unused code
+
+tsr statically analyses your TypeScript project like how tree-shaking is implemented in bundlers to eliminate unused code. Run tsr to get a list of unused exports and files (modules) in your TypeScript project. Use tsr in your CI pipeline to detect unused code from being added.
+
+### 🧹 Remove unused code automatically
+
+tsr is built for automatic code removal. Not only does tsr remove the `export` keyword from unused declarations, it will remove the whole declaration if the declaration not used within the file. tsr will also remove imports and other local declarations that became unnecessary after removing the declaration. [Check out the examples of how tsr edits your files.](#examples)
+
+### 📦 Works out of the box
+
+tsr uses the TypeScript compiler to detect files in your project and resolve imports. The only requirement is a valid `tsconfig.json`. There's no need to setup another config file to get tsr running. Specify your entrypoint file and start using tsr in seconds.
 
 ## Install
 
