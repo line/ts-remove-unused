@@ -166,7 +166,7 @@ tsr's main goal is to remove unused exports and delete unused modules, but it wi
 
 ## Examples
 
-Here are some examples of how this tool will auto-fix unused code.
+Here are some examples of how tsr edits your files when it finds unused code.
 
 <!-- prettier-ignore-start -->
 
