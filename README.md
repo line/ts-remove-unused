@@ -181,7 +181,7 @@ Knip aims to be a comprehensive solution around the idea of detecting unused cod
 
 #### Built for automatic editing
 
-tsr was designed for automatic code editing from the beginning. Knip now does support automatic fixing, but the feature is limited. For example, given the following code, when `f()` is not used within the project, Knip will only remove the `export` keyword. tsr will remove the whole declaration of `f()` and will also remove `a2`.
+tsr was designed for automatic code editing from the beginning. Now, Knip does support automatic fixing, but there are limitations to what it provides. For example, given the following code, when `f()` is not used within the project, Knip will only remove the `export` keyword. tsr will remove the whole declaration of `f()` and will also remove `a2`.
 
 ```typescript
 export const a = 'a';
@@ -191,14 +191,33 @@ export const f = () => a2;
 const a2 = 'a2';
 ```
 
+#### Zero Config
+
+Knip expects users to provide a config file. While this adds the flexibility, it's difficult to correctly configure Knip to suite your needs. tsr relies on `tsconfig.json` to avoid additional setup. If you have a `tsconfig.json` configured in your repository, it just works!
+
+#### Less ambiguity
+
+Knip makes some assumptions on how your project is structured to detect code usage. Also, Knip has its own module resolution logic. While these design decisions might be helpful for some users and opens the possibility to support file types that TypeScript can't handle, the behavior becomes less predictable.
+
+tsr's behavior is clear by design. It uses TypeScript to detect modules in your project and resolve import statements so you can control the module resolution behavior in `tsconfig.json`. Basically, if your project passes type checking, tsr will work. If tsc fails, tsr will also fail to produce the correct results.
+
+#### Minimal
+
+tsr is designed to be minimal and serve a single purpose. The install size is substantially smaller. Also, tsr is runtime dependent, not relying on `@types/node`.
+
+| tsr   | Knip   |
+| ----- | ------ |
+| 237kB | 5.86MB |
+
 #### Fast
 
-Our benchmark for the Vue.js repository shows that tsr is 2.5x faster compared to Knip 🚀 (see `benchmark/vue_core.sh` for details)
+Our benchmark shows that tsr is 2.5x faster compared to Knip 🚀 (see `benchmark/vue_core.sh` for details)
 
-<div align="center">
-  <img width="400" src="./media/comparison.png" />
-</div>
+<img width="400" src="./media/comparison.png" alt="benchmark of tsr and Knip" />
 
+#### Recursive mode
+
+tsr provides `---recursive` mode which will edit your files until there are no unused code in one pass.
 
 ## Examples
 
