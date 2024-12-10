@@ -1,10 +1,11 @@
 {
   "name": "tsr",
-  "description": "Remove unused code from your TypeScript project",
+  "author": "Kazushi Konosu",
+  "description": "TypeScript Remove (tsr) is a utility that removes unused code from TypeScript projects – It's like tree shaking, but for source files",
   "type": "module",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/line/ts-remove-unused"
+    "url": "git+https://github.com/line/tsr"
   },
   "license": "Apache-2.0",
   "bin": "dist/cli.js",
