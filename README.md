@@ -6,6 +6,8 @@
 
 TypeScript Remove (tsr) is a utility that removes unused code from TypeScript projects – It's like tree shaking, but for source files
 
+[Migrating from v0.x (ts-remove-unused)](./doc/migration.md)
+
 ## Features
 
 <div align="center">

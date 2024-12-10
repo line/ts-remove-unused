@@ -1,4 +1,4 @@
-# Migrating to v1
+# Migrating from v0 (ts-remove-unused) to v1
 
 This document will cover the migration process from v0 to v1.
 
