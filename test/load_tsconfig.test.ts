@@ -43,7 +43,7 @@ describe('project: load_tsconfig', () => {
     assert.equal(
       stripedOutput,
       `tsconfig using default options
-Project has 1 file, skipping 1 file
+Project has 1 file. Found 1 entrypoint file
 ✔ all good!
 `,
     );
@@ -78,7 +78,7 @@ Project has 1 file, skipping 1 file
     assert.equal(
       stripedOutput,
       `tsconfig using default options
-Project has 1 file, skipping 1 file
+Project has 1 file. Found 1 entrypoint file
 ✔ all good!
 `,
     );
@@ -113,7 +113,7 @@ Project has 1 file, skipping 1 file
     assert.equal(
       stripedOutput,
       `tsconfig test/fixtures/load_tsconfig/tsconfig.sample.json
-Project has 1 file, skipping 1 file
+Project has 1 file. Found 1 entrypoint file
 ✔ all good!
 `,
     );

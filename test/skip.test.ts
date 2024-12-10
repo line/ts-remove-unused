@@ -48,7 +48,7 @@ describe('project: skip', () => {
 
     assert.equal(
       stripedOutput,
-      `At least one pattern must be specified for the skip option\n`,
+      `At least one pattern must be specified for entrypoints\n`,
     );
     assert.deepEqual(exitHistory, [1]);
   });
@@ -84,7 +84,7 @@ describe('project: skip', () => {
 
     const stripedOutput = stripAnsi(output);
 
-    assert.equal(stripedOutput, `No files matched the skip pattern\n`);
+    assert.equal(stripedOutput, `No files matched the entrypoints pattern\n`);
     assert.deepEqual(exitHistory, [1]);
   });
 });

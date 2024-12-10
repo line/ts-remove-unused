@@ -44,7 +44,7 @@ describe('project: include_dts', () => {
     assert.equal(
       stripedOutput,
       `tsconfig using default options
-Project has 2 files, skipping 1 file
+Project has 2 files. Found 1 entrypoint file
 export types.d.ts:2:0     'B'
 ✖ remove 1 export
 `,
@@ -80,7 +80,7 @@ export types.d.ts:2:0     'B'
     assert.equal(
       stripedOutput,
       `tsconfig using default options
-Project has 2 files, skipping 2 files
+Project has 2 files. Found 2 entrypoint files
 ✔ all good!
 `,
     );

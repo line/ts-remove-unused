@@ -71,7 +71,7 @@ export const tsr = async ({
   if (entrypoints.length === 0) {
     logger.write(
       chalk.bold.red(
-        'At least one pattern must be specified for the skip option\n',
+        'At least one pattern must be specified for entrypoints\n',
       ),
     );
 
@@ -80,7 +80,7 @@ export const tsr = async ({
   }
 
   if (entrypointFiles.length === 0) {
-    logger.write(chalk.bold.red('No files matched the skip pattern\n'));
+    logger.write(chalk.bold.red('No files matched the entrypoints pattern\n'));
 
     system.exit(1);
     return;
@@ -96,9 +96,9 @@ export const tsr = async ({
 
   logger.write(
     chalk.gray(
-      `Project has ${formatCount(fileNames.length, 'file')}, skipping ${formatCount(
+      `Project has ${formatCount(fileNames.length, 'file')}. Found ${formatCount(
         entrypointFiles.length,
-        'file',
+        'entrypoint file',
       )}\n`,
     ),
   );
