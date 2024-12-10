@@ -191,7 +191,7 @@ export const f = () => a2;
 const a2 = 'a2';
 ```
 
-#### Zero Config
+#### Zero Configuration
 
 Knip expects users to provide a config file. While this adds the flexibility, it's difficult to correctly configure Knip to suite your needs. tsr relies on `tsconfig.json` to avoid additional setup. If you have a `tsconfig.json` configured in your repository, it just works!
 
