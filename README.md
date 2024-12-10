@@ -46,75 +46,6 @@ TypeScript is a peer dependency.
 npx tsr 'src/main\.ts$'
 ```
 
-## Examples
-
-Here are some examples of how this tool will auto-fix unused code.
-
-<!-- prettier-ignore-start -->
-
-When `a2` is not used within the project:
-
-```diff
---- src/a.ts
-+++ src/a.ts
-@@ -1,3 +1 @@
- export const a = 'a';
--
--export const a2 = 'a2';
-```
-
-When `b` is not used within the project but `f()` is used within the project:
-
-```diff
---- src/b.ts
-+++ src/b.ts
-@@ -1,5 +1,5 @@
--export const b = 'b';
-+const b = 'b';
- 
- export function f() {
-     return b;
- }
-```
-
-When `f()` is not used within the project and when deleting it will result in `import` being unnecessary:
-
-```diff
---- src/c.ts
-+++ src/c.ts
-@@ -1,7 +1 @@
--import { cwd } from "node:process";
--
- export const c = 'c';
--
--export function f() {
--    return cwd();
--}
-```
-
-When `f()` and `exported` are not used within the project and when deleting `f()` will result in `exported` and `local` being unnecessary:
-
-```diff
---- src/d.ts
-+++ src/d.ts
-@@ -1,8 +1 @@
--export const exported = "exported";
--const local = "local";
--
- export const d = "d";
--
--export function f() {
--  return { exported, local };
--}
-
-```
-
-<!-- prettier-ignore-end -->
-
-In addition to the behavior shown in the examples above, tsr will delete files that have no used exports.
-
-tsr works with all kinds of code: variables, functions, interfaces, classes, type aliases and more!
-
 ## Usage
 
 ### Options
@@ -233,13 +164,78 @@ export const a = 'a';
 
 tsr's main goal is to remove unused exports and delete unused modules, but it will also delete unused imports that are a result of removing an export declaration.
 
-## Author
+## Examples
 
-Kazushi Konosu (https://github.com/kazushisan)
+Here are some examples of how this tool will auto-fix unused code.
+
+<!-- prettier-ignore-start -->
+
+When `a2` is not used within the project:
+
+```diff
+--- src/a.ts
++++ src/a.ts
+@@ -1,3 +1 @@
+ export const a = 'a';
+-
+-export const a2 = 'a2';
+```
+
+When `b` is not used within the project but `f()` is used within the project:
+
+```diff
+--- src/b.ts
++++ src/b.ts
+@@ -1,5 +1,5 @@
+-export const b = 'b';
++const b = 'b';
+ 
+ export function f() {
+     return b;
+ }
+```
+
+When `f()` is not used within the project and when deleting it will result in `import` being unnecessary:
+
+```diff
+--- src/c.ts
++++ src/c.ts
+@@ -1,7 +1 @@
+-import { cwd } from "node:process";
+-
+ export const c = 'c';
+-
+-export function f() {
+-    return cwd();
+-}
+```
+
+When `f()` and `exported` are not used within the project and when deleting `f()` will result in `exported` and `local` being unnecessary:
+
+```diff
+--- src/d.ts
++++ src/d.ts
+@@ -1,8 +1 @@
+-export const exported = "exported";
+-const local = "local";
+-
+ export const d = "d";
+-
+-export function f() {
+-  return { exported, local };
+-}
+
+```
+
+<!-- prettier-ignore-end -->
 
 ## Contributing
 
 Contributions are welcomed!
+
+## Author
+
+Kazushi Konosu (https://github.com/kazushisan)
 
 ## License
 
