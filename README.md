@@ -34,11 +34,11 @@ TypeScript is a peer dependency.
 
 ## Quick Start
 
-1. 🔍 Check your `tsconfig.json` – Make sure `include` and `exclude` is configured thoroughly so that we can correctly detect what's "unused" in your project.
+1. **🔍 Check your `tsconfig.json`** – Make sure `include` and `exclude` are configured thoroughly so that tsr can correctly detect unused code.
 
-2. 🔍 Check your entrypoint files – What's the file that is the starting point for your code? Without this information, all files will be recognized as unnecessary. Usually it is some file like `src/main.ts` or maybe a group of files like `src/pages/*`.
+2. **🔍 Check your entrypoint files** – Without entrypoint files, all files are unnecessary. Usually it is some file like `src/main.ts` or maybe a group of files like `src/pages/*`.
 
-3. 🚀 Execute – Pass a regex (or multiple regex patterns) that match the entrypoints. Use `--write` to change the files in place.
+3. **🚀 Execute** – Pass regex patterns that match the entrypoints. Use `--write` to change the files in place.
 
 ```bash
 npx tsr 'src/main\.ts$'
