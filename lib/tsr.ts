@@ -122,7 +122,7 @@ export const tsr = async ({
       continue;
     }
 
-    if (parseInt(fileService.getVersion(target), 10) > 1 && mode === 'write') {
+    if (parseInt(fileService.getVersion(target), 10) > 0 && mode === 'write') {
       system.writeFile(target, fileService.get(target));
     }
   }
