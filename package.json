@@ -36,7 +36,6 @@
     "typescript-eslint": "^8.14.0"
   },
   "dependencies": {
-    "cac": "^6.7.14",
     "mri": "^1.2.0",
     "picocolors": "^1.1.1"
   },
