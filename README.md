@@ -220,7 +220,7 @@ tsr is designed to be minimal and serve a single purpose. The install size is su
 
 | tsr   | Knip   |
 | ----- | ------ |
-| 237kB | 5.86MB |
+| 98kB | 5.86MB |
 
 #### Better Performance
 
@@ -239,7 +239,7 @@ tsr provides `---recursive` option which will edit your files until there are no
 | **Automatic Editing**    | ✅ Comprehensive               | Limited                                    |
 | **Zero Configuration**   | ✅ Works with `tsconfig.json`  | Requires a config file for correct results |
 | **Predictable Behavior** | ✅ TypeScript-based logic      | Assumptions for project structure          |
-| **Install Size**         | ✅ 237kB, minimal dependencies | 5.86MB, requires `@types/node`             |
+| **Install Size**         | ✅ 98kB, minimal dependencies | 5.86MB, requires `@types/node`             |
 | **Performance**          | ✅ 2.5x faster                 |                                            |
 | **Recursive Editing**    | ✅ `--recursive` option        |                                            |
 
