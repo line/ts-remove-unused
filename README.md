@@ -53,25 +53,31 @@ npx tsr 'src/main\.ts$'
 <!-- prettier-ignore-start -->
 
 ```
+
 Usage:
-  $ tsr [...entrypoints]
-
-Commands:
-  [...entrypoints]  regex patterns to match entrypoints
-
-For more info, run any command with the `--help` flag:
-  $ tsr --help
+  tsr [options] [...entrypoints]
 
 Options:
-  -p, --project <file>  Path to your tsconfig.json 
-  -w, --write           Write changes in place 
-  -r, --recursive       Recursively look into files until the project is clean 
-  --include-d-ts        Check for unused code in .d.ts files 
-  -h, --help            Display this message 
-  -v, --version         Display version number 
+  -p, --project <file>    Path to your tsconfig.json
+  -w, --write             Write changes in place
+  -r, --recursive         Recursively look into files until the project is clean
+  --include-d-ts          Check for unused code in .d.ts files
+  -h, --help              Display this message
+  -v, --version           Display version number
 
 Examples:
-npx tsr 'src/main\.ts$'
+  # Check unused code for a project with an entrypoint of src/main.ts
+  tsr 'src/main\.ts$'
+
+  # Write changes in place
+  tsr --write 'src/main\.ts$'
+
+  # Check unused code for a project with a custom tsconfig.json
+  tsr --project tsconfig.app.json 'src/main\.ts$'
+
+  # Check unused code for a project with multiple entrypoints in src/pages
+  tsr 'src/pages/.*\.ts$'
+
 ```
 <!-- prettier-ignore-end -->
 
