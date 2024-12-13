@@ -1,7 +1,7 @@
 import ts from 'typescript';
 import { MemoryFileService } from './util/MemoryFileService.js';
 import { edit } from './util/edit.js';
-import chalk from 'chalk';
+import pc from 'picocolors';
 import { Logger } from './util/Logger.js';
 import { cwd, stdout } from 'node:process';
 import { relative, resolve } from 'node:path';
@@ -70,8 +70,8 @@ export const tsr = async ({
 
   if (entrypoints.length === 0) {
     logger.write(
-      chalk.bold.red(
-        'At least one pattern must be specified for entrypoints\n',
+      pc.red(
+        pc.bold('At least one pattern must be specified for entrypoints\n'),
       ),
     );
 
@@ -80,14 +80,14 @@ export const tsr = async ({
   }
 
   if (entrypointFiles.length === 0) {
-    logger.write(chalk.bold.red('No files matched the entrypoints pattern\n'));
+    logger.write(pc.red(pc.bold('No files matched the entrypoints pattern\n')));
 
     system.exit(1);
     return;
   }
 
   logger.write(
-    `${chalk.blue('tsconfig')} ${
+    `${pc.blue('tsconfig')} ${
       error ? 'using default options' : relativeToCwd(configPath)
     }\n`,
   );
@@ -95,7 +95,7 @@ export const tsr = async ({
   const output = new CliOutput({ logger, mode, projectRoot });
 
   logger.write(
-    chalk.gray(
+    pc.gray(
       `Project has ${formatCount(fileNames.length, 'file')}. Found ${formatCount(
         entrypointFiles.length,
         'entrypoint file',
