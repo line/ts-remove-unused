@@ -2,12 +2,13 @@ import { build } from 'esbuild';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import ts from 'typescript';
+import { globSync } from 'node:fs';
 
 build({
-  entryPoints: ['lib/cli.ts', 'lib/main.ts'],
+  entryPoints: globSync('lib/**/*.ts', {
+    exclude: (f) => f.endsWith('.d.ts') || f.endsWith('.test.ts'),
+  }),
   outdir: 'dist',
-  bundle: true,
-  external: ['chalk', 'cac', 'typescript'],
   target: 'node18',
   platform: 'node',
   format: 'esm',
