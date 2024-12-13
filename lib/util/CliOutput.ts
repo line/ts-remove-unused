@@ -1,6 +1,6 @@
 import { relative } from 'node:path';
 import { Logger } from './Logger.js';
-import chalk from 'chalk';
+import pc from 'picocolors';
 import { formatCount } from './formatCount.js';
 import { Output } from './Output.js';
 
@@ -48,9 +48,7 @@ export class CliOutput implements Output {
   }
 
   deleteFile(file: string): void {
-    this.#logger.write(
-      `${chalk.yellow('file')}   ${this.#relativePath(file)}\n`,
-    );
+    this.#logger.write(`${pc.yellow('file')}   ${this.#relativePath(file)}\n`);
     this.#deletedFileCount++;
   }
 
@@ -66,9 +64,9 @@ export class CliOutput implements Output {
     content: string;
   }): void {
     this.#logger.write(
-      `${chalk.yellow('export')} ${this.#relativePath(file)}:${chalk.gray(
+      `${pc.yellow('export')} ${this.#relativePath(file)}:${pc.gray(
         getLinePosition(content, position).padEnd(7),
-      )} ${chalk.gray(`'${code}'`)}\n`,
+      )} ${pc.gray(`'${code}'`)}\n`,
     );
     this.#removedExportCount++;
   }
@@ -84,15 +82,15 @@ export class CliOutput implements Output {
     ].filter((t) => !!t);
 
     if (this.#mode === 'check' && result.length > 0) {
-      this.#logger.write(chalk.red.bold(`✖ ${result.join(', ')}\n`));
+      this.#logger.write(pc.red(pc.bold(`✖ ${result.join(', ')}\n`)));
       return {
         code: 1,
       };
     }
 
     this.#logger.write(
-      chalk.green.bold(
-        `✔ ${result.length > 0 ? result.join(', ') : 'all good!'}\n`,
+      pc.green(
+        pc.bold(`✔ ${result.length > 0 ? result.join(', ') : 'all good!'}\n`),
       ),
     );
     return { code: 0 };
