@@ -1,38 +1,110 @@
 #!/usr/bin/env node
-
-import { cac } from 'cac';
 import { tsr } from './tsr.js';
 import { createRequire } from 'node:module';
-const cli = cac('tsr');
+import { arg } from './util/arg.js';
+import process from 'node:process';
 
-cli
-  .command('[...entrypoints]', `regex patterns to match entrypoints`)
-  .option('-p, --project <file>', 'Path to your tsconfig.json')
-  .option('-w, --write', 'Write changes in place')
-  .option(
-    '-r, --recursive',
-    'Recursively look into files until the project is clean',
-  )
-  .option('--include-d-ts', 'Check for unused code in .d.ts files')
-  .example(`npx tsr 'src/main\\.ts$'`)
-  .action((args, options) =>
-    tsr({
-      entrypoints: args.reduce(
-        (acc: string[], cur: unknown) =>
-          typeof cur === 'string' ? [...acc, new RegExp(cur)] : acc,
-        [],
-      ),
-      mode: options.write ? 'write' : 'check',
-      configFile:
-        typeof options.project === 'string' ? options.project : undefined,
-      recursive: !!options.recursive,
-      includeDts: !!options['includeD-ts'],
-    }),
-  );
+const options = [
+  {
+    name: 'project',
+    alias: 'p',
+    type: 'string',
+    param: '<file>',
+    description: 'Path to your tsconfig.json',
+    default: '',
+  },
+  {
+    name: 'write',
+    alias: 'w',
+    type: 'boolean',
+    description: 'Write changes in place',
+    default: false,
+  },
+  {
+    name: 'recursive',
+    alias: 'r',
+    type: 'boolean',
+    description: 'Recursively look into files until the project is clean',
+    default: false,
+  },
+  {
+    name: 'include-d-ts',
+    type: 'boolean',
+    description: 'Check for unused code in .d.ts files',
+    default: false,
+  },
+  {
+    name: 'help',
+    alias: 'h',
+    type: 'boolean',
+    description: 'Display this message',
+    default: false,
+  },
+  {
+    name: 'version',
+    alias: 'v',
+    type: 'boolean',
+    description: 'Display version number',
+    default: false,
+  },
+] as const;
 
-cli.help();
+const help = `
+Usage:
+  tsr [options] [...entrypoints]
 
-const { version } = createRequire(import.meta.url)('../package.json');
+Options:
+${options
+  .map((option) => {
+    const alias = 'alias' in option ? `-${option.alias}, ` : '';
+    const param = 'param' in option ? ` ${option.param}` : '';
 
-cli.version(`v${version}`);
-cli.parse();
+    const term = `${alias}--${option.name}${param}`.padEnd(24);
+
+    return `  ${term}${option.description}`;
+  })
+  .join('\n')}
+
+Examples:
+  # Check unused code for a project with an entrypoint of src/main.ts
+  tsr 'src/main\\.ts$'
+
+  # Write changes in place
+  tsr --write 'src/main\\.ts$'
+
+  # Check unused code for a project with a custom tsconfig.json
+  tsr --project tsconfig.app.json 'src/main\\.ts$'
+
+  # Check unused code for a project with multiple entrypoints in src/pages
+  tsr 'src/pages/.*\\.ts$'
+
+`;
+
+const { parse } = arg(options);
+
+const main = () => {
+  const parsed = parse(process.argv.slice(2));
+
+  if (parsed.version) {
+    const { version } = createRequire(import.meta.url)('../package.json');
+    process.stdout.write(`v${version}\n`);
+
+    return;
+  }
+
+  if (parsed.help) {
+    process.stdout.write(help);
+
+    return;
+  }
+
+  return tsr({
+    entrypoints: parsed._.map((entrypoint) => new RegExp(entrypoint)),
+    mode: parsed.write ? 'write' : 'check',
+    configFile: parsed.project ?? undefined,
+    recursive: parsed.recursive,
+    includeDts: parsed['include-d-ts'],
+  });
+};
+
+main();
