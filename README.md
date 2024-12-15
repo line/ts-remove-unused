@@ -218,13 +218,13 @@ tsr's behavior is clear by design. TypeScript is used to detect modules in your 
 
 tsr is designed to be minimal and serve a single purpose. The install size is substantially smaller. Also, tsr is runtime dependent, not relying on `@types/node`.
 
-| tsr   | Knip   |
-| ----- | ------ |
+| tsr  | Knip   |
+| ---- | ------ |
 | 98kB | 5.86MB |
 
 #### Better Performance
 
-Our benchmark shows that tsr is 2.5x faster compared to Knip 🚀 (see `benchmark/vue_core.sh` for details)
+Our benchmark shows that tsr is 2.14x faster compared to Knip 🚀 (see `benchmark/vue_core.sh` for details)
 
 <img width="400" src="./media/comparison.png" alt="benchmark of tsr and Knip" />
 
@@ -234,14 +234,14 @@ tsr provides `---recursive` option which will edit your files until there are no
 
 #### Key Differences
 
-| Feature                  | tsr                            | Knip                                       |
-| ------------------------ | ------------------------------ | ------------------------------------------ |
-| **Automatic Editing**    | ✅ Comprehensive               | Limited                                    |
-| **Zero Configuration**   | ✅ Works with `tsconfig.json`  | Requires a config file for correct results |
-| **Predictable Behavior** | ✅ TypeScript-based logic      | Assumptions for project structure          |
+| Feature                  | tsr                           | Knip                                       |
+| ------------------------ | ----------------------------- | ------------------------------------------ |
+| **Automatic Editing**    | ✅ Comprehensive              | Limited                                    |
+| **Zero Configuration**   | ✅ Works with `tsconfig.json` | Requires a config file for correct results |
+| **Predictable Behavior** | ✅ TypeScript-based logic     | Assumptions for project structure          |
 | **Install Size**         | ✅ 98kB, minimal dependencies | 5.86MB, requires `@types/node`             |
-| **Performance**          | ✅ 2.5x faster                 |                                            |
-| **Recursive Editing**    | ✅ `--recursive` option        |                                            |
+| **Performance**          | ✅ 2.14x faster               |                                            |
+| **Recursive Editing**    | ✅ `--recursive` option       |                                            |
 
 ## Examples
 
