@@ -58,4 +58,22 @@ c.x;`,
 
     assert.deepEqual(result.get('b'), ['*']);
   });
+
+  it('should return the correct results when there is a symbol with the same name', () => {
+    const sourceFile = ts.createSourceFile(
+      '/app/a.ts',
+      `import * as b from './b';
+export function f() {
+  const b = { x: 1 };
+  b.y;
+}
+  
+b.x;`,
+      ts.ScriptTarget.ESNext,
+    );
+
+    const result = namespaceUsage({ sourceFile });
+
+    assert.deepEqual(result.get('b'), ['x']);
+  });
 });
