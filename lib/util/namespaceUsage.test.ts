@@ -30,4 +30,18 @@ b.x;`,
 
     assert.deepEqual(result.get('b'), ['*']);
   });
+
+  it('should work with function calls on properties', () => {
+    const sourceFile = ts.createSourceFile(
+      '/app/a.ts',
+      `import * as b from './b';
+b.x();
+b.y.z();`,
+      ts.ScriptTarget.ESNext,
+    );
+
+    const result = namespaceUsage({ sourceFile });
+
+    assert.deepEqual(result.get('b'), ['x', 'y']);
+  });
 });
