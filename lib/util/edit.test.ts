@@ -1289,6 +1289,26 @@ export {};\n`,
 
       assert.equal(fileService.get('/app/a.ts'), `export const a = 'a';`);
     });
+
+    it('should only remove unused export for namespace import if its used in some other file', async () => {
+      const fileService = new MemoryFileService();
+      fileService.set('/app/main.ts', `import * as a from './a'; a.a;`);
+      fileService.set(
+        '/app/a.ts',
+        `export const a = 'a'; export const b = 'b';`,
+      );
+
+      await edit({
+        fileService,
+        recursive,
+        entrypoints: ['/app/main.ts'],
+      });
+
+      assert.equal(
+        fileService.get('/app/a.ts'),
+        `export const a = 'a'; const b = 'b';`,
+      );
+    });
   });
 
   describe('locally used declaration but not used in any other file', () => {
