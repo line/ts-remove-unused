@@ -16,4 +16,18 @@ b.x;`,
 
     assert.deepEqual(result.get('b'), ['x']);
   });
+
+  it('should return asterisk if the namespace identifier is used', () => {
+    const sourceFile = ts.createSourceFile(
+      '/app/a.ts',
+      `import * as b from './b';
+b;
+b.x;`,
+      ts.ScriptTarget.ESNext,
+    );
+
+    const result = namespaceUsage({ sourceFile });
+
+    assert.deepEqual(result.get('b'), ['*']);
+  });
 });
