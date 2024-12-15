@@ -111,7 +111,7 @@ b.x;`,
       });
 
       assert.deepEqual(imports, {
-        '/app/b.ts': ['*'],
+        '/app/b.ts': ['x'],
       });
     });
 
@@ -136,7 +136,9 @@ b;`,
         destFiles: new Set(['/app/b.ts']),
       });
 
-      assert.deepEqual(imports, {});
+      assert.deepEqual(imports, {
+        '/app/b.ts': [],
+      });
     });
   });
 
