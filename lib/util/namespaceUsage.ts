@@ -10,8 +10,14 @@ const fn = ({ sourceFile }: { sourceFile: ts.SourceFile }) => {
   const visit = (node: ts.Node) => {
     if (ts.isIdentifier(node)) {
       const symbol = checker.getSymbolAtLocation(node);
+      let declaration = symbol?.declarations?.find((d) => d);
 
-      const declaration = symbol?.declarations?.find((d) => d);
+      // if it's a shorthand property assignment, we need to find the actual declaration
+      // ref. https://github.com/microsoft/TypeScript/blob/f69580f82146bebfb2bee8c7b8666af0e04c7e34/src/services/goToDefinition.ts#L253
+      while (declaration && ts.isShorthandPropertyAssignment(declaration)) {
+        const s = checker.getShorthandAssignmentValueSymbol(declaration);
+        declaration = s?.declarations?.find((d) => d);
+      }
 
       if (declaration && ts.isNamespaceImport(declaration)) {
         switch (true) {
