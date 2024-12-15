@@ -104,7 +104,7 @@ const c = 1;`,
     assert.deepEqual(result.get('b'), []);
   });
 
-  it('should return asterisk when the namespace is used in a object', () => {
+  it('should return asterisk when the namespace is used in a object shorthand', () => {
     const sourceFile = ts.createSourceFile(
       '/app/a.ts',
       `import * as b from './b';
