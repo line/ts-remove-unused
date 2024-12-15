@@ -56,11 +56,7 @@ const fn = ({ sourceFile }: { sourceFile: ts.SourceFile }) => {
   };
 };
 
-export const createProgram = ({
-  sourceFile,
-}: {
-  sourceFile: ts.SourceFile;
-}) => {
+const createProgram = ({ sourceFile }: { sourceFile: ts.SourceFile }) => {
   const compilerHost: ts.CompilerHost = {
     getSourceFile: (fileName) => {
       if (fileName === sourceFile.fileName) {
