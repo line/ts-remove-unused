@@ -1,5 +1,6 @@
 import ts from 'typescript';
 import { memoize } from './memoize.js';
+import { namespaceUsage } from './namespaceUsage.js';
 
 const getLeadingComment = (node: ts.Node) => {
   const fullText = node.getSourceFile().getFullText();
@@ -557,7 +558,10 @@ const fn = ({
         node.importClause?.namedBindings?.kind === ts.SyntaxKind.NamespaceImport
       ) {
         imports[resolved] ||= [];
-        imports[resolved]?.push('*');
+        const usage = namespaceUsage({ sourceFile });
+        imports[resolved]?.push(
+          ...usage.get(node.importClause.namedBindings.name.text),
+        );
 
         return;
       }
