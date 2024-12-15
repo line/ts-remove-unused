@@ -1278,7 +1278,7 @@ export {};\n`,
   describe('namespace import', () => {
     it('should not remove export for namespace import if its used in some other file', async () => {
       const fileService = new MemoryFileService();
-      fileService.set('/app/main.ts', `import * as a from './a';`);
+      fileService.set('/app/main.ts', `import * as a from './a'; a.a;`);
       fileService.set('/app/a.ts', `export const a = 'a';`);
 
       await edit({
