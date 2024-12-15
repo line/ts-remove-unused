@@ -9,7 +9,6 @@ import {
 import { Vertexes } from './DependencyGraph.js';
 import { createDependencyGraph } from './createDependencyGraph.js';
 import { MemoryFileService } from './MemoryFileService.js';
-import { TaskManager } from './TaskManager.js';
 import { findFileUsage } from './findFileUsage.js';
 import { parseFile } from './parseFile.js';
 import { Output } from './Output.js';
@@ -627,74 +626,97 @@ export const edit = async ({
 
   initialFiles.sort((a, b) => a.depth - b.depth);
 
-  const taskManager = new TaskManager(async (c) => {
-    // if the file is not in the file service, it means it has been deleted in a previous iteration
-    if (!fileService.exists(c.file)) {
-      return;
+  const queue = [initialFiles];
+
+  while (queue.length > 0) {
+    const first = queue.shift();
+
+    if (!first) {
+      break;
     }
 
-    const vertex = dependencyGraph.vertexes.get(c.file);
-
-    await Promise.resolve();
-
-    if (c.signal.aborted) {
-      return;
-    }
-
-    const result = processFile({
-      targetFile: c.file,
-      vertexes: dependencyGraph.eject(),
+    const current = {
+      vertexes: dependencyGraph.vertexes,
       files: fileService.eject(),
       fileNames: fileService.getFileNames(),
-      deleteUnusedFile,
-      enableCodeFix,
-      options,
-      projectRoot,
-    });
+    };
 
-    if (c.signal.aborted) {
-      return;
-    }
-
-    switch (result.operation) {
-      case 'delete': {
-        if (entrypoints.includes(c.file)) {
-          break;
+    const next = first
+      .map((v) => {
+        // if the file is not in the file service, it means it has been deleted in a previous iteration
+        if (!fileService.exists(v.file)) {
+          return;
         }
-        output.deleteFile(c.file);
-        fileService.delete(c.file);
 
-        if (vertex) {
-          dependencyGraph.deleteVertex(c.file);
+        const result = processFile({
+          targetFile: v.file,
+          vertexes: current.vertexes,
+          files: current.files,
+          fileNames: current.fileNames,
+          deleteUnusedFile,
+          enableCodeFix,
+          options,
+          projectRoot,
+        });
 
-          if (recursive) {
-            c.add(
-              ...Array.from(vertex.to).filter((f) => !entrypoints.includes(f)),
-            );
+        return { result, ...v };
+      })
+      .filter((r) => !!r)
+      .map(({ result, file }) => {
+        const vertex = dependencyGraph.vertexes.get(file);
+
+        switch (result.operation) {
+          case 'delete': {
+            if (entrypoints.includes(file)) {
+              return [];
+            }
+            output.deleteFile(file);
+            fileService.delete(file);
+
+            if (vertex) {
+              dependencyGraph.deleteVertex(file);
+
+              if (recursive) {
+                return Array.from(vertex.to).filter(
+                  (f) => !entrypoints.includes(f),
+                );
+              }
+            }
+            return [];
+          }
+          case 'edit': {
+            for (const item of result.removedExports) {
+              output.removeExport({
+                file: item.fileName,
+                content: fileService.get(item.fileName),
+                code: item.code,
+                position: item.position,
+              });
+            }
+            fileService.set(file, result.content);
+
+            if (vertex && result.removedExports.length > 0 && recursive) {
+              return Array.from(vertex.to).filter(
+                (f) => !entrypoints.includes(f),
+              );
+            }
+            return [];
           }
         }
-        break;
-      }
-      case 'edit': {
-        for (const item of result.removedExports) {
-          output.removeExport({
-            file: item.fileName,
-            content: fileService.get(item.fileName),
-            code: item.code,
-            position: item.position,
-          });
-        }
-        fileService.set(c.file, result.content);
+      });
 
-        if (vertex && result.removedExports.length > 0 && recursive) {
-          c.add(
-            ...Array.from(vertex.to).filter((f) => !entrypoints.includes(f)),
-          );
-        }
-        break;
-      }
+    const files = Array.from(new Set(next.flat()));
+
+    if (files.length > 0) {
+      queue.push(
+        files.map((file) => ({
+          file,
+          depth: dependencyGraph.vertexes.get(file)?.data.depth || Infinity,
+        })),
+      );
     }
-  });
+  }
 
-  await taskManager.execute(initialFiles.map((v) => v.file));
+  // this is kept for compatibility with the old implementation
+  return Promise.resolve();
 };
