@@ -76,4 +76,17 @@ b.x;`,
 
     assert.deepEqual(result.get('b'), ['x']);
   });
+
+  it('should return an empty array when the namespace is not used', () => {
+    const sourceFile = ts.createSourceFile(
+      '/app/a.ts',
+      `import * as b from './b';
+const c = 1;`,
+      ts.ScriptTarget.ESNext,
+    );
+
+    const result = namespaceUsage({ sourceFile });
+
+    assert.deepEqual(result.get('b'), []);
+  });
 });
