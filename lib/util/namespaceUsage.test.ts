@@ -17,6 +17,20 @@ b.x;`,
     assert.deepEqual(result.get('b'), ['x']);
   });
 
+  it('should return multiple namespace usages', () => {
+    const sourceFile = ts.createSourceFile(
+      '/app/a.ts',
+      `import * as b from './b';
+b.x;
+b.y;`,
+      ts.ScriptTarget.ESNext,
+    );
+
+    const result = namespaceUsage({ sourceFile });
+
+    assert.deepEqual(result.get('b'), ['x', 'y']);
+  });
+
   it('should return asterisk if the namespace identifier is used', () => {
     const sourceFile = ts.createSourceFile(
       '/app/a.ts',
