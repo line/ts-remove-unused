@@ -1290,7 +1290,7 @@ export {};\n`,
       assert.equal(fileService.get('/app/a.ts'), `export const a = 'a';`);
     });
 
-    it('should only remove unused export for namespace import if its used in some other file', async () => {
+    it('should remove export used with namespace import even when some exports are used', async () => {
       const fileService = new MemoryFileService();
       fileService.set('/app/main.ts', `import * as a from './a'; a.a;`);
       fileService.set(
