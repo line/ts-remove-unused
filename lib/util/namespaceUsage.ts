@@ -1,10 +1,7 @@
 import ts from 'typescript';
+import { memoize } from './memoize.js';
 
-export const namespaceUsage = ({
-  sourceFile,
-}: {
-  sourceFile: ts.SourceFile;
-}) => {
+const fn = ({ sourceFile }: { sourceFile: ts.SourceFile }) => {
   const program = createProgram({ sourceFile });
   const checker = program.getTypeChecker();
 
@@ -85,3 +82,7 @@ export const createProgram = ({
 
   return program;
 };
+
+export const namespaceUsage = memoize(fn, {
+  key: ({ sourceFile }) => `${sourceFile.fileName}::${sourceFile.text}`,
+});
