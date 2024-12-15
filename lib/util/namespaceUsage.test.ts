@@ -103,4 +103,17 @@ const c = 1;`,
 
     assert.deepEqual(result.get('b'), []);
   });
+
+  it('should return asterisk when the namespace is used in a object', () => {
+    const sourceFile = ts.createSourceFile(
+      '/app/a.ts',
+      `import * as b from './b';
+const c = { b };`,
+      ts.ScriptTarget.ESNext,
+    );
+
+    const result = namespaceUsage({ sourceFile });
+
+    assert.deepEqual(result.get('b'), ['*']);
+  });
 });
