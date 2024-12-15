@@ -101,15 +101,42 @@ describe('parseFile', () => {
     });
   });
 
-  it('should collect namespace imports', () => {
-    const { imports } = parseFile({
-      file: '/app/a.ts',
-      content: 'import * as b from "./b";',
-      destFiles: new Set(['/app/b.ts']),
+  describe('namespace imports', () => {
+    it('should collect namespace imports with property accesses only', () => {
+      const { imports } = parseFile({
+        file: '/app/a.ts',
+        content: `import * as b from "./b";
+b.x;`,
+        destFiles: new Set(['/app/b.ts']),
+      });
+
+      assert.deepEqual(imports, {
+        '/app/b.ts': ['*'],
+      });
     });
 
-    assert.deepEqual(imports, {
-      '/app/b.ts': ['*'],
+    it('should collect namespace imports with reference to the namespace itself', () => {
+      const { imports } = parseFile({
+        file: '/app/a.ts',
+        content: `import * as b from "./b";
+b.x;
+b;`,
+        destFiles: new Set(['/app/b.ts']),
+      });
+
+      assert.deepEqual(imports, {
+        '/app/b.ts': ['*'],
+      });
+    });
+
+    it('should not include namespace import when its not referenced', () => {
+      const { imports } = parseFile({
+        file: '/app/a.ts',
+        content: `import * as b from "./b";`,
+        destFiles: new Set(['/app/b.ts']),
+      });
+
+      assert.deepEqual(imports, {});
     });
   });
 
