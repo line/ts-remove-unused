@@ -64,7 +64,7 @@ c.x;`,
       '/app/a.ts',
       `import * as b from './b';
 export function f() {
-  const b = { x: 1 };
+  const b = { y: 1 };
   b.y;
 }
   
