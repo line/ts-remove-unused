@@ -635,6 +635,12 @@ export const edit = async ({
       break;
     }
 
+    const current = {
+      vertexes: dependencyGraph.vertexes,
+      files: fileService.eject(),
+      fileNames: fileService.getFileNames(),
+    };
+
     const next = first
       .map((v) => {
         // if the file is not in the file service, it means it has been deleted in a previous iteration
@@ -644,9 +650,9 @@ export const edit = async ({
 
         const result = processFile({
           targetFile: v.file,
-          vertexes: dependencyGraph.eject(),
-          files: fileService.eject(),
-          fileNames: fileService.getFileNames(),
+          vertexes: current.vertexes,
+          files: current.files,
+          fileNames: current.fileNames,
           deleteUnusedFile,
           enableCodeFix,
           options,
