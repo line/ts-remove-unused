@@ -44,4 +44,18 @@ b.y.z();`,
 
     assert.deepEqual(result.get('b'), ['x', 'y']);
   });
+
+  it('should return an asterisk when the namespace is assigned to a variable', () => {
+    const sourceFile = ts.createSourceFile(
+      '/app/a.ts',
+      `import * as b from './b';
+const c = b;
+c.x;`,
+      ts.ScriptTarget.ESNext,
+    );
+
+    const result = namespaceUsage({ sourceFile });
+
+    assert.deepEqual(result.get('b'), ['*']);
+  });
 });
