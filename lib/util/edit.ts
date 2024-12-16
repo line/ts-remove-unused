@@ -591,7 +591,7 @@ export {};\n`,
   return result;
 };
 
-export const edit = async ({
+export const edit = ({
   entrypoints,
   fileService,
   deleteUnusedFile = false,
@@ -716,7 +716,4 @@ export const edit = async ({
       );
     }
   }
-
-  // this is kept for compatibility with the old implementation
-  return Promise.resolve();
 };

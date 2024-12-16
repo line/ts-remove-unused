@@ -7,12 +7,12 @@ describe('edit', () => {
   const recursive = true;
 
   describe('variable statement', () => {
-    it('should not remove export for variable if its used in some other file', async () => {
+    it('should not remove export for variable if its used in some other file', () => {
       const fileService = new MemoryFileService();
       fileService.set('/app/main.ts', `import { a } from './a';`);
       fileService.set('/app/a.ts', `export const a = 'a';`);
 
-      await edit({
+      edit({
         fileService,
         recursive,
         entrypoints: ['/app/main.ts'],
@@ -22,11 +22,11 @@ describe('edit', () => {
       assert.equal(result, `export const a = 'a';`);
     });
 
-    it('should remove export for variable if its not used in some other file', async () => {
+    it('should remove export for variable if its not used in some other file', () => {
       const fileService = new MemoryFileService();
       fileService.set('/app/b.ts', `export const b = 'b';`);
 
-      await edit({
+      edit({
         fileService,
         recursive,
         entrypoints: ['/app/main.ts'],
@@ -37,7 +37,7 @@ describe('edit', () => {
       assert.equal(result, `const b = 'b';`);
     });
 
-    it('should not remove export for variable if it has a comment to ignore', async () => {
+    it('should not remove export for variable if it has a comment to ignore', () => {
       const fileService = new MemoryFileService();
       fileService.set(
         '/app/a.ts',
@@ -45,7 +45,7 @@ describe('edit', () => {
   export const b = 'b';`,
       );
 
-      await edit({
+      edit({
         fileService,
         recursive,
         entrypoints: ['/app/main.ts'],
@@ -61,12 +61,12 @@ describe('edit', () => {
     });
 
     describe('multiple variables', () => {
-      it('should not remove export for multiple variables if its used in some other file', async () => {
+      it('should not remove export for multiple variables if its used in some other file', () => {
         const fileService = new MemoryFileService();
         fileService.set('/app/main.ts', `import { a, a2 } from './a';`);
         fileService.set('/app/a.ts', `export const a = 'a', a2 = 'a2';`);
 
-        await edit({
+        edit({
           fileService,
           recursive,
           entrypoints: ['/app/main.ts'],
@@ -76,12 +76,12 @@ describe('edit', () => {
         assert.equal(result, `export const a = 'a', a2 = 'a2';`);
       });
 
-      it('should not remove export for multiple variables if some are used in some other file', async () => {
+      it('should not remove export for multiple variables if some are used in some other file', () => {
         const fileService = new MemoryFileService();
         fileService.set('/app/main.ts', `import { a } from './a';`);
         fileService.set('/app/a.ts', `export const a = 'a', a2 = 'a2';`);
 
-        await edit({
+        edit({
           fileService,
           recursive,
           entrypoints: ['/app/main.ts'],
@@ -91,11 +91,11 @@ describe('edit', () => {
         assert.equal(result, `export const a = 'a', a2 = 'a2';`);
       });
 
-      it('should remove export for multiple variables if all are not used in some other file', async () => {
+      it('should remove export for multiple variables if all are not used in some other file', () => {
         const fileService = new MemoryFileService();
         fileService.set('/app/b.ts', `export const b = 'b', b2 = 'b2';`);
 
-        await edit({
+        edit({
           fileService,
           recursive,
           entrypoints: ['/app/main.ts'],
@@ -108,12 +108,12 @@ describe('edit', () => {
     });
 
     describe('destructuring', () => {
-      it('should not remove export for destructuring variable if its used in some other file', async () => {
+      it('should not remove export for destructuring variable if its used in some other file', () => {
         const fileService = new MemoryFileService();
         fileService.set('/app/main.ts', `import { a } from './a';`);
         fileService.set('/app/a.ts', `export const { a } = { a: 'a' };`);
 
-        await edit({
+        edit({
           fileService,
           recursive,
           entrypoints: ['/app/main.ts'],
@@ -123,7 +123,7 @@ describe('edit', () => {
         assert.equal(result, `export const { a } = { a: 'a' };`);
       });
 
-      it('should not remove export for destructuring variable if some are used in some other file', async () => {
+      it('should not remove export for destructuring variable if some are used in some other file', () => {
         const fileService = new MemoryFileService();
         fileService.set('/app/main.ts', `import { a } from './a';`);
         fileService.set(
@@ -131,7 +131,7 @@ describe('edit', () => {
           `export const { a, b } = { a: 'a', b: 'b' };`,
         );
 
-        await edit({
+        edit({
           fileService,
           recursive,
           entrypoints: ['/app/main.ts'],
@@ -141,11 +141,11 @@ describe('edit', () => {
         assert.equal(result, `export const { a, b } = { a: 'a', b: 'b' };`);
       });
 
-      it('should remove export for destructuring variable if its not used in some other file', async () => {
+      it('should remove export for destructuring variable if its not used in some other file', () => {
         const fileService = new MemoryFileService();
         fileService.set('/app/b.ts', `export const { b } = { b: 'b' };`);
 
-        await edit({
+        edit({
           fileService,
           recursive,
           entrypoints: ['/app/main.ts'],
@@ -159,7 +159,7 @@ describe('edit', () => {
   });
 
   describe('function declaration', () => {
-    it('should not remove export for function if its used in some other file', async () => {
+    it('should not remove export for function if its used in some other file', () => {
       const fileService = new MemoryFileService();
 
       fileService.set(
@@ -172,7 +172,7 @@ import c from './c';`,
       fileService.set('/app/b.ts', `export default function b() {}`);
       fileService.set('/app/c.ts', `export default function() {}`);
 
-      await edit({
+      edit({
         fileService,
         recursive,
         entrypoints: ['/app/main.ts'],
@@ -189,13 +189,13 @@ import c from './c';`,
       );
     });
 
-    it('should remove export for function if its not used in some other file', async () => {
+    it('should remove export for function if its not used in some other file', () => {
       const fileService = new MemoryFileService();
       fileService.set('/app/a.ts', `export function a() {}`);
       fileService.set('/app/b.ts', `export default function b() {}`);
       fileService.set('/app/c.ts', `export default function() {}`);
 
-      await edit({
+      edit({
         fileService,
         recursive,
         entrypoints: ['/app/main.ts'],
@@ -206,18 +206,18 @@ import c from './c';`,
       assert.equal(fileService.get('/app/c.ts'), '');
     });
 
-    it('should not remove async keyword of function if its not used in some other file', async () => {
+    it('should not remove keyword of function if its not used in some other file', () => {
       const fileService = new MemoryFileService();
       fileService.set('/app/main.ts', `import { a2 } from './a';`);
       fileService.set(
         '/app/a.ts',
-        `export async function a() {}
+        `export function a() {}
 export function a2() {
   a();
 }`,
       );
 
-      await edit({
+      edit({
         fileService,
         recursive,
         entrypoints: ['/app/main.ts'],
@@ -225,14 +225,14 @@ export function a2() {
 
       assert.equal(
         fileService.get('/app/a.ts'),
-        `async function a() {}
+        `function a() {}
 export function a2() {
   a();
 }`,
       );
     });
 
-    it('should remove default async function if its not used in some other file', async () => {
+    it('should remove default function if its not used in some other file', () => {
       const fileService = new MemoryFileService();
       fileService.set(
         '/app/main.ts',
@@ -242,29 +242,29 @@ import { b } from './b';`,
       fileService.set(
         '/app/a.ts',
         `export const a = 'a';
-export default async function a2() {}`,
+export default function a2() {}`,
       );
       fileService.set(
         '/app/b.ts',
         `export const b = 'b';
-export default async function() {}`,
+export default function() {}`,
       );
 
-      await edit({
+      edit({
         fileService,
         recursive,
         entrypoints: ['/app/main.ts'],
       });
-      // async function will be removed afterwards with codeFix
+      // function will be removed afterwards with codeFix
       assert.equal(
         fileService.get('/app/a.ts'),
         `export const a = 'a';
-async function a2() {}`,
+function a2() {}`,
       );
       assert.equal(fileService.get('/app/b.ts'), `export const b = 'b';`);
     });
 
-    it('should not remove export if it has a comment to ignore', async () => {
+    it('should not remove export if it has a comment to ignore', () => {
       const fileService = new MemoryFileService();
       fileService.set(
         '/app/a.ts',
@@ -272,7 +272,7 @@ async function a2() {}`,
   export function b() {}`,
       );
 
-      await edit({
+      edit({
         fileService,
         recursive,
         entrypoints: ['/app/main.ts'],
@@ -289,7 +289,7 @@ async function a2() {}`,
   });
 
   describe('class declaration', () => {
-    it('should not remove export for class if its used in some other file', async () => {
+    it('should not remove export for class if its used in some other file', () => {
       const fileService = new MemoryFileService();
 
       fileService.set(
@@ -302,7 +302,7 @@ import C from './c';`,
       fileService.set('/app/b.ts', `export default class B {}`);
       fileService.set('/app/c.ts', `export default class {}`);
 
-      await edit({
+      edit({
         fileService,
         recursive,
         entrypoints: ['/app/main.ts'],
@@ -313,13 +313,13 @@ import C from './c';`,
       assert.equal(fileService.get('/app/c.ts'), `export default class {}`);
     });
 
-    it('should remove export for class if its not used in some other file', async () => {
+    it('should remove export for class if its not used in some other file', () => {
       const fileService = new MemoryFileService();
       fileService.set('/app/a.ts', `export class A {}`);
       fileService.set('/app/b.ts', `export default class B {}`);
       fileService.set('/app/c.ts', `export default class {}`);
 
-      await edit({
+      edit({
         fileService,
         recursive,
         entrypoints: ['/app/main.ts'],
@@ -330,7 +330,7 @@ import C from './c';`,
       assert.equal(fileService.get('/app/c.ts'), '');
     });
 
-    it('should not remove export if it has a comment to ignore', async () => {
+    it('should not remove export if it has a comment to ignore', () => {
       const fileService = new MemoryFileService();
       fileService.set(
         '/app/a.ts',
@@ -338,7 +338,7 @@ import C from './c';`,
   export class A {}`,
       );
 
-      await edit({
+      edit({
         fileService,
         recursive,
         entrypoints: ['/app/main.ts'],
@@ -355,7 +355,7 @@ import C from './c';`,
   });
 
   describe('interface declaration', () => {
-    it('should not remove export for interface if its used in some other file', async () => {
+    it('should not remove export for interface if its used in some other file', () => {
       const fileService = new MemoryFileService();
       fileService.set(
         '/app/main.ts',
@@ -365,7 +365,7 @@ import B from './b';`,
       fileService.set('/app/a.ts', `export interface A { a: 'a' }`);
       fileService.set('/app/b.ts', `export default interface B { b: 'b' }`);
 
-      await edit({
+      edit({
         fileService,
         recursive,
         entrypoints: ['/app/main.ts'],
@@ -381,12 +381,12 @@ import B from './b';`,
       );
     });
 
-    it('should remove export for interface if its not used in some other file', async () => {
+    it('should remove export for interface if its not used in some other file', () => {
       const fileService = new MemoryFileService();
       fileService.set('/app/a.ts', `export interface A { a: 'a' }`);
       fileService.set('/app/b.ts', `export default interface B { b: 'b' }`);
 
-      await edit({
+      edit({
         fileService,
         recursive,
         entrypoints: ['/app/main.ts'],
@@ -396,7 +396,7 @@ import B from './b';`,
       assert.equal(fileService.get('/app/b.ts'), `interface B { b: 'b' }`);
     });
 
-    it('should not remove export if it has a comment to ignore', async () => {
+    it('should not remove export if it has a comment to ignore', () => {
       const fileService = new MemoryFileService();
       fileService.set(
         '/app/a.ts',
@@ -404,7 +404,7 @@ import B from './b';`,
   export interface A { a: 'a' }`,
       );
 
-      await edit({
+      edit({
         fileService,
         recursive,
         entrypoints: ['/app/main.ts'],
@@ -421,12 +421,12 @@ import B from './b';`,
   });
 
   describe('type alias declaration', () => {
-    it('should not remove export for type if its used in some other file', async () => {
+    it('should not remove export for type if its used in some other file', () => {
       const fileService = new MemoryFileService();
       fileService.set('/app/main.ts', `import { A } from './a';`);
       fileService.set('/app/a.ts', `export type A = 'a';`);
 
-      await edit({
+      edit({
         fileService,
         recursive,
         entrypoints: ['/app/main.ts'],
@@ -436,11 +436,11 @@ import B from './b';`,
       assert.equal(result, `export type A = 'a';`);
     });
 
-    it('should remove export for type if its not used in some other file', async () => {
+    it('should remove export for type if its not used in some other file', () => {
       const fileService = new MemoryFileService();
       fileService.set('/app/b.ts', `export type B = 'b';`);
 
-      await edit({
+      edit({
         fileService,
         recursive,
         entrypoints: ['/app/main.ts'],
@@ -451,7 +451,7 @@ import B from './b';`,
       assert.equal(result, `type B = 'b';`);
     });
 
-    it('should not remove export for type if it has a comment to ignore', async () => {
+    it('should not remove export for type if it has a comment to ignore', () => {
       const fileService = new MemoryFileService();
       fileService.set(
         '/app/a.ts',
@@ -459,7 +459,7 @@ import B from './b';`,
   export type B = 'b';`,
       );
 
-      await edit({
+      edit({
         fileService,
         recursive,
         entrypoints: ['/app/main.ts'],
@@ -476,12 +476,12 @@ import B from './b';`,
   });
 
   describe('enum declaration', () => {
-    it('should not remove export for enum if its used in some other file', async () => {
+    it('should not remove export for enum if its used in some other file', () => {
       const fileService = new MemoryFileService();
       fileService.set('/app/main.ts', `import { A } from './a';`);
       fileService.set('/app/a.ts', `export enum A { A1 }`);
 
-      await edit({
+      edit({
         fileService,
         recursive,
         entrypoints: ['/app/main.ts'],
@@ -491,11 +491,11 @@ import B from './b';`,
       assert.equal(result, `export enum A { A1 }`);
     });
 
-    it('should remove export for enum if its not used in some other file', async () => {
+    it('should remove export for enum if its not used in some other file', () => {
       const fileService = new MemoryFileService();
       fileService.set('/app/b.ts', `export enum B { B1 }`);
 
-      await edit({
+      edit({
         fileService,
         recursive,
         entrypoints: ['/app/main.ts'],
@@ -506,11 +506,11 @@ import B from './b';`,
       assert.equal(result, `enum B { B1 }`);
     });
 
-    it("should not remove const keyword of enum if it's not used in some other file", async () => {
+    it("should not remove const keyword of enum if it's not used in some other file", () => {
       const fileService = new MemoryFileService();
       fileService.set('/app/b.ts', `export const enum B { B1 }`);
 
-      await edit({
+      edit({
         fileService,
         recursive,
         entrypoints: ['/app/main.ts'],
@@ -521,7 +521,7 @@ import B from './b';`,
       assert.equal(result, `const enum B { B1 }`);
     });
 
-    it('should not remove export for enum if it has a comment to ignore', async () => {
+    it('should not remove export for enum if it has a comment to ignore', () => {
       const fileService = new MemoryFileService();
       fileService.set(
         '/app/b.ts',
@@ -529,7 +529,7 @@ import B from './b';`,
   export enum B { B1 }`,
       );
 
-      await edit({
+      edit({
         fileService,
         recursive,
         entrypoints: ['/app/main.ts'],
@@ -546,7 +546,7 @@ import B from './b';`,
   });
 
   describe('default export of identifier', () => {
-    it('should not remove default export for an identifier if its used in some other file', async () => {
+    it('should not remove default export for an identifier if its used in some other file', () => {
       const fileService = new MemoryFileService();
 
       fileService.set(
@@ -566,7 +566,7 @@ import B from './b';`,
 export default B;`,
       );
 
-      await edit({
+      edit({
         fileService,
         recursive,
         entrypoints: ['/app/main.ts'],
@@ -584,7 +584,7 @@ export default B;`,
       );
     });
 
-    it('should remove default export for an identifier if its not used in some other file', async () => {
+    it('should remove default export for an identifier if its not used in some other file', () => {
       const fileService = new MemoryFileService();
 
       fileService.set(
@@ -598,7 +598,7 @@ export default B;`,
 export default B;`,
       );
 
-      await edit({
+      edit({
         fileService,
         recursive,
         entrypoints: ['/app/main.ts'],
@@ -608,7 +608,7 @@ export default B;`,
       assert.equal(fileService.get('/app/b.ts'), `type B = 'b';`);
     });
 
-    it('should not remove default export for an identifier if it has a comment to ignore', async () => {
+    it('should not remove default export for an identifier if it has a comment to ignore', () => {
       const fileService = new MemoryFileService();
 
       fileService.set(
@@ -618,7 +618,7 @@ export default B;`,
   export default a;`,
       );
 
-      await edit({
+      edit({
         fileService,
         recursive,
         entrypoints: ['/app/main.ts'],
@@ -635,14 +635,14 @@ export default B;`,
   });
 
   describe('default export of literal', () => {
-    it('should not remove default export for a literal if its used in some other file', async () => {
+    it('should not remove default export for a literal if its used in some other file', () => {
       const fileService = new MemoryFileService();
 
       fileService.set('/app/main.ts', `import a from './a';`);
 
       fileService.set('/app/a.ts', `export default 'a';`);
 
-      await edit({
+      edit({
         fileService,
         recursive,
         entrypoints: ['/app/main.ts'],
@@ -652,12 +652,12 @@ export default B;`,
       assert.equal(result, `export default 'a';`);
     });
 
-    it('should remove default export for a literal if its not used in some other file', async () => {
+    it('should remove default export for a literal if its not used in some other file', () => {
       const fileService = new MemoryFileService();
 
       fileService.set('/app/a.ts', `export default a;`);
 
-      await edit({
+      edit({
         fileService,
         recursive,
         entrypoints: ['/app/main.ts'],
@@ -667,7 +667,7 @@ export default B;`,
       assert.equal(result, '');
     });
 
-    it('should not remove default export for a literal if it has a comment to ignore', async () => {
+    it('should not remove default export for a literal if it has a comment to ignore', () => {
       const fileService = new MemoryFileService();
 
       fileService.set(
@@ -676,7 +676,7 @@ export default B;`,
   export default 'a';`,
       );
 
-      await edit({
+      edit({
         fileService,
         recursive,
         entrypoints: ['/app/main.ts'],
@@ -692,7 +692,7 @@ export default B;`,
   });
 
   describe('export declaration', () => {
-    it('should not remove specifier of export declaration if its used in some other file', async () => {
+    it('should not remove specifier of export declaration if its used in some other file', () => {
       const fileService = new MemoryFileService();
 
       fileService.set(
@@ -712,7 +712,7 @@ import { B } from './b';`,
 export { B };`,
       );
 
-      await edit({
+      edit({
         fileService,
         recursive,
         entrypoints: ['/app/main.ts'],
@@ -730,7 +730,7 @@ export { B };`,
       );
     });
 
-    it('should remove specifier for export declaration if its not used in some other file', async () => {
+    it('should remove specifier for export declaration if its not used in some other file', () => {
       const fileService = new MemoryFileService();
       fileService.set(
         '/app/main.ts',
@@ -763,7 +763,7 @@ const unused2 = 'unused2';
 export { d, unused, unused2 };`,
       );
 
-      await edit({
+      edit({
         fileService,
         recursive,
         entrypoints: ['/app/main.ts'],
@@ -787,7 +787,7 @@ export { d };`,
       );
     });
 
-    it('should not remove specifier for export declaration if it has a comment to ignore', async () => {
+    it('should not remove specifier for export declaration if it has a comment to ignore', () => {
       const fileService = new MemoryFileService();
 
       fileService.set(
@@ -799,7 +799,7 @@ export {
 };`,
       );
 
-      await edit({
+      edit({
         fileService,
         recursive,
         entrypoints: ['/app/main.ts'],
@@ -817,7 +817,7 @@ export {
     });
 
     describe('preserving the format when editing a export declaration', () => {
-      it('should preserve the line break when there is a comment leading the export declaration', async () => {
+      it('should preserve the line break when there is a comment leading the export declaration', () => {
         const fileService = new MemoryFileService();
         fileService.set('/app/main.ts', `import { a } from './a';`);
         fileService.set(
@@ -828,7 +828,7 @@ const b = 'b';
 export { a, b };`,
         );
 
-        await edit({
+        edit({
           fileService,
           recursive,
           entrypoints: ['/app/main.ts'],
@@ -843,7 +843,7 @@ export { a };`,
         );
       });
 
-      it('should preserve line breaks leading the export declaration', async () => {
+      it('should preserve line breaks leading the export declaration', () => {
         const fileService = new MemoryFileService();
         fileService.set('/app/main.ts', `import { a } from './a';`);
         fileService.set(
@@ -854,7 +854,7 @@ const b = 'b';
 export { a, b };`,
         );
 
-        await edit({
+        edit({
           fileService,
           recursive,
           entrypoints: ['/app/main.ts'],
@@ -869,7 +869,7 @@ export { a };`,
         );
       });
 
-      it('should preserve the trailing comment when editing a export declaration', async () => {
+      it('should preserve the trailing comment when editing a export declaration', () => {
         const fileService = new MemoryFileService();
         fileService.set('/app/main.ts', `import { a } from './a';`);
         fileService.set(
@@ -879,7 +879,7 @@ const b = 'b';
 export { a, b }; // comment`,
         );
 
-        await edit({
+        edit({
           fileService,
           recursive,
           entrypoints: ['/app/main.ts'],
@@ -893,7 +893,7 @@ export { a }; // comment`,
         );
       });
 
-      it('should preserve the trailing line break when editing a export declaration', async () => {
+      it('should preserve the trailing line break when editing a export declaration', () => {
         const fileService = new MemoryFileService();
         fileService.set('/app/main.ts', `import { a } from './a';`);
         fileService.set(
@@ -905,7 +905,7 @@ export { a, b };
 const c = 'c';`,
         );
 
-        await edit({
+        edit({
           fileService,
           recursive,
           entrypoints: ['/app/main.ts'],
@@ -924,14 +924,14 @@ const c = 'c';`,
   });
 
   describe('named export declaration with module specifier', () => {
-    it('should not remove named export declaration if its used in some other file', async () => {
+    it('should not remove named export declaration if its used in some other file', () => {
       const fileService = new MemoryFileService();
 
       fileService.set('/app/main.ts', `import { a } from './a_reexport';`);
       fileService.set('/app/a_reexport.ts', `export { a } from './a';`);
       fileService.set('/app/a.ts', `export const a = 'a';`);
 
-      await edit({
+      edit({
         fileService,
         recursive,
         entrypoints: ['/app/main.ts'],
@@ -944,12 +944,12 @@ const c = 'c';`,
       assert.equal(fileService.get('/app/a.ts'), `export const a = 'a';`);
     });
 
-    it('should remove named export declaration if its not used in some other file', async () => {
+    it('should remove named export declaration if its not used in some other file', () => {
       const fileService = new MemoryFileService();
       fileService.set('/app/a_reexport.ts', `export { a } from './a';`);
       fileService.set('/app/a.ts', `export const a = 'a';`);
 
-      await edit({
+      edit({
         fileService,
         recursive,
         entrypoints: ['/app/main.ts'],
@@ -959,7 +959,7 @@ const c = 'c';`,
       assert.equal(fileService.get('/app/a_reexport.ts'), '');
     });
 
-    it('should remove specifiers in named export declaration that are not used in any other file', async () => {
+    it('should remove specifiers in named export declaration that are not used in any other file', () => {
       const fileService = new MemoryFileService();
       fileService.set('/app/main.ts', `import { b1 } from './b_reexport'`);
       fileService.set('/app/b_reexport.ts', `export { b1, b2 } from './b';`);
@@ -968,7 +968,7 @@ const c = 'c';`,
         `export const b1 = 'b1'; export const b2 = 'b2';`,
       );
 
-      await edit({
+      edit({
         fileService,
         recursive,
         entrypoints: ['/app/main.ts'],
@@ -981,7 +981,7 @@ const c = 'c';`,
       );
     });
 
-    it('should remove nth named export declaration if its not used in any other file', async () => {
+    it('should remove nth named export declaration if its not used in any other file', () => {
       const fileService = new MemoryFileService();
       fileService.set(
         '/app/a_reexport_1.ts',
@@ -994,7 +994,7 @@ const c = 'c';`,
       fileService.set('/app/a_reexport_3.ts', `export { a } from './a';`);
       fileService.set('/app/a.ts', `export const a = 'a';`);
 
-      await edit({
+      edit({
         fileService,
         recursive,
         entrypoints: ['/app/main.ts'],
@@ -1008,11 +1008,11 @@ const c = 'c';`,
   });
 
   describe('whole export declaration', () => {
-    it('should remove whole export declaration that is not used', async () => {
+    it('should remove whole export declaration that is not used', () => {
       const fileService = new MemoryFileService();
       fileService.set('/app/a_reexport.ts', `export * from './a';`);
       fileService.set('/app/a.ts', `export const a = 'a';`);
-      await edit({
+      edit({
         fileService,
         recursive,
         entrypoints: ['/app/main.ts'],
@@ -1021,14 +1021,14 @@ const c = 'c';`,
       assert.equal(fileService.get('/app/a.ts'), `const a = 'a';`);
     });
 
-    it('should not remove declaration that is used', async () => {
+    it('should not remove declaration that is used', () => {
       const fileService = new MemoryFileService();
 
       fileService.set('/app/main.ts', `import { a } from './a_reexport';`);
       fileService.set('/app/a_reexport.ts', `export * from './a';`);
       fileService.set('/app/a.ts', `export const a = 'a';`);
 
-      await edit({
+      edit({
         fileService,
         recursive,
         entrypoints: ['/app/main.ts'],
@@ -1040,12 +1040,12 @@ const c = 'c';`,
       assert.equal(fileService.get('/app/a.ts'), `export const a = 'a';`);
     });
 
-    it('should detect the whole module as usage when there is an whole-reexport in the entrypoint', async () => {
+    it('should detect the whole module as usage when there is an whole-reexport in the entrypoint', () => {
       const fileService = new MemoryFileService();
       fileService.set('/app/main.ts', `export * from './a';`);
       fileService.set('/app/a.ts', `export const a = 'a';`);
 
-      await edit({
+      edit({
         fileService,
         recursive,
         entrypoints: ['/app/main.ts'],
@@ -1059,7 +1059,7 @@ const c = 'c';`,
       () => {},
     );
 
-    it('should delete the whole re-export if the destination file does not exist', async () => {
+    it('should delete the whole re-export if the destination file does not exist', () => {
       const fileService = new MemoryFileService();
       fileService.set('/app/main.ts', `import { b2 } from './b';`);
       fileService.set(
@@ -1073,7 +1073,7 @@ export const b = 'b';`,
       );
       fileService.set('/app/a.ts', `export const a = 'a';`);
 
-      await edit({
+      edit({
         fileService,
         recursive,
         entrypoints: ['/app/main.ts'],
@@ -1086,13 +1086,13 @@ export const b = 'b';`,
   });
 
   describe('namespace export declaration', () => {
-    it('should not remove namespace export declaration if its used in some other file', async () => {
+    it('should not remove namespace export declaration if its used in some other file', () => {
       const fileService = new MemoryFileService();
       fileService.set('/app/main.ts', `import { a } from './a';`);
       fileService.set('/app/a.ts', `export * as a from './b';`);
       fileService.set('/app/b.ts', `export const b = 'b';`);
 
-      await edit({
+      edit({
         fileService,
         recursive,
         entrypoints: ['/app/main.ts'],
@@ -1101,12 +1101,12 @@ export const b = 'b';`,
       assert.equal(fileService.get('/app/a.ts'), `export * as a from './b';`);
     });
 
-    it('should remove namespace export declaration if its not used in some other file', async () => {
+    it('should remove namespace export declaration if its not used in some other file', () => {
       const fileService = new MemoryFileService();
       fileService.set('/app/a.ts', `export * as a from './b';`);
       fileService.set('/app/b.ts', `export const b = 'b';`);
 
-      await edit({
+      edit({
         fileService,
         recursive,
         entrypoints: ['/app/main.ts'],
@@ -1117,11 +1117,11 @@ export const b = 'b';`,
   });
 
   describe('ambient module declaration', () => {
-    it('should not delete file with ambient module declaration', async () => {
+    it('should not delete file with ambient module declaration', () => {
       const fileService = new MemoryFileService();
       fileService.set('/app/a.ts', `declare module 'a' {}`);
 
-      await edit({
+      edit({
         fileService,
         recursive,
         entrypoints: ['/app/main.ts'],
@@ -1131,11 +1131,11 @@ export const b = 'b';`,
       assert.equal(fileService.get('/app/a.ts'), `declare module 'a' {}`);
     });
 
-    it('should not delete file with global scope augmentation', async () => {
+    it('should not delete file with global scope augmentation', () => {
       const fileService = new MemoryFileService();
       fileService.set('/app/a.ts', `declare global {}\nexport {};`);
 
-      await edit({
+      edit({
         fileService,
         recursive,
         entrypoints: ['/app/main.ts'],
@@ -1148,11 +1148,11 @@ export const b = 'b';`,
       );
     });
 
-    it('should keep the empty export declaration as-is if the file has a ambient module declaration', async () => {
+    it('should keep the empty export declaration as-is if the file has a ambient module declaration', () => {
       const fileService = new MemoryFileService();
       fileService.set('/app/a.ts', `declare module 'a' {}\nexport {};`);
 
-      await edit({
+      edit({
         fileService,
         recursive,
         entrypoints: ['/app/main.ts'],
@@ -1165,7 +1165,7 @@ export const b = 'b';`,
       );
     });
 
-    it('should not change external module augmentation to a non-augmentation', async () => {
+    it('should not change external module augmentation to a non-augmentation', () => {
       const fileService = new MemoryFileService();
       // if the file is a external module, the ModuleDeclaration is an augmentation
       // after removing the export, the ModuleDeclaration should still be a module augmentation
@@ -1174,7 +1174,7 @@ export const b = 'b';`,
         `declare module 'a' {}\nexport const a = 'a';`,
       );
 
-      await edit({
+      edit({
         fileService,
         recursive,
         entrypoints: ['/app/main.ts'],
@@ -1192,7 +1192,7 @@ export {};\n`,
       );
     });
 
-    it('should not add an empty export export declaration to a file with ambient module declaration if its already an external module', async () => {
+    it('should not add an empty export export declaration to a file with ambient module declaration if its already an external module', () => {
       const fileService = new MemoryFileService();
       fileService.set('/app/main.ts', `import { a } from './a';`);
       fileService.set(
@@ -1200,7 +1200,7 @@ export {};\n`,
         `declare module 'a' {};export const a = 'a';export const b = 'b';`,
       );
 
-      await edit({
+      edit({
         fileService,
         recursive,
         entrypoints: ['/app/main.ts'],
@@ -1216,12 +1216,12 @@ export {};\n`,
   });
 
   describe('named export declaration with no specifier', () => {
-    it('should remove the export declaration if there are other exports in the file', async () => {
+    it('should remove the export declaration if there are other exports in the file', () => {
       const fileService = new MemoryFileService();
       fileService.set('/app/main.ts', `import { a } from './a';`);
       fileService.set('/app/a.ts', `export {};export const a = 'a';`);
 
-      await edit({
+      edit({
         fileService,
         recursive,
         entrypoints: ['/app/main.ts'],
@@ -1231,12 +1231,12 @@ export {};\n`,
       assert.equal(fileService.get('/app/a.ts'), `export const a = 'a';`);
     });
 
-    it('should remove the multiple export declarations if there are other exports in the file', async () => {
+    it('should remove the multiple export declarations if there are other exports in the file', () => {
       const fileService = new MemoryFileService();
       fileService.set('/app/main.ts', `import { a } from './a';`);
       fileService.set('/app/a.ts', `export {};export const a = 'a';export {};`);
 
-      await edit({
+      edit({
         fileService,
         recursive,
         entrypoints: ['/app/main.ts'],
@@ -1246,11 +1246,11 @@ export {};\n`,
       assert.equal(fileService.get('/app/a.ts'), `export const a = 'a';`);
     });
 
-    it('should not remove the export declaration if there are no other exports in the file', async () => {
+    it('should not remove the export declaration if there are no other exports in the file', () => {
       const fileService = new MemoryFileService();
       fileService.set('/app/a.ts', `export {};`);
 
-      await edit({
+      edit({
         fileService,
         recursive,
         entrypoints: ['/app/main.ts'],
@@ -1260,11 +1260,11 @@ export {};\n`,
       assert.equal(fileService.get('/app/a.ts'), `export {};`);
     });
 
-    it('should preserve one export declaration if there are multiple export declarations and there are no other exports in the file', async () => {
+    it('should preserve one export declaration if there are multiple export declarations and there are no other exports in the file', () => {
       const fileService = new MemoryFileService();
       fileService.set('/app/a.ts', `export {};export {};`);
 
-      await edit({
+      edit({
         fileService,
         recursive,
         entrypoints: ['/app/main.ts'],
@@ -1276,12 +1276,12 @@ export {};\n`,
   });
 
   describe('namespace import', () => {
-    it('should not remove export for namespace import if its used in some other file', async () => {
+    it('should not remove export for namespace import if its used in some other file', () => {
       const fileService = new MemoryFileService();
       fileService.set('/app/main.ts', `import * as a from './a'; a.a;`);
       fileService.set('/app/a.ts', `export const a = 'a';`);
 
-      await edit({
+      edit({
         fileService,
         recursive,
         entrypoints: ['/app/main.ts'],
@@ -1290,7 +1290,7 @@ export {};\n`,
       assert.equal(fileService.get('/app/a.ts'), `export const a = 'a';`);
     });
 
-    it('should remove export used with namespace import even when some exports are used', async () => {
+    it('should remove export used with namespace import even when some exports are used', () => {
       const fileService = new MemoryFileService();
       fileService.set('/app/main.ts', `import * as a from './a'; a.a;`);
       fileService.set(
@@ -1298,7 +1298,7 @@ export {};\n`,
         `export const a = 'a'; export const b = 'b';`,
       );
 
-      await edit({
+      edit({
         fileService,
         recursive,
         entrypoints: ['/app/main.ts'],
@@ -1312,7 +1312,7 @@ export {};\n`,
   });
 
   describe('locally used declaration but not used in any other file', () => {
-    it('should remove export keyword of variable if its not used in any other file', async () => {
+    it('should remove export keyword of variable if its not used in any other file', () => {
       const fileService = new MemoryFileService();
       fileService.set('/app/main.ts', `import { a } from './a';`);
 
@@ -1323,7 +1323,7 @@ export const b = 'b';
 console.log(b);`,
       );
 
-      await edit({
+      edit({
         fileService,
         recursive,
         entrypoints: ['/app/main.ts'],
@@ -1337,7 +1337,7 @@ console.log(b);`,
       );
     });
 
-    it('should remove export keyword of class declaration if its not used in any other file', async () => {
+    it('should remove export keyword of class declaration if its not used in any other file', () => {
       const fileService = new MemoryFileService();
       fileService.set('/app/main.ts', `import { a } from './a';`);
 
@@ -1348,7 +1348,7 @@ export class B {}
 console.log(B);`,
       );
 
-      await edit({
+      edit({
         fileService,
         recursive,
         entrypoints: ['/app/main.ts'],
@@ -1362,7 +1362,7 @@ console.log(B);`,
       );
     });
 
-    it('should remove export keyword of interface declaration if its not used in any other file', async () => {
+    it('should remove export keyword of interface declaration if its not used in any other file', () => {
       const fileService = new MemoryFileService();
       fileService.set('/app/main.ts', `import { a } from './a';`);
 
@@ -1373,7 +1373,7 @@ export interface B {}
 const b: B = {};`,
       );
 
-      await edit({
+      edit({
         fileService,
         recursive,
         entrypoints: ['/app/main.ts'],
@@ -1389,7 +1389,7 @@ const b: B = {};`,
   });
 
   describe('dynamic import', () => {
-    it('should not remove export if its used in dynamic import', async () => {
+    it('should not remove export if its used in dynamic import', () => {
       const fileService = new MemoryFileService();
       fileService.set(
         '/app/main.ts',
@@ -1399,7 +1399,7 @@ import('./b.js');`,
       fileService.set('/app/a.ts', `export const a = 'a';`);
       fileService.set('/app/b.ts', `export default 'b';`);
 
-      await edit({
+      edit({
         fileService,
         recursive,
         entrypoints: ['/app/main.ts'],
@@ -1412,12 +1412,12 @@ import('./b.js');`,
 
   describe('deleteUnusedFile is false', () => {
     describe('when the export is in a file that is not reachable from the entrypoint', () => {
-      it('should not remove export if its used in some other file', async () => {
+      it('should not remove export if its used in some other file', () => {
         const fileService = new MemoryFileService();
         fileService.set('/app/a.ts', `export const a = 'a';`);
         fileService.set('/app/b.ts', `import { a } from './a';`);
 
-        await edit({
+        edit({
           fileService,
           recursive,
           entrypoints: ['/app/main.ts'],
@@ -1426,11 +1426,11 @@ import('./b.js');`,
         assert.equal(fileService.get('/app/a.ts'), `export const a = 'a';`);
       });
 
-      it('should correctly remove export if its not used', async () => {
+      it('should correctly remove export if its not used', () => {
         const fileService = new MemoryFileService();
         fileService.set('/app/a.ts', `export const a = 'a';`);
 
-        await edit({
+        edit({
           fileService,
           recursive,
           entrypoints: ['/app/main.ts'],
@@ -1441,12 +1441,12 @@ import('./b.js');`,
     });
 
     describe("when the export is in a file that's reachable from the entrypoint", () => {
-      it('should not remove export if its used in some other file', async () => {
+      it('should not remove export if its used in some other file', () => {
         const fileService = new MemoryFileService();
         fileService.set('/app/main.ts', `import { a } from './a';`);
         fileService.set('/app/a.ts', `export const a = 'a';`);
 
-        await edit({
+        edit({
           fileService,
           recursive,
           entrypoints: ['/app/main.ts'],
@@ -1455,7 +1455,7 @@ import('./b.js');`,
         assert.equal(fileService.get('/app/a.ts'), `export const a = 'a';`);
       });
 
-      it('should correctly remove export if its not used', async () => {
+      it('should correctly remove export if its not used', () => {
         const fileService = new MemoryFileService();
         fileService.set('/app/main.ts', `import { a } from './a';`);
         fileService.set(
@@ -1464,7 +1464,7 @@ import('./b.js');`,
 export const a2 = 'a2';`,
         );
 
-        await edit({
+        edit({
           fileService,
           recursive,
           entrypoints: ['/app/main.ts'],
@@ -1480,7 +1480,7 @@ const a2 = 'a2';`,
   });
 
   describe('deleteUnusedFile is true', () => {
-    it('should not remove file if some exports are used in other files', async () => {
+    it('should not remove file if some exports are used in other files', () => {
       const fileService = new MemoryFileService();
       fileService.set(
         '/app/main.ts',
@@ -1531,7 +1531,7 @@ const a2 = 'a2';`,
   export interface E {}`,
       );
 
-      await edit({
+      edit({
         fileService,
         recursive,
         entrypoints: ['/app/main.ts'],
@@ -1545,7 +1545,7 @@ const a2 = 'a2';`,
       assert.equal(fileService.exists('/app/e.ts'), true);
     });
 
-    it('should remove file if all exports are not used', async () => {
+    it('should remove file if all exports are not used', () => {
       const fileService = new MemoryFileService();
       fileService.set(
         '/app/a.ts',
@@ -1555,7 +1555,7 @@ const a2 = 'a2';`,
   export type D = 'd';
   export interface E {}`,
       );
-      await edit({
+      edit({
         fileService,
         recursive,
         entrypoints: ['/app/main.ts'],
@@ -1565,13 +1565,13 @@ const a2 = 'a2';`,
       assert.equal(fileService.exists('/app/a.ts'), false);
     });
 
-    it('should not remove re-exports of all exports file if its used', async () => {
+    it('should not remove re-exports of all exports file if its used', () => {
       const fileService = new MemoryFileService();
       fileService.set('/app/main.ts', `import { a } from './a_reexport';`);
       fileService.set('/app/a_reexport.ts', `export * from './a';`);
       fileService.set('/app/a.ts', `export const a = 'a';`);
 
-      await edit({
+      edit({
         fileService,
         recursive,
         entrypoints: ['/app/main.ts'],
@@ -1581,12 +1581,12 @@ const a2 = 'a2';`,
       assert.equal(fileService.exists('/app/a_reexport.ts'), true);
     });
 
-    it('should remove re-exports of all exports file if its not used', async () => {
+    it('should remove re-exports of all exports file if its not used', () => {
       const fileService = new MemoryFileService();
       fileService.set('/app/a_reexport.ts', `export * from './a';`);
       fileService.set('/app/a.ts', `export const a = 'a';`);
 
-      await edit({
+      edit({
         fileService,
         recursive,
         entrypoints: ['/app/main.ts'],
@@ -1596,7 +1596,7 @@ const a2 = 'a2';`,
       assert.equal(fileService.exists('/app/a_reexport.ts'), false);
     });
 
-    it('should not remove file if some exports are marked with skip comment', async () => {
+    it('should not remove file if some exports are marked with skip comment', () => {
       const fileService = new MemoryFileService();
       fileService.set(
         '/app/a.ts',
@@ -1644,7 +1644,7 @@ const a2 = 'a2';`,
   export interface E {}`,
       );
 
-      await edit({
+      edit({
         fileService,
         recursive,
         entrypoints: ['/app/main.ts'],
@@ -1658,14 +1658,14 @@ const a2 = 'a2';`,
       assert.equal(fileService.exists('/app/e.ts'), true);
     });
 
-    it('should remove files that are not connected to the graph that starts from entrypoints', async () => {
+    it('should remove files that are not connected to the graph that starts from entrypoints', () => {
       const fileService = new MemoryFileService();
       fileService.set('/app/main.ts', `import { a } from './a';`);
       fileService.set('/app/a.ts', `export const a = () => 'a';`);
       fileService.set('/app/b.ts', `import { c } from './c';`);
       fileService.set('/app/c.ts', `export const c = 'c';`);
 
-      await edit({
+      edit({
         fileService,
         recursive,
         entrypoints: ['/app/main.ts'],
@@ -1677,7 +1677,7 @@ const a2 = 'a2';`,
       assert.equal(fileService.exists('/app/c.ts'), false);
     });
 
-    it('should remove files that are unreachable from entrypoints', async () => {
+    it('should remove files that are unreachable from entrypoints', () => {
       const fileService = new MemoryFileService();
       fileService.set('/app/main.ts', `import { a } from './a';`);
       fileService.set(
@@ -1693,7 +1693,7 @@ export const c = () => b;`,
       );
       fileService.set('/app/d.ts', `import { c } from './c';`);
 
-      await edit({
+      edit({
         fileService,
         recursive,
         entrypoints: ['/app/main.ts'],
@@ -1706,7 +1706,7 @@ export const c = () => b;`,
     });
 
     describe('when the export is in a file that is not reachable from the entrypoint', () => {
-      it('should remove all files that are not reachable no matter if they form another dependency graph', async () => {
+      it('should remove all files that are not reachable no matter if they form another dependency graph', () => {
         const fileService = new MemoryFileService();
         fileService.set('/app/a.ts', `export const a = 'a';`);
         fileService.set('/app/b.ts', `import { a } from './a';`);
@@ -1715,7 +1715,7 @@ export const c = () => b;`,
         fileService.set('/app/c.ts', `import { d } from './d';`);
         fileService.set('/app/d.ts', `export const d = 'd';`);
 
-        await edit({
+        edit({
           fileService,
           recursive,
           entrypoints: ['/app/main.ts'],
@@ -1728,11 +1728,11 @@ export const c = () => b;`,
         assert.equal(fileService.exists('/app/d.ts'), false);
       });
 
-      it('should remove files that do not form another dependency graph', async () => {
+      it('should remove files that do not form another dependency graph', () => {
         const fileService = new MemoryFileService();
         fileService.set('/app/a.ts', `export const a = 'a';`);
 
-        await edit({
+        edit({
           fileService,
           recursive,
           entrypoints: ['/app/main.ts'],
@@ -1742,7 +1742,7 @@ export const c = () => b;`,
         assert.equal(fileService.exists('/app/a.ts'), false);
       });
 
-      it('should not remove files that have a comment to skip', async () => {
+      it('should not remove files that have a comment to skip', () => {
         const fileService = new MemoryFileService();
         fileService.set(
           '/app/a.ts',
@@ -1750,7 +1750,7 @@ export const c = () => b;`,
 export const a = 'a';`,
         );
 
-        await edit({
+        edit({
           fileService,
           recursive,
           entrypoints: ['/app/main.ts'],
@@ -1766,12 +1766,12 @@ export const a = 'a';`,
     });
 
     describe("when the export is in a file that's reachable from the entrypoint", () => {
-      it('should not remove export if its used in some other file', async () => {
+      it('should not remove export if its used in some other file', () => {
         const fileService = new MemoryFileService();
         fileService.set('/app/main.ts', `import { a } from './a';`);
         fileService.set('/app/a.ts', `export const a = 'a';`);
 
-        await edit({
+        edit({
           fileService,
           recursive,
           entrypoints: ['/app/main.ts'],
@@ -1781,7 +1781,7 @@ export const a = 'a';`,
         assert.equal(fileService.get('/app/a.ts'), `export const a = 'a';`);
       });
 
-      it('should correctly remove export if its not used', async () => {
+      it('should correctly remove export if its not used', () => {
         const fileService = new MemoryFileService();
         fileService.set('/app/main.ts', `import { a } from './a';`);
         fileService.set(
@@ -1790,7 +1790,7 @@ export const a = 'a';`,
   export const a2 = 'a2';`,
         );
 
-        await edit({
+        edit({
           fileService,
           recursive,
           entrypoints: ['/app/main.ts'],
@@ -1807,7 +1807,7 @@ export const a = 'a';`,
   });
 
   describe('enableCodeFix', () => {
-    it('should apply code fix when enableCodeFix is true', async () => {
+    it('should apply code fix when enableCodeFix is true', () => {
       const fileService = new MemoryFileService();
 
       fileService.set('/app/main.ts', `import { remain } from './a';`);
@@ -1818,7 +1818,7 @@ export const a = () => dep;
 export const remain = 'remain';`,
       );
 
-      await edit({
+      edit({
         fileService,
         recursive,
         entrypoints: ['/app/main.ts'],
@@ -1833,7 +1833,7 @@ export const remain = 'remain';`,
   });
 
   describe('complex scenarios', () => {
-    it('should recursively remove files', async () => {
+    it('should recursively remove files', () => {
       const fileService = new MemoryFileService();
       fileService.set('/app/main.ts', `import { a2 } from './a';`);
       fileService.set(
@@ -1849,7 +1849,7 @@ export const b = () => c;`,
       );
       fileService.set('/app/c.ts', `export const c = 'c';`);
 
-      await edit({
+      edit({
         fileService,
         recursive,
         entrypoints: ['/app/main.ts'],
@@ -1861,7 +1861,7 @@ export const b = () => c;`,
       assert.equal(fileService.exists('/app/c.ts'), false);
     });
 
-    it('should correctly handle files that rely on files that are part of the dependency graph but are not reachable from the entrypoint', async () => {
+    it('should correctly handle files that rely on files that are part of the dependency graph but are not reachable from the entrypoint', () => {
       const fileService = new MemoryFileService();
       fileService.set('/app/main.ts', `import { a } from './a';`);
       fileService.set(
@@ -1871,7 +1871,7 @@ export const a2 = 'a2';`,
       );
       fileService.set('/app/b.ts', `import { a2 } from './a';`);
 
-      await edit({
+      edit({
         fileService,
         recursive,
         entrypoints: ['/app/main.ts'],
@@ -1883,7 +1883,7 @@ export const a2 = 'a2';`,
       assert.equal(fileService.exists('/app/b.ts'), false);
     });
 
-    it('should not remove exports that are not reachable from the entrypoint but is used in some file marked with skip', async () => {
+    it('should not remove exports that are not reachable from the entrypoint but is used in some file marked with skip', () => {
       const fileService = new MemoryFileService();
       fileService.set(
         '/app/a.ts',
@@ -1893,7 +1893,7 @@ export const a = () => b;`,
       );
       fileService.set('/app/b.ts', `export const b = 'b';`);
 
-      await edit({
+      edit({
         fileService,
         recursive,
         entrypoints: ['/app/main.ts'],
@@ -1910,7 +1910,7 @@ export const a = () => b;`,
       assert.equal(fileService.get('/app/b.ts'), `export const b = 'b';`);
     });
 
-    it('should keep the entrypoint files untouched', async () => {
+    it('should keep the entrypoint files untouched', () => {
       const fileService = new MemoryFileService();
       fileService.set(
         '/app/main.ts',
@@ -1925,7 +1925,7 @@ export const a = () => d;
 export const a2 = 'a2';`,
       );
 
-      await edit({
+      edit({
         fileService,
         recursive,
         entrypoints: ['/app/main.ts'],
@@ -1946,12 +1946,12 @@ export const a = () => d;\n`,
       );
     });
 
-    it('should not delete dynamically imported files', async () => {
+    it('should not delete dynamically imported files', () => {
       const fileService = new MemoryFileService();
       fileService.set('/app/main.ts', `import('./a');`);
       fileService.set('/app/a.ts', `export const a = 'a';`);
 
-      await edit({
+      edit({
         fileService,
         recursive,
         entrypoints: ['/app/main.ts'],
@@ -1962,12 +1962,12 @@ export const a = () => d;\n`,
       assert.equal(fileService.exists('/app/a.ts'), true);
     });
 
-    it('should not delete files when the entrypoint is a reexport', async () => {
+    it('should not delete files when the entrypoint is a reexport', () => {
       const fileService = new MemoryFileService();
       fileService.set('/app/main.ts', `export { a } from './a';`);
       fileService.set('/app/a.ts', `export const a = 'a';`);
 
-      await edit({
+      edit({
         fileService,
         recursive,
         entrypoints: ['/app/main.ts'],
@@ -1979,12 +1979,12 @@ export const a = () => d;\n`,
       assert.equal(fileService.exists('/app/main.ts'), true);
     });
 
-    it('should not delete files when the entrypoint is a whole reexport', async () => {
+    it('should not delete files when the entrypoint is a whole reexport', () => {
       const fileService = new MemoryFileService();
       fileService.set('/app/main.ts', `export * from './a';`);
       fileService.set('/app/a.ts', `export const a = 'a';`);
 
-      await edit({
+      edit({
         fileService,
         recursive,
         entrypoints: ['/app/main.ts'],
@@ -1996,13 +1996,13 @@ export const a = () => d;\n`,
       assert.equal(fileService.exists('/app/main.ts'), true);
     });
 
-    it('should not delete files when the entrypoint is a whole reexport and is the reexported multiple times', async () => {
+    it('should not delete files when the entrypoint is a whole reexport and is the reexported multiple times', () => {
       const fileService = new MemoryFileService();
       fileService.set('/app/main.ts', `export * from './a_reexport';`);
       fileService.set('/app/a_reexport.ts', `export * from './a';`);
       fileService.set('/app/a.ts', `export const a = 'a';`);
 
-      await edit({
+      edit({
         fileService,
         recursive,
         entrypoints: ['/app/main.ts'],
@@ -2015,13 +2015,13 @@ export const a = () => d;\n`,
       assert.equal(fileService.exists('/app/a_reexport.ts'), true);
     });
 
-    it('should remove whole reexport if the specifier file is deleted', async () => {
+    it('should remove whole reexport if the specifier file is deleted', () => {
       const fileService = new MemoryFileService();
       fileService.set('/app/main.ts', `import { b } from './b';`);
       fileService.set('/app/b.ts', `export * from './a';export const b = 'b';`);
       fileService.set('/app/a.ts', `export const a = 'a';`);
 
-      await edit({
+      edit({
         fileService,
         recursive,
         entrypoints: ['/app/main.ts'],
@@ -2035,7 +2035,7 @@ export const a = () => d;\n`,
   });
 
   describe('backwards compatibility', () => {
-    it('should not remove export if it has old skip comment', async () => {
+    it('should not remove export if it has old skip comment', () => {
       const fileService = new MemoryFileService();
       fileService.set(
         '/app/a.ts',
@@ -2043,7 +2043,7 @@ export const a = () => d;\n`,
 export const a = 'a';`,
       );
 
-      await edit({
+      edit({
         fileService,
         recursive,
         entrypoints: ['/app/main.ts'],
