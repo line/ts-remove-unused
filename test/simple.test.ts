@@ -31,11 +31,8 @@ test('simple', async () => {
     projectRoot,
     mode: 'check',
     logger,
-    system: {
-      ...ts.sys,
-      exit: () => {},
-    },
-  });
+    system: ts.sys,
+  }).catch(() => {});
 
   const stripedOutput = stripAnsi(output);
 

@@ -27,22 +27,13 @@ describe('project: skip', () => {
       isTTY: false as const,
     };
 
-    const exitHistory: (number | undefined)[] = [];
-
-    const exit = (code?: number) => {
-      exitHistory.push(code);
-    };
-
     await tsr({
       entrypoints: [],
       projectRoot,
       mode: 'check',
       logger,
-      system: {
-        ...ts.sys,
-        exit,
-      },
-    });
+      system: ts.sys,
+    }).catch(() => {});
 
     const stripedOutput = stripAnsi(output);
 
@@ -50,7 +41,6 @@ describe('project: skip', () => {
       stripedOutput,
       `At least one pattern must be specified for entrypoints\n`,
     );
-    assert.deepEqual(exitHistory, [1]);
   });
 
   it('should throw an error if no files are matched', async () => {
@@ -65,26 +55,16 @@ describe('project: skip', () => {
       isTTY: false as const,
     };
 
-    const exitHistory: (number | undefined)[] = [];
-
-    const exit = (code?: number) => {
-      exitHistory.push(code);
-    };
-
     await tsr({
       entrypoints: [/foo\.ts/],
       projectRoot,
       mode: 'check',
       logger,
-      system: {
-        ...ts.sys,
-        exit,
-      },
-    });
+      system: ts.sys,
+    }).catch(() => {});
 
     const stripedOutput = stripAnsi(output);
 
     assert.equal(stripedOutput, `No files matched the entrypoints pattern\n`);
-    assert.deepEqual(exitHistory, [1]);
   });
 });

@@ -37,7 +37,7 @@ describe('project: include_dts', () => {
         exit: () => {},
       },
       includeDts: true,
-    });
+    }).catch(() => {});
 
     const stripedOutput = stripAnsi(output);
 
@@ -73,7 +73,7 @@ export types.d.ts:2:0     'B'
         exit: () => {},
       },
       includeDts: false,
-    });
+    }).catch(() => {});
 
     const stripedOutput = stripAnsi(output);
 

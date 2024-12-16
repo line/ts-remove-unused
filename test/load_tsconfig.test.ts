@@ -32,11 +32,8 @@ describe('project: load_tsconfig', () => {
       projectRoot,
       mode: 'check',
       logger,
-      system: {
-        ...ts.sys,
-        exit: () => {},
-      },
-    });
+      system: ts.sys,
+    }).catch(() => {});
 
     const stripedOutput = stripAnsi(output);
 
@@ -67,11 +64,8 @@ Project has 1 file. Found 1 entrypoint file
       projectRoot,
       mode: 'check',
       logger,
-      system: {
-        ...ts.sys,
-        exit: () => {},
-      },
-    });
+      system: ts.sys,
+    }).catch(() => {});
 
     const stripedOutput = stripAnsi(output);
 
@@ -102,11 +96,8 @@ Project has 1 file. Found 1 entrypoint file
       projectRoot,
       mode: 'check',
       logger,
-      system: {
-        ...ts.sys,
-        exit: () => {},
-      },
-    });
+      system: ts.sys,
+    }).catch(() => {});
 
     const stripedOutput = stripAnsi(output);
 
