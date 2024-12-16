@@ -91,10 +91,10 @@ const getChange = (
     .getChildren()
     .findIndex((n) => n.kind === ts.SyntaxKind.SyntaxList);
 
-  const syntaxList = node?.getChildren()[syntaxListIndex];
+  const syntaxList = node.getChildren()[syntaxListIndex];
 
   if (!syntaxList) {
-    throw new Error('Syntaxlist missing');
+    throw new Error('syntaxlist missing');
   }
 
   const firstKeywordToDeleteIndex = syntaxList

@@ -296,24 +296,18 @@ function a2() {}`,
       fileService.set(
         '/app/a.ts',
         `@myDecorator
-export class A {}
-const a = new A();
-console.log(a);`,
+export class A {}`,
       );
       fileService.set(
         '/app/b.ts',
         `@myDecorator
-export default class B {}
-const b = new B();
-console.log(b);`,
+export default class B {}`,
       );
       fileService.set(
         '/app/c.ts',
         `@firstDecorator
 @secondDecorator(() => [WithArgument])
-export default class C {}
-const c = new C();
-console.log(c);`,
+export default class C {}`,
       );
 
       edit({
@@ -325,26 +319,20 @@ console.log(c);`,
       assert.equal(
         fileService.get('/app/a.ts'),
         `@myDecorator
-class A {}
-const a = new A();
-console.log(a);`,
+class A {}`,
       );
 
       assert.equal(
         fileService.get('/app/b.ts'),
         `@myDecorator
-class B {}
-const b = new B();
-console.log(b);`,
+class B {}`,
       );
 
       assert.equal(
         fileService.get('/app/c.ts'),
         `@firstDecorator
 @secondDecorator(() => [WithArgument])
-class C {}
-const c = new C();
-console.log(c);`,
+class C {}`,
       );
     });
 
