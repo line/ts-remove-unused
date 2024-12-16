@@ -104,7 +104,7 @@ This will take longer but is helpful when you want to edit in one pass.
 
 #### `--include-d-ts`
 
-By default, exported types in `.d.ts` files are not detected. Use the `--include-d-ts` option if you want to include types in `.d.ts` files
+By default, exported types in `.d.ts` files are not detected. Use the `--include-d-ts` option if you want to include types in `.d.ts` files.
 
 ### JavaScript API
 
@@ -136,7 +136,7 @@ Check the type definition `import('tsr').Config` for all of the available option
 
 ## Skip
 
-When you add a comment `// tsr-skip` to your export declaration, it will be skipped from being removed
+When you add a comment `// tsr-skip` to your export declaration, it will be skipped from being removed.
 
 ```ts
 // tsr-skip
@@ -208,7 +208,7 @@ When `f()` is not used within the project,
 
 #### Zero Configuration
 
-Knip expects users to provide a config file. While this adds the flexibility, it's difficult to correctly configure Knip to suite your needs. tsr relies on `tsconfig.json` to avoid additional setup. If you have a `tsconfig.json` configured in your repository, it works out of the box.
+Knip expects users to provide a config file. While this adds the flexibility, it's difficult to correctly configure Knip to suit your needs. tsr relies on `tsconfig.json` to avoid additional setup. If you have a `tsconfig.json` configured in your repository, it works out of the box.
 
 #### Less ambiguity
 
@@ -232,7 +232,7 @@ Our benchmark shows that tsr is 2.14x faster compared to Knip 🚀 (see `benchma
 
 #### Recursive Editing
 
-tsr provides `---recursive` option which will edit your files until there are no unused code in one pass.
+tsr provides `--recursive` option which will edit your files until there are no unused code in one pass.
 
 #### Key Differences
 
