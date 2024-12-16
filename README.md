@@ -116,6 +116,8 @@ import { tsr } from 'tsr';
 await tsr({
   entrypoints: [/main\.ts/],
   mode: 'check',
+}).catch(() => {
+  process.exitCode = 1;
 });
 ```
 
