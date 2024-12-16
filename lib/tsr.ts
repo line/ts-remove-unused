@@ -7,6 +7,7 @@ import { cwd, stdout } from 'node:process';
 import { relative, resolve } from 'node:path';
 import { formatCount } from './util/formatCount.js';
 import { CliOutput } from './util/CliOutput.js';
+import { ArgError, CheckResultError } from './util/error.js';
 
 const createNodeJsLogger = (): Logger =>
   'isTTY' in stdout && stdout.isTTY
@@ -75,15 +76,13 @@ export const tsr = async ({
       ),
     );
 
-    system.exit(1);
-    return;
+    throw new ArgError();
   }
 
   if (entrypointFiles.length === 0) {
     logger.write(pc.red(pc.bold('No files matched the entrypoints pattern\n')));
 
-    system.exit(1);
-    return;
+    throw new ArgError();
   }
 
   logger.write(
@@ -129,5 +128,7 @@ export const tsr = async ({
 
   const { code } = output.done();
 
-  system.exit(code);
+  if (code !== 0) {
+    throw new CheckResultError();
+  }
 };

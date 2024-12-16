@@ -3,6 +3,7 @@ import { tsr } from './tsr.js';
 import { createRequire } from 'node:module';
 import { arg } from './util/arg.js';
 import process from 'node:process';
+import { ArgError, CheckResultError } from './util/error.js';
 
 const options = [
   {
@@ -104,6 +105,13 @@ const main = () => {
     configFile: parsed.project ?? undefined,
     recursive: parsed.recursive,
     includeDts: parsed['include-d-ts'],
+  }).catch((error) => {
+    if (error instanceof CheckResultError || error instanceof ArgError) {
+      process.exitCode = 1;
+      return;
+    }
+
+    throw error;
   });
 };
 
