@@ -1,0 +1,8 @@
+{
+  "compilerOptions": {
+    "paths": {
+      // this can be anything, it's just specified to check if we're reading the tsconfig correctly
+      "@/*": ["./src/*"]
+    }
+  }
+}
