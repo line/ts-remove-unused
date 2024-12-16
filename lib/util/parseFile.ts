@@ -83,27 +83,47 @@ const getChange = (
     };
   }
 
-  // we want to correctly remove 'default' when its a default export so we get the syntaxList node instead of the exportKeyword node
-  // note: the first syntaxList node should contain the export keyword
+  /**
+   * The syntax list contains the keywords that can be found before the actual declaration.
+   * We want to remove everything that is not a decorator.
+   */
   const syntaxListIndex = node
     .getChildren()
     .findIndex((n) => n.kind === ts.SyntaxKind.SyntaxList);
 
-  const syntaxList = node.getChildren()[syntaxListIndex];
+  const syntaxList = node?.getChildren()[syntaxListIndex];
+
+  if (!syntaxList) {
+    throw new Error('Syntaxlist missing');
+  }
+
+  const firstKeywordToDeleteIndex = syntaxList
+    .getChildren()
+    .findIndex((n) => n.kind !== ts.SyntaxKind.Decorator);
+
+  const firstKeywordToDelete =
+    syntaxList.getChildren()[firstKeywordToDeleteIndex];
+
+  if (!firstKeywordToDelete) {
+    throw new Error(
+      'Unexpected syntax list when looking for keywords after decorators',
+    );
+  }
+
   const nextSibling = node.getChildren()[syntaxListIndex + 1];
 
-  if (!syntaxList || !nextSibling) {
-    throw new Error('Unexpected syntax');
+  if (!nextSibling) {
+    throw new Error('No sibling after syntax list');
   }
 
   return {
     code: node
       .getSourceFile()
       .getFullText()
-      .slice(syntaxList.getStart(), nextSibling.getStart()),
+      .slice(firstKeywordToDelete.getStart(), nextSibling.getStart()),
     span: {
-      start: syntaxList.getStart(),
-      length: nextSibling.getStart() - syntaxList.getStart(),
+      start: firstKeywordToDelete.getStart(),
+      length: nextSibling.getStart() - firstKeywordToDelete.getStart(),
     },
   };
 };
