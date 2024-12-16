@@ -73,4 +73,26 @@ export src/a.ts:2:0     'a2'
     );
     assert.equal(code, 1);
   });
+
+  it('should work with custom tsconfig.json', async () => {
+    const { stdout, code } = await exec(
+      `node ${bin} --project tsconfig.main.json 'src/main\\.ts$'`,
+      {
+        cwd: projectRoot,
+      },
+    )
+      .then((res) => ({ ...res, code: 0 }))
+      .catch((e) => e as { stdout: string; code: number });
+
+    const output = stripAnsi(stdout.toString());
+
+    assert.equal(
+      output,
+      `tsconfig tsconfig.main.json
+Project has 1 file. Found 1 entrypoint file
+✔ all good!
+`,
+    );
+    assert.equal(code, 0);
+  });
 });
