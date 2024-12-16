@@ -36,6 +36,7 @@ export type Config = {
   includeDts?: boolean;
 };
 
+// is async for backwards compatibility
 export const tsr = async ({
   entrypoints,
   mode,
@@ -102,7 +103,7 @@ export const tsr = async ({
     ),
   );
 
-  await edit({
+  edit({
     fileService,
     entrypoints: entrypointFiles,
     deleteUnusedFile: true,
