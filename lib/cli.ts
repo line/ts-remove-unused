@@ -102,7 +102,7 @@ const main = () => {
   return tsr({
     entrypoints: parsed._.map((entrypoint) => new RegExp(entrypoint)),
     mode: parsed.write ? 'write' : 'check',
-    configFile: parsed.project ?? undefined,
+    configFile: parsed.project || 'tsconfig.json',
     recursive: parsed.recursive,
     includeDts: parsed['include-d-ts'],
   }).catch((error) => {
