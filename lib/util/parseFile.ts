@@ -94,7 +94,7 @@ const getChange = (
   const syntaxList = node.getChildren()[syntaxListIndex];
 
   if (!syntaxList) {
-    throw new Error('syntaxlist missing');
+    throw new Error('syntaxList missing');
   }
 
   const firstKeywordToDeleteIndex = syntaxList
