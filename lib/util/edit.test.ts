@@ -289,6 +289,53 @@ function a2() {}`,
   });
 
   describe('class declaration', () => {
+    it('should not remove decorators when exports are deleted', () => {
+      const fileService = new MemoryFileService();
+
+      fileService.set('/app/main.ts', ``);
+      fileService.set(
+        '/app/a.ts',
+        `@myDecorator
+export class A {}`,
+      );
+      fileService.set(
+        '/app/b.ts',
+        `@myDecorator
+export default class B {}`,
+      );
+      fileService.set(
+        '/app/c.ts',
+        `@firstDecorator
+@secondDecorator(() => [WithArgument])
+export default class C {}`,
+      );
+
+      edit({
+        fileService,
+        recursive,
+        entrypoints: ['/app/main.ts'],
+      });
+
+      assert.equal(
+        fileService.get('/app/a.ts'),
+        `@myDecorator
+class A {}`,
+      );
+
+      assert.equal(
+        fileService.get('/app/b.ts'),
+        `@myDecorator
+class B {}`,
+      );
+
+      assert.equal(
+        fileService.get('/app/c.ts'),
+        `@firstDecorator
+@secondDecorator(() => [WithArgument])
+class C {}`,
+      );
+    });
+
     it('should not remove export for class if its used in some other file', () => {
       const fileService = new MemoryFileService();
 
