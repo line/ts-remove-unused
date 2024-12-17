@@ -156,4 +156,25 @@ describe('findFileUsage', () => {
     // but for now this is the expected behavior
     assert.deepEqual(result, new Set(['glob', 'cwd']));
   });
+
+  it('should handle files imported only for side effects', () => {
+    const fileService = new MemoryFileService();
+    fileService.set('/app/main.ts', `import './a';`);
+    fileService.set('/app/a.ts', `console.log('a');`);
+
+    const graph = createDependencyGraph({
+      fileService,
+      options,
+      entrypoints: ['/app/main.ts'],
+    });
+    const result = findFileUsage({
+      targetFile: '/app/a.ts',
+      vertexes: graph.eject(),
+      files: fileService.eject(),
+      fileNames: fileService.getFileNames(),
+      options: {},
+    });
+
+    assert.deepEqual(result, new Set(['#side-effect']));
+  });
 });

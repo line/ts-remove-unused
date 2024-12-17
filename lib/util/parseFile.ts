@@ -605,6 +605,13 @@ const fn = ({
         imports[resolved]?.push('default');
       }
 
+      // side effect import
+      if (!node.importClause) {
+        imports[resolved] ||= [];
+        // using a special symbol that can't be a valid identifier
+        imports[resolved]?.push('#side-effect');
+      }
+
       return;
     }
 

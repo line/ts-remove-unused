@@ -2103,4 +2103,22 @@ export const a = 'a';`,
       );
     });
   });
+
+  describe('side effect import', () => {
+    it('should not remove file if it is used for side effects', () => {
+      const fileService = new MemoryFileService();
+      fileService.set('/app/main.ts', `import './a';`);
+      fileService.set('/app/a.ts', `console.log('a');`);
+
+      edit({
+        fileService,
+        recursive,
+        deleteUnusedFile: true,
+        entrypoints: ['/app/main.ts'],
+      });
+
+      assert.equal(fileService.get('/app/main.ts'), `import './a';`);
+      assert.equal(fileService.get('/app/a.ts'), `console.log('a');`);
+    });
+  });
 });
