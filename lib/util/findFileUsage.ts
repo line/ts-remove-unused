@@ -133,6 +133,9 @@ export const findFileUsage = ({
   }
 
   return new Set(
-    result.filter((it) => exportsOfTargetFile.has(it) || it === '*'),
+    result.filter(
+      (it) =>
+        exportsOfTargetFile.has(it) || it === '*' || it === '#side-effect',
+    ),
   );
 };
