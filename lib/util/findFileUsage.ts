@@ -2,7 +2,8 @@ import ts from 'typescript';
 import { Vertexes } from './DependencyGraph.js';
 import { parseFile } from './parseFile.js';
 
-const ALL_EXPORTS_OF_UNKNOWN_FILE = '__all_exports_of_unknown_file__';
+const ALL_EXPORTS_OF_UNKNOWN_FILE = '#all_exports_of_unknown_file#';
+const CIRCULAR_DEPENDENCY = '#circular_dependency#';
 
 const getExportsOfFile = ({
   targetFile,
@@ -17,6 +18,7 @@ const getExportsOfFile = ({
 }) => {
   const result: string[] = [];
 
+  const alreadyVisited = new Set<string>();
   const stack = [targetFile];
 
   while (stack.length) {
@@ -25,6 +27,13 @@ const getExportsOfFile = ({
     if (!item) {
       break;
     }
+
+    if (alreadyVisited.has(item)) {
+      result.push(CIRCULAR_DEPENDENCY);
+      continue;
+    }
+
+    alreadyVisited.add(item);
 
     const { exports } = parseFile({
       file: item,
@@ -81,7 +90,7 @@ export const findFileUsage = ({
   );
 
   while (stack.length) {
-    const item = stack.pop()!;
+    const item = stack.pop();
 
     if (!item) {
       break;

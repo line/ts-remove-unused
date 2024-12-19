@@ -1130,6 +1130,26 @@ export const b = 'b';`,
       assert.equal(fileService.exists('/app/a_reexport.ts'), false);
       assert.equal(fileService.exists('/app/a.ts'), false);
     });
+
+    it('should look for deeply nested whole re-export without removing files', () => {
+      const fileService = new MemoryFileService();
+      fileService.set('/app/main.ts', `import { c } from './a';`);
+      fileService.set('/app/a.ts', `export * from './b';`);
+      fileService.set('/app/b.ts', `export * from './c';`);
+      fileService.set('/app/c.ts', `export const c = 'c';`);
+
+      edit({
+        fileService,
+        recursive,
+        deleteUnusedFile: true,
+        entrypoints: ['/app/main.ts'],
+      });
+
+      assert.equal(fileService.get('/app/main.ts'), `import { c } from './a';`);
+      assert.equal(fileService.get('/app/a.ts'), `export * from './b';`);
+      assert.equal(fileService.get('/app/b.ts'), `export * from './c';`);
+      assert.equal(fileService.get('/app/c.ts'), `export const c = 'c';`);
+    });
   });
 
   describe('namespace export declaration', () => {
