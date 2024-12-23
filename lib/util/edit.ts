@@ -12,7 +12,12 @@ import { MemoryFileService } from './MemoryFileService.js';
 import { findFileUsage } from './findFileUsage.js';
 import { parseFile } from './parseFile.js';
 import { Output } from './Output.js';
-import * as Export from './export.js';
+import {
+  WholeExportDeclarationWithFile,
+  isWholeExportDeclarationWithFile,
+  isNamedExport,
+  isWholeExportDeclaration,
+} from './export.js';
 
 const transform = (
   source: string,
@@ -93,7 +98,7 @@ const createLanguageService = ({
   projectRoot: string;
   fileService: FileService;
 }) => {
-  return ts.createLanguageService({
+  const languageService = ts.createLanguageService({
     getCompilationSettings() {
       return options;
     },
@@ -119,6 +124,8 @@ const createLanguageService = ({
       return fileService.get(name);
     },
   });
+
+  return languageService;
 };
 
 const updateExportDeclaration = (code: string, unused: string[]) => {
@@ -183,21 +190,41 @@ const getSpecifierPosition = (exportDeclaration: string) => {
 /**
  * Retrieves the names of the exports from a whole export declaration.
  * For each whole export declaration, it will recursively get the names of the exports from the file it points to.
- *
- * No need to memoize this function because `parseFile` already memoizes the file parsing.
  */
 const deeplyGetExportNames = ({
   item,
   files,
   fileNames,
   options,
-  filesAlreadyVisited = new Set<string>(),
 }: {
-  item: Export.WholeExportDeclaration.FileFound;
+  item: WholeExportDeclarationWithFile;
   files: Map<string, string>;
   fileNames: Set<string>;
   options: ts.CompilerOptions;
-  filesAlreadyVisited?: Set<string>;
+}): string[] => {
+  const filesAlreadyVisited = new Set<string>();
+
+  return innerDeeplyGetExportNames({
+    item,
+    files,
+    fileNames,
+    options,
+    filesAlreadyVisited,
+  });
+};
+
+const innerDeeplyGetExportNames = ({
+  item,
+  files,
+  fileNames,
+  options,
+  filesAlreadyVisited,
+}: {
+  item: WholeExportDeclarationWithFile;
+  files: Map<string, string>;
+  fileNames: Set<string>;
+  options: ts.CompilerOptions;
+  filesAlreadyVisited: Set<string>;
 }): string[] => {
   if (filesAlreadyVisited.has(item.file)) {
     return [];
@@ -212,12 +239,10 @@ const deeplyGetExportNames = ({
 
   const deepExportNames = parsed.exports
     .filter(
-      (v) =>
-        Export.isWholeExportDeclaration(v) &&
-        Export.WholeExportDeclaration.isFileFound(v),
+      (v) => isWholeExportDeclaration(v) && isWholeExportDeclarationWithFile(v),
     )
     .flatMap((v) =>
-      deeplyGetExportNames({
+      innerDeeplyGetExportNames({
         item: v,
         files,
         fileNames,
@@ -227,7 +252,7 @@ const deeplyGetExportNames = ({
     );
 
   return parsed.exports
-    .filter(Export.isNamedExport)
+    .filter(isNamedExport)
     .flatMap((v) => v.name)
     .concat(deepExportNames);
 };
@@ -475,7 +500,7 @@ const processFile = ({
             break;
           }
           case 'whole': {
-            if (!Export.WholeExportDeclaration.isFileFound(item)) {
+            if (!isWholeExportDeclarationWithFile(item)) {
               // whole export is directed towards a file that is not in the project
               break;
             }
@@ -583,11 +608,13 @@ export {};\n`,
   }
 
   if (changes.length === 0) {
-    return {
+    const result = {
       operation: 'edit' as const,
       content: files.get(targetFile) || '',
       removedExports: logs,
     };
+
+    return result;
   }
 
   let content = applyTextChanges(files.get(targetFile) || '', changes);
