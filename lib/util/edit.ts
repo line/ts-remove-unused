@@ -12,6 +12,12 @@ import { MemoryFileService } from './MemoryFileService.js';
 import { findFileUsage } from './findFileUsage.js';
 import { parseFile } from './parseFile.js';
 import { Output } from './Output.js';
+import {
+  WholeExportDeclarationWithFile,
+  isWholeExportDeclarationWithFile,
+  isNamedExport,
+  isWholeExportDeclaration,
+} from './export.js';
 
 const transform = (
   source: string,
@@ -148,7 +154,7 @@ const updateExportDeclaration = (code: string, unused: string[]) => {
 
   const printer = ts.createPrinter();
   const printed = result ? printer.printFile(result).replace(/\n$/, '') : '';
-  const leading = code.match(/^([\s]+)/)?.[0] || '';
+  const leading = code.match(/^(\s+)/)?.[0] || '';
 
   return `${leading}${printed}`;
 };
@@ -179,6 +185,76 @@ const getSpecifierPosition = (exportDeclaration: string) => {
   sourceFile.forEachChild(visit);
 
   return result;
+};
+
+/**
+ * Retrieves the names of the exports from a whole export declaration.
+ * For each whole export declaration, it will recursively get the names of the exports from the file it points to.
+ */
+const deeplyGetExportNames = ({
+  item,
+  files,
+  fileNames,
+  options,
+}: {
+  item: WholeExportDeclarationWithFile;
+  files: Map<string, string>;
+  fileNames: Set<string>;
+  options: ts.CompilerOptions;
+}): string[] => {
+  const filesAlreadyVisited = new Set<string>();
+
+  return innerDeeplyGetExportNames({
+    item,
+    files,
+    fileNames,
+    options,
+    filesAlreadyVisited,
+  });
+};
+
+const innerDeeplyGetExportNames = ({
+  item,
+  files,
+  fileNames,
+  options,
+  filesAlreadyVisited,
+}: {
+  item: WholeExportDeclarationWithFile;
+  files: Map<string, string>;
+  fileNames: Set<string>;
+  options: ts.CompilerOptions;
+  filesAlreadyVisited: Set<string>;
+}): string[] => {
+  if (filesAlreadyVisited.has(item.file)) {
+    return [];
+  }
+
+  const parsed = parseFile({
+    file: item.file,
+    content: files.get(item.file) || '',
+    options,
+    destFiles: fileNames,
+  });
+
+  const deepExportNames = parsed.exports
+    .filter(
+      (v) => isWholeExportDeclaration(v) && isWholeExportDeclarationWithFile(v),
+    )
+    .flatMap((v) =>
+      innerDeeplyGetExportNames({
+        item: v,
+        files,
+        fileNames,
+        options,
+        filesAlreadyVisited: filesAlreadyVisited.add(item.file),
+      }),
+    );
+
+  return parsed.exports
+    .filter(isNamedExport)
+    .flatMap((v) => v.name)
+    .concat(deepExportNames);
 };
 
 const processFile = ({
@@ -424,23 +500,19 @@ const processFile = ({
             break;
           }
           case 'whole': {
-            if (!item.file) {
+            if (!isWholeExportDeclarationWithFile(item)) {
               // whole export is directed towards a file that is not in the project
               break;
             }
 
-            const parsed = parseFile({
-              file: item.file,
-              content: files.get(item.file) || '',
+            const exportNames = deeplyGetExportNames({
+              item,
+              files,
+              fileNames,
               options,
-              destFiles: fileNames,
             });
 
-            const exported = parsed.exports.flatMap((v) =>
-              'name' in v ? v.name : [],
-            );
-
-            if (exported.some((v) => usage.has(v))) {
+            if (exportNames.some((v) => usage.has(v))) {
               break;
             }
 
@@ -582,13 +654,11 @@ export {};\n`,
 
   fileService.set(targetFile, content);
 
-  const result = {
+  return {
     operation: 'edit' as const,
     content: fileService.get(targetFile),
     removedExports: logs,
   };
-
-  return result;
 };
 
 export const edit = ({
